@@ -1,0 +1,10 @@
+<mujoco model="two">
+<compiler angle="radian" eulerseq="xyz" autolimits="true"/>
+<visual><global offwidth="1600" offheight="900"/></visual>
+<asset>
+<mesh name="a" inertia="shell" file="/data/robot_model_urdf/local_mukr9r1p_iz75v8_urdf_stl/meshes/part_333_solid_333.stl" scale="0.001 0.001 0.001"/>
+<mesh name="b" inertia="shell" file="/data/robot_model_urdf/local_mukr9r1p_iz75v8_urdf_stl/meshes/part_339_solid_339.stl" scale="0.001 0.001 0.001"/>
+</asset><worldbody>
+<geom type="mesh" mesh="a" pos="-0.0019 0.3943 0.4540" rgba="0.25 0.5 0.9 1"/>
+<geom type="mesh" mesh="b" pos="-0.0126 -0.6411 0.8371" rgba="0.9 0.55 0.15 1"/>
+</worldbody></mujoco>

@@ -1,0 +1,32 @@
+<mujoco model="core">
+<compiler angle="radian" eulerseq="xyz" autolimits="true"/>
+<visual><global offwidth="1600" offheight="1000"/></visual>
+<asset>
+<mesh name="part_331" inertia="shell" file="/data/robot_model_urdf/local_mukr9r1p_iz75v8_urdf_stl/meshes/part_331_solid_331.stl" scale="0.001 0.001 0.001"/>
+<mesh name="part_332" inertia="shell" file="/data/robot_model_urdf/local_mukr9r1p_iz75v8_urdf_stl/meshes/part_332_solid_332.stl" scale="0.001 0.001 0.001"/>
+<mesh name="part_334" inertia="shell" file="/data/robot_model_urdf/local_mukr9r1p_iz75v8_urdf_stl/meshes/part_334_solid_334.stl" scale="0.001 0.001 0.001"/>
+<mesh name="part_335" inertia="shell" file="/data/robot_model_urdf/local_mukr9r1p_iz75v8_urdf_stl/meshes/part_335_solid_335.stl" scale="0.001 0.001 0.001"/>
+<mesh name="part_336" inertia="shell" file="/data/robot_model_urdf/local_mukr9r1p_iz75v8_urdf_stl/meshes/part_336_solid_336.stl" scale="0.001 0.001 0.001"/>
+<mesh name="part_337" inertia="shell" file="/data/robot_model_urdf/local_mukr9r1p_iz75v8_urdf_stl/meshes/part_337_solid_337.stl" scale="0.001 0.001 0.001"/>
+<mesh name="part_338" inertia="shell" file="/data/robot_model_urdf/local_mukr9r1p_iz75v8_urdf_stl/meshes/part_338_solid_338.stl" scale="0.001 0.001 0.001"/>
+<mesh name="part_339" inertia="shell" file="/data/robot_model_urdf/local_mukr9r1p_iz75v8_urdf_stl/meshes/part_339_solid_339.stl" scale="0.001 0.001 0.001"/>
+<mesh name="part_340" inertia="shell" file="/data/robot_model_urdf/local_mukr9r1p_iz75v8_urdf_stl/meshes/part_340_solid_340.stl" scale="0.001 0.001 0.001"/>
+<mesh name="part_341" inertia="shell" file="/data/robot_model_urdf/local_mukr9r1p_iz75v8_urdf_stl/meshes/part_341_solid_341.stl" scale="0.001 0.001 0.001"/>
+<mesh name="part_342" inertia="shell" file="/data/robot_model_urdf/local_mukr9r1p_iz75v8_urdf_stl/meshes/part_342_solid_342.stl" scale="0.001 0.001 0.001"/>
+<mesh name="part_343" inertia="shell" file="/data/robot_model_urdf/local_mukr9r1p_iz75v8_urdf_stl/meshes/part_343_solid_343.stl" scale="0.001 0.001 0.001"/>
+<mesh name="part_344" inertia="shell" file="/data/robot_model_urdf/local_mukr9r1p_iz75v8_urdf_stl/meshes/part_344_solid_344.stl" scale="0.001 0.001 0.001"/>
+</asset><worldbody><body name="c">
+<geom type="mesh" mesh="part_331" rgba="0.9 0.15 0.15 1"/>
+<geom type="mesh" mesh="part_332" rgba="0.6 0.6 0.6 1"/>
+<geom type="mesh" mesh="part_334" rgba="0.9 0.15 0.15 1"/>
+<geom type="mesh" mesh="part_335" rgba="0.9 0.15 0.15 1"/>
+<geom type="mesh" mesh="part_336" rgba="0.9 0.15 0.15 1"/>
+<geom type="mesh" mesh="part_337" rgba="0.6 0.6 0.6 1"/>
+<geom type="mesh" mesh="part_338" rgba="0.6 0.6 0.6 1"/>
+<geom type="mesh" mesh="part_339" rgba="0.6 0.6 0.6 1"/>
+<geom type="mesh" mesh="part_340" rgba="0.9 0.15 0.15 1"/>
+<geom type="mesh" mesh="part_341" rgba="0.9 0.15 0.15 1"/>
+<geom type="mesh" mesh="part_342" rgba="0.9 0.15 0.15 1"/>
+<geom type="mesh" mesh="part_343" rgba="0.6 0.6 0.6 1"/>
+<geom type="mesh" mesh="part_344" rgba="0.9 0.15 0.15 1"/>
+</body></worldbody></mujoco>

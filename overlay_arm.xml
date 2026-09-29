@@ -1,0 +1,155 @@
+<mujoco model="armcheck">
+<compiler angle="radian" eulerseq="xyz" autolimits="true"/>
+<visual><global offwidth="1920" offheight="1080"/></visual>
+<asset>
+<mesh name="t_part_358" inertia="shell" file="/data/robot_model_urdf/local_mukr9r1p_iz75v8_urdf_stl/meshes/part_358_solid_358.stl" scale="0.001 0.001 0.001"/>
+<mesh name="t_part_360" inertia="shell" file="/data/robot_model_urdf/local_mukr9r1p_iz75v8_urdf_stl/meshes/part_360_solid_360.stl" scale="0.001 0.001 0.001"/>
+<mesh name="t_part_361" inertia="shell" file="/data/robot_model_urdf/local_mukr9r1p_iz75v8_urdf_stl/meshes/part_361_solid_361.stl" scale="0.001 0.001 0.001"/>
+<mesh name="t_part_362" inertia="shell" file="/data/robot_model_urdf/local_mukr9r1p_iz75v8_urdf_stl/meshes/part_362_solid_362.stl" scale="0.001 0.001 0.001"/>
+<mesh name="t_part_363" inertia="shell" file="/data/robot_model_urdf/local_mukr9r1p_iz75v8_urdf_stl/meshes/part_363_solid_363.stl" scale="0.001 0.001 0.001"/>
+<mesh name="t_part_364" inertia="shell" file="/data/robot_model_urdf/local_mukr9r1p_iz75v8_urdf_stl/meshes/part_364_solid_364.stl" scale="0.001 0.001 0.001"/>
+<mesh name="t_part_365" inertia="shell" file="/data/robot_model_urdf/local_mukr9r1p_iz75v8_urdf_stl/meshes/part_365_solid_365.stl" scale="0.001 0.001 0.001"/>
+<mesh name="t_part_366" inertia="shell" file="/data/robot_model_urdf/local_mukr9r1p_iz75v8_urdf_stl/meshes/part_366_surface_shell_366.stl" scale="0.001 0.001 0.001"/>
+<mesh name="t_part_367" inertia="shell" file="/data/robot_model_urdf/local_mukr9r1p_iz75v8_urdf_stl/meshes/part_367_surface_shell_367.stl" scale="0.001 0.001 0.001"/>
+<mesh name="t_part_368" inertia="shell" file="/data/robot_model_urdf/local_mukr9r1p_iz75v8_urdf_stl/meshes/part_368_surface_shell_368.stl" scale="0.001 0.001 0.001"/>
+<mesh name="t_part_369" inertia="shell" file="/data/robot_model_urdf/local_mukr9r1p_iz75v8_urdf_stl/meshes/part_369_solid_369.stl" scale="0.001 0.001 0.001"/>
+<mesh name="t_part_370" inertia="shell" file="/data/robot_model_urdf/local_mukr9r1p_iz75v8_urdf_stl/meshes/part_370_solid_370.stl" scale="0.001 0.001 0.001"/>
+<mesh name="t_part_371" inertia="shell" file="/data/robot_model_urdf/local_mukr9r1p_iz75v8_urdf_stl/meshes/part_371_solid_371.stl" scale="0.001 0.001 0.001"/>
+<mesh name="t_part_372" inertia="shell" file="/data/robot_model_urdf/local_mukr9r1p_iz75v8_urdf_stl/meshes/part_372_solid_372.stl" scale="0.001 0.001 0.001"/>
+<mesh name="t_part_373" inertia="shell" file="/data/robot_model_urdf/local_mukr9r1p_iz75v8_urdf_stl/meshes/part_373_solid_373.stl" scale="0.001 0.001 0.001"/>
+<mesh name="t_part_374" inertia="shell" file="/data/robot_model_urdf/local_mukr9r1p_iz75v8_urdf_stl/meshes/part_374_solid_374.stl" scale="0.001 0.001 0.001"/>
+<mesh name="t_part_375" inertia="shell" file="/data/robot_model_urdf/local_mukr9r1p_iz75v8_urdf_stl/meshes/part_375_solid_375.stl" scale="0.001 0.001 0.001"/>
+<mesh name="t_part_376" inertia="shell" file="/data/robot_model_urdf/local_mukr9r1p_iz75v8_urdf_stl/meshes/part_376_solid_376.stl" scale="0.001 0.001 0.001"/>
+<mesh name="t_part_377" inertia="shell" file="/data/robot_model_urdf/local_mukr9r1p_iz75v8_urdf_stl/meshes/part_377_solid_377.stl" scale="0.001 0.001 0.001"/>
+<mesh name="t_part_378" inertia="shell" file="/data/robot_model_urdf/local_mukr9r1p_iz75v8_urdf_stl/meshes/part_378_solid_378.stl" scale="0.001 0.001 0.001"/>
+<mesh name="t_part_379" inertia="shell" file="/data/robot_model_urdf/local_mukr9r1p_iz75v8_urdf_stl/meshes/part_379_solid_379.stl" scale="0.001 0.001 0.001"/>
+<mesh name="t_part_380" inertia="shell" file="/data/robot_model_urdf/local_mukr9r1p_iz75v8_urdf_stl/meshes/part_380_solid_380.stl" scale="0.001 0.001 0.001"/>
+<mesh name="t_part_381" inertia="shell" file="/data/robot_model_urdf/local_mukr9r1p_iz75v8_urdf_stl/meshes/part_381_solid_381.stl" scale="0.001 0.001 0.001"/>
+<mesh name="t_part_382" inertia="shell" file="/data/robot_model_urdf/local_mukr9r1p_iz75v8_urdf_stl/meshes/part_382_solid_382.stl" scale="0.001 0.001 0.001"/>
+<mesh name="t_part_383" inertia="shell" file="/data/robot_model_urdf/local_mukr9r1p_iz75v8_urdf_stl/meshes/part_383_solid_383.stl" scale="0.001 0.001 0.001"/>
+<mesh name="t_part_384" inertia="shell" file="/data/robot_model_urdf/local_mukr9r1p_iz75v8_urdf_stl/meshes/part_384_solid_384.stl" scale="0.001 0.001 0.001"/>
+<mesh name="t_part_385" inertia="shell" file="/data/robot_model_urdf/local_mukr9r1p_iz75v8_urdf_stl/meshes/part_385_solid_385.stl" scale="0.001 0.001 0.001"/>
+<mesh name="t_part_386" inertia="shell" file="/data/robot_model_urdf/local_mukr9r1p_iz75v8_urdf_stl/meshes/part_386_solid_386.stl" scale="0.001 0.001 0.001"/>
+<mesh name="t_part_387" inertia="shell" file="/data/robot_model_urdf/local_mukr9r1p_iz75v8_urdf_stl/meshes/part_387_solid_387.stl" scale="0.001 0.001 0.001"/>
+<mesh name="t_part_388" inertia="shell" file="/data/robot_model_urdf/local_mukr9r1p_iz75v8_urdf_stl/meshes/part_388_solid_388.stl" scale="0.001 0.001 0.001"/>
+<mesh name="t_part_389" inertia="shell" file="/data/robot_model_urdf/local_mukr9r1p_iz75v8_urdf_stl/meshes/part_389_solid_389.stl" scale="0.001 0.001 0.001"/>
+<mesh name="t_part_390" inertia="shell" file="/data/robot_model_urdf/local_mukr9r1p_iz75v8_urdf_stl/meshes/part_390_solid_390.stl" scale="0.001 0.001 0.001"/>
+<mesh name="t_part_391" inertia="shell" file="/data/robot_model_urdf/local_mukr9r1p_iz75v8_urdf_stl/meshes/part_391_solid_391.stl" scale="0.001 0.001 0.001"/>
+<mesh name="t_part_392" inertia="shell" file="/data/robot_model_urdf/local_mukr9r1p_iz75v8_urdf_stl/meshes/part_392_solid_392.stl" scale="0.001 0.001 0.001"/>
+<mesh name="t_part_393" inertia="shell" file="/data/robot_model_urdf/local_mukr9r1p_iz75v8_urdf_stl/meshes/part_393_solid_393.stl" scale="0.001 0.001 0.001"/>
+<mesh name="t_part_394" inertia="shell" file="/data/robot_model_urdf/local_mukr9r1p_iz75v8_urdf_stl/meshes/part_394_solid_394.stl" scale="0.001 0.001 0.001"/>
+<mesh name="t_part_395" inertia="shell" file="/data/robot_model_urdf/local_mukr9r1p_iz75v8_urdf_stl/meshes/part_395_solid_395.stl" scale="0.001 0.001 0.001"/>
+<mesh name="t_part_396" inertia="shell" file="/data/robot_model_urdf/local_mukr9r1p_iz75v8_urdf_stl/meshes/part_396_solid_396.stl" scale="0.001 0.001 0.001"/>
+<mesh name="t_part_397" inertia="shell" file="/data/robot_model_urdf/local_mukr9r1p_iz75v8_urdf_stl/meshes/part_397_solid_397.stl" scale="0.001 0.001 0.001"/>
+<mesh name="t_part_398" inertia="shell" file="/data/robot_model_urdf/local_mukr9r1p_iz75v8_urdf_stl/meshes/part_398_solid_398.stl" scale="0.001 0.001 0.001"/>
+<mesh name="t_part_399" inertia="shell" file="/data/robot_model_urdf/local_mukr9r1p_iz75v8_urdf_stl/meshes/part_399_solid_399.stl" scale="0.001 0.001 0.001"/>
+<mesh name="t_part_400" inertia="shell" file="/data/robot_model_urdf/local_mukr9r1p_iz75v8_urdf_stl/meshes/part_400_solid_400.stl" scale="0.001 0.001 0.001"/>
+<mesh name="t_part_401" inertia="shell" file="/data/robot_model_urdf/local_mukr9r1p_iz75v8_urdf_stl/meshes/part_401_solid_401.stl" scale="0.001 0.001 0.001"/>
+<mesh name="t_part_402" inertia="shell" file="/data/robot_model_urdf/local_mukr9r1p_iz75v8_urdf_stl/meshes/part_402_solid_402.stl" scale="0.001 0.001 0.001"/>
+<mesh name="t_part_403" inertia="shell" file="/data/robot_model_urdf/local_mukr9r1p_iz75v8_urdf_stl/meshes/part_403_solid_403.stl" scale="0.001 0.001 0.001"/>
+<mesh name="t_part_404" inertia="shell" file="/data/robot_model_urdf/local_mukr9r1p_iz75v8_urdf_stl/meshes/part_404_solid_404.stl" scale="0.001 0.001 0.001"/>
+<mesh name="t_part_405" inertia="shell" file="/data/robot_model_urdf/local_mukr9r1p_iz75v8_urdf_stl/meshes/part_405_solid_405.stl" scale="0.001 0.001 0.001"/>
+<mesh name="t_part_406" inertia="shell" file="/data/robot_model_urdf/local_mukr9r1p_iz75v8_urdf_stl/meshes/part_406_solid_406.stl" scale="0.001 0.001 0.001"/>
+<mesh name="t_part_407" inertia="shell" file="/data/robot_model_urdf/local_mukr9r1p_iz75v8_urdf_stl/meshes/part_407_solid_407.stl" scale="0.001 0.001 0.001"/>
+<mesh name="t_part_408" inertia="shell" file="/data/robot_model_urdf/local_mukr9r1p_iz75v8_urdf_stl/meshes/part_408_solid_408.stl" scale="0.001 0.001 0.001"/>
+<mesh name="t_part_409" inertia="shell" file="/data/robot_model_urdf/local_mukr9r1p_iz75v8_urdf_stl/meshes/part_409_solid_409.stl" scale="0.001 0.001 0.001"/>
+<mesh name="t_part_410" inertia="shell" file="/data/robot_model_urdf/local_mukr9r1p_iz75v8_urdf_stl/meshes/part_410_solid_410.stl" scale="0.001 0.001 0.001"/>
+<mesh name="t_part_411" inertia="shell" file="/data/robot_model_urdf/local_mukr9r1p_iz75v8_urdf_stl/meshes/part_411_solid_411.stl" scale="0.001 0.001 0.001"/>
+<mesh name="t_part_412" inertia="shell" file="/data/robot_model_urdf/local_mukr9r1p_iz75v8_urdf_stl/meshes/part_412_solid_412.stl" scale="0.001 0.001 0.001"/>
+<mesh name="t_part_413" inertia="shell" file="/data/robot_model_urdf/local_mukr9r1p_iz75v8_urdf_stl/meshes/part_413_solid_413.stl" scale="0.001 0.001 0.001"/>
+<mesh name="t_part_414" inertia="shell" file="/data/robot_model_urdf/local_mukr9r1p_iz75v8_urdf_stl/meshes/part_414_solid_414.stl" scale="0.001 0.001 0.001"/>
+<mesh name="t_part_415" inertia="shell" file="/data/robot_model_urdf/local_mukr9r1p_iz75v8_urdf_stl/meshes/part_415_solid_415.stl" scale="0.001 0.001 0.001"/>
+<mesh name="t_part_416" inertia="shell" file="/data/robot_model_urdf/local_mukr9r1p_iz75v8_urdf_stl/meshes/part_416_solid_416.stl" scale="0.001 0.001 0.001"/>
+<mesh name="t_part_417" inertia="shell" file="/data/robot_model_urdf/local_mukr9r1p_iz75v8_urdf_stl/meshes/part_417_solid_417.stl" scale="0.001 0.001 0.001"/>
+<mesh name="t_part_418" inertia="shell" file="/data/robot_model_urdf/local_mukr9r1p_iz75v8_urdf_stl/meshes/part_418_solid_418.stl" scale="0.001 0.001 0.001"/>
+<mesh name="a_wrist3_Link" inertia="shell" file="/home/lcw/VR_teleoperation/_refs/Auboi5_Scan_Simulator/models/wrist3_Link.STL"/>
+<mesh name="a_wrist2_Link" inertia="shell" file="/home/lcw/VR_teleoperation/_refs/Auboi5_Scan_Simulator/models/wrist2_Link.STL"/>
+<mesh name="a_wrist1_Link" inertia="shell" file="/home/lcw/VR_teleoperation/_refs/Auboi5_Scan_Simulator/models/wrist1_Link.STL"/>
+<mesh name="a_foreArm_Link" inertia="shell" file="/home/lcw/VR_teleoperation/_refs/Auboi5_Scan_Simulator/models/foreArm_Link.STL"/>
+<mesh name="a_upperArm_Link" inertia="shell" file="/home/lcw/VR_teleoperation/_refs/Auboi5_Scan_Simulator/models/upperArm_Link.STL"/>
+<mesh name="a_shoulder_Link" inertia="shell" file="/home/lcw/VR_teleoperation/_refs/Auboi5_Scan_Simulator/models/shoulder_Link.STL"/>
+<mesh name="a_base_link" inertia="shell" file="/home/lcw/VR_teleoperation/_refs/Auboi5_Scan_Simulator/models/base_link.STL"/>
+</asset><worldbody><body name="veh">
+<geom type="mesh" mesh="t_part_358" rgba="0.6 0.6 0.6 0.4"/>
+<geom type="mesh" mesh="t_part_360" rgba="0.6 0.6 0.6 0.4"/>
+<geom type="mesh" mesh="t_part_361" rgba="0.6 0.6 0.6 0.4"/>
+<geom type="mesh" mesh="t_part_362" rgba="0.6 0.6 0.6 0.4"/>
+<geom type="mesh" mesh="t_part_363" rgba="0.6 0.6 0.6 0.4"/>
+<geom type="mesh" mesh="t_part_364" rgba="0.6 0.6 0.6 0.4"/>
+<geom type="mesh" mesh="t_part_365" rgba="0.6 0.6 0.6 0.4"/>
+<geom type="mesh" mesh="t_part_366" rgba="0.6 0.6 0.6 0.4"/>
+<geom type="mesh" mesh="t_part_367" rgba="0.6 0.6 0.6 0.4"/>
+<geom type="mesh" mesh="t_part_368" rgba="0.6 0.6 0.6 0.4"/>
+<geom type="mesh" mesh="t_part_369" rgba="0.6 0.6 0.6 0.4"/>
+<geom type="mesh" mesh="t_part_370" rgba="0.6 0.6 0.6 0.4"/>
+<geom type="mesh" mesh="t_part_371" rgba="0.6 0.6 0.6 0.4"/>
+<geom type="mesh" mesh="t_part_372" rgba="0.6 0.6 0.6 0.4"/>
+<geom type="mesh" mesh="t_part_373" rgba="0.6 0.6 0.6 0.4"/>
+<geom type="mesh" mesh="t_part_374" rgba="0.6 0.6 0.6 0.4"/>
+<geom type="mesh" mesh="t_part_375" rgba="0.6 0.6 0.6 0.4"/>
+<geom type="mesh" mesh="t_part_376" rgba="0.6 0.6 0.6 0.4"/>
+<geom type="mesh" mesh="t_part_377" rgba="0.6 0.6 0.6 0.4"/>
+<geom type="mesh" mesh="t_part_378" rgba="0.6 0.6 0.6 0.4"/>
+<geom type="mesh" mesh="t_part_379" rgba="0.6 0.6 0.6 0.4"/>
+<geom type="mesh" mesh="t_part_380" rgba="0.6 0.6 0.6 0.4"/>
+<geom type="mesh" mesh="t_part_381" rgba="0.6 0.6 0.6 0.4"/>
+<geom type="mesh" mesh="t_part_382" rgba="0.6 0.6 0.6 0.4"/>
+<geom type="mesh" mesh="t_part_383" rgba="0.6 0.6 0.6 0.4"/>
+<geom type="mesh" mesh="t_part_384" rgba="0.6 0.6 0.6 0.4"/>
+<geom type="mesh" mesh="t_part_385" rgba="0.6 0.6 0.6 0.4"/>
+<geom type="mesh" mesh="t_part_386" rgba="0.6 0.6 0.6 0.4"/>
+<geom type="mesh" mesh="t_part_387" rgba="0.6 0.6 0.6 0.4"/>
+<geom type="mesh" mesh="t_part_388" rgba="0.6 0.6 0.6 0.4"/>
+<geom type="mesh" mesh="t_part_389" rgba="0.6 0.6 0.6 0.4"/>
+<geom type="mesh" mesh="t_part_390" rgba="0.6 0.6 0.6 0.4"/>
+<geom type="mesh" mesh="t_part_391" rgba="0.6 0.6 0.6 0.4"/>
+<geom type="mesh" mesh="t_part_392" rgba="0.6 0.6 0.6 0.4"/>
+<geom type="mesh" mesh="t_part_393" rgba="0.6 0.6 0.6 0.4"/>
+<geom type="mesh" mesh="t_part_394" rgba="0.6 0.6 0.6 0.4"/>
+<geom type="mesh" mesh="t_part_395" rgba="0.6 0.6 0.6 0.4"/>
+<geom type="mesh" mesh="t_part_396" rgba="0.6 0.6 0.6 0.4"/>
+<geom type="mesh" mesh="t_part_397" rgba="0.6 0.6 0.6 0.4"/>
+<geom type="mesh" mesh="t_part_398" rgba="0.6 0.6 0.6 0.4"/>
+<geom type="mesh" mesh="t_part_399" rgba="0.6 0.6 0.6 0.4"/>
+<geom type="mesh" mesh="t_part_400" rgba="0.6 0.6 0.6 0.4"/>
+<geom type="mesh" mesh="t_part_401" rgba="0.6 0.6 0.6 0.4"/>
+<geom type="mesh" mesh="t_part_402" rgba="0.6 0.6 0.6 0.4"/>
+<geom type="mesh" mesh="t_part_403" rgba="0.6 0.6 0.6 0.4"/>
+<geom type="mesh" mesh="t_part_404" rgba="0.6 0.6 0.6 0.4"/>
+<geom type="mesh" mesh="t_part_405" rgba="0.6 0.6 0.6 0.4"/>
+<geom type="mesh" mesh="t_part_406" rgba="0.6 0.6 0.6 0.4"/>
+<geom type="mesh" mesh="t_part_407" rgba="0.6 0.6 0.6 0.4"/>
+<geom type="mesh" mesh="t_part_408" rgba="0.6 0.6 0.6 0.4"/>
+<geom type="mesh" mesh="t_part_409" rgba="0.6 0.6 0.6 0.4"/>
+<geom type="mesh" mesh="t_part_410" rgba="0.6 0.6 0.6 0.4"/>
+<geom type="mesh" mesh="t_part_411" rgba="0.6 0.6 0.6 0.4"/>
+<geom type="mesh" mesh="t_part_412" rgba="0.6 0.6 0.6 0.4"/>
+<geom type="mesh" mesh="t_part_413" rgba="0.6 0.6 0.6 0.4"/>
+<geom type="mesh" mesh="t_part_414" rgba="0.6 0.6 0.6 0.4"/>
+<geom type="mesh" mesh="t_part_415" rgba="0.6 0.6 0.6 0.4"/>
+<geom type="mesh" mesh="t_part_416" rgba="0.6 0.6 0.6 0.4"/>
+<geom type="mesh" mesh="t_part_417" rgba="0.6 0.6 0.6 0.4"/>
+<geom type="mesh" mesh="t_part_418" rgba="0.6 0.6 0.6 0.4"/>
+</body>
+<body name="wrist3_Link" pos="-0.385979 0.143560 -1.191450" quat="0.661304 0.002111 0.741623 0.112555">
+<geom type="mesh" mesh="a_wrist3_Link" rgba="1 0 0 1"/>
+</body>
+<body name="wrist2_Link" pos="-0.478226 0.128129 -1.182049" quat="0.627192 -0.108922 0.156691 0.755125">
+<geom type="mesh" mesh="a_wrist2_Link" rgba="0 1 0 1"/>
+</body>
+<body name="wrist1_Link" pos="-0.481512 0.089869 -1.277084" quat="-0.037386 -0.005921 0.827793 0.559756">
+<geom type="mesh" mesh="a_wrist1_Link" rgba="0 0 1 1"/>
+</body>
+<body name="foreArm_Link" pos="-0.790200 0.149533 -1.070862" quat="0.795822 0.526457 0.193818 -0.227913">
+<geom type="mesh" mesh="a_foreArm_Link" rgba="1 1 0 1"/>
+</body>
+<body name="upperArm_Link" pos="-0.574587 0.034747 -1.397663" quat="-0.296518 0.384507 0.733099 0.476233">
+<geom type="mesh" mesh="a_upperArm_Link" rgba="1 0 1 1"/>
+</body>
+<body name="shoulder_Link" pos="-0.566262 -0.077796 -1.352640" quat="-0.296796 0.023820 0.935442 -0.190510">
+<geom type="mesh" mesh="a_shoulder_Link" rgba="0 1 1 1"/>
+</body>
+<body name="base_link" pos="-0.497412 -0.036038 -1.260989" quat="-0.291706 0.048302 0.934497 -0.198215">
+<geom type="mesh" mesh="a_base_link" rgba="1 0.5 0 1"/>
+</body>
+</worldbody></mujoco>
