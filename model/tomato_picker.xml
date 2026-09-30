@@ -661,6 +661,8 @@
     <geom name="v_part_328" type="mesh" mesh="v_part_328" group="1"/>
     <geom name="v_part_329" type="mesh" mesh="v_part_329" group="1"/>
     <geom name="v_part_330" type="mesh" mesh="v_part_330" group="1"/>
+    <camera name="cam_scene_yp_l515" pos="0.360341 -0.036530 -1.149732" quat="-0.699354 0.699354 -0.104424 0.104424" fovy="43.4"/>
+    <camera name="cam_scene_yn_d435i" pos="0.360341 0.056365 -1.149732" quat="0.104424 -0.104424 0.699354 -0.699354" fovy="42.6"/>
     <body name="small_right_front" pos="0 0 0">
       <inertial pos="0.497042 0.392916 0.038000" mass="0.112089" fullinertia="0.0000353535 0.0000521605 0.0000353535 -0.000000000000 0.000000000007 0.000000000000"/>
       <joint name="small_right_front_joint" type="hinge" pos="0.497042 0.392916 0.038000" axis="0 1 0" damping="0.001" frictionloss="0.02"/>
@@ -789,6 +791,7 @@
         <geom name="cam_part_369" type="mesh" mesh="c_part_369" group="1" rgba="0.15 0.15 0.16 1"/>
         <geom name="ad_part_362" type="mesh" mesh="c_part_362" group="1" rgba="0.62 0.63 0.66 1"/>
         <geom name="ad_part_371" type="mesh" mesh="c_part_371" group="1" rgba="0.62 0.63 0.66 1"/>
+      <camera name="cam_wrist_d405" pos="0.106042 -0.001376 0.025985" quat="0.707109 0.000006 -0.000002 -0.707105" fovy="58.0"/>
       <body name="gear_link" pos="1.89e-09 2.2e-09 -0.0047500006" euler="3.1415927 0 0">
         <joint name="gear_joint" type="hinge" pos="0 0 0" axis="0 0 1" limited="true" actuatorfrclimited="true" range="-0.474409 0.463234" damping="0.002" actuatorfrcrange="-2 2" frictionloss="0.005" />
         <inertial pos="3.0045713e-07 -1.0867786e-05 0.026885779" mass="0.022650932" quat="0.99991087 -9.8761648e-05 -1.4878863e-06 0.013350794" diaginertia="2.8015663e-06 2.7182082e-06 4.5617203e-06" />
