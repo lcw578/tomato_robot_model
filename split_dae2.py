@@ -134,7 +134,7 @@ def split_link2(dae_path, out_prefix, unit_scale=1.0, geoms=None):
             for key, chunks in tris.items():
                 for vidx, nidx in chunks:
                     V = verts[vidx] * scale
-                    W = (M[:3, :3] @ V.T).T + M[:3, 3]
+                    W = V @ M[:3, :3].T + M[:3, 3]
                     groups[key].append(W)
     return groups
 
@@ -199,7 +199,7 @@ if __name__ == '__main__':
                 for key, chunks in tris.items():
                     for vidx, nidx in chunks:
                         V = verts[vidx] * scale
-                        W = (M[:3, :3] @ V.T).T + M[:3, 3]
+                        W = V @ M[:3, :3].T + M[:3, 3]
                         groups[key].append(W)
         st = write_stls(groups, f'{OUT}/{lk}')
         summary[lk] = st
