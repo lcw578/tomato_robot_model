@@ -24,15 +24,14 @@ CAMS = {
     'cam_scene_yn_d435i': (480, 640),  # D435i −y 侧
 }
 
-# home 关节角 (与 keyframe 一致), 用于伺服保持
-ARM_HOME = [1.5708, -0.8029, 0.8029, 0.0349, 1.5708, 0.0]
+# 默认初始指令 (与 keyframe "home" 的 ctrl 一致)
+CTRL_INIT = [-0.474, 0.0, 0.0, -1.59, -0.0611, 1.5, -1.59, -1.65, 3.05]
 
 
 def hold_home(m, d):
-    """复位到 home 并设置 ctrl 让位置伺服稳住臂姿 (否则臂会垂落)."""
+    """复位到默认初始状态 (关键帧自带 ctrl, 这里显式再设一遍兜底)."""
     mujoco.mj_resetDataKeyframe(m, d, 0)
-    d.ctrl[:] = 0.0                     # 夹爪松开、轮子停转
-    d.ctrl[3:9] = ARM_HOME              # j1..j6 位置伺服目标 = home
+    d.ctrl[:] = CTRL_INIT
     mujoco.mj_forward(m, d)
 
 
