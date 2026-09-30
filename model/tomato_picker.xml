@@ -290,8 +290,6 @@
     <mesh name="v_part_328" file="/data/robot_model_urdf/local_mukr9r1p_iz75v8_urdf_stl/meshes/part_328_solid_328.stl" scale="0.001 0.001 0.001" inertia="shell"/>
     <mesh name="v_part_329" file="/data/robot_model_urdf/local_mukr9r1p_iz75v8_urdf_stl/meshes/part_329_solid_329.stl" scale="0.001 0.001 0.001" inertia="shell"/>
     <mesh name="v_part_330" file="/data/robot_model_urdf/local_mukr9r1p_iz75v8_urdf_stl/meshes/part_330_solid_330.stl" scale="0.001 0.001 0.001" inertia="shell"/>
-    <mesh name="v_part_365" file="/data/robot_model_urdf/local_mukr9r1p_iz75v8_urdf_stl/meshes/part_365_solid_365.stl" scale="0.001 0.001 0.001" inertia="shell"/>
-    <mesh name="v_part_369" file="/data/robot_model_urdf/local_mukr9r1p_iz75v8_urdf_stl/meshes/part_369_solid_369.stl" scale="0.001 0.001 0.001" inertia="shell"/>
     <mesh name="w_small_right_front" file="/data/robot_model_urdf/local_mukr9r1p_iz75v8_urdf_stl/meshes/part_011_surface_shell_011.stl" scale="0.001 0.001 0.001" inertia="shell"/>
     <mesh name="w_small_left_front" file="/data/robot_model_urdf/local_mukr9r1p_iz75v8_urdf_stl/meshes/part_015_solid_015.stl" scale="0.001 0.001 0.001" inertia="shell"/>
     <mesh name="w_small_right_behind" file="/data/robot_model_urdf/local_mukr9r1p_iz75v8_urdf_stl/meshes/part_004_surface_shell_004.stl" scale="0.001 0.001 0.001" inertia="shell"/>
@@ -663,8 +661,6 @@
     <geom name="v_part_328" type="mesh" mesh="v_part_328" group="1"/>
     <geom name="v_part_329" type="mesh" mesh="v_part_329" group="1"/>
     <geom name="v_part_330" type="mesh" mesh="v_part_330" group="1"/>
-    <geom name="v_part_365" type="mesh" mesh="v_part_365" group="1"/>
-    <geom name="v_part_369" type="mesh" mesh="v_part_369" group="1"/>
     <body name="small_right_front" pos="0 0 0">
       <inertial pos="0.497042 0.392916 0.038000" mass="0.112089" fullinertia="0.0000353535 0.0000521605 0.0000353535 -0.000000000000 0.000000000007 0.000000000000"/>
       <joint name="small_right_front_joint" type="hinge" pos="0.497042 0.392916 0.038000" axis="0 1 0" damping="0.001" frictionloss="0.02"/>
