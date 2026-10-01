@@ -3,6 +3,45 @@
 > 生成日期：2026-09-28。由三路资产拼接而成，生成脚本在 `/data/robot_assembly/`。
 > 快速预览：`python3 -m mujoco.viewer --mjcf=/data/robot_assembly/model/tomato_picker.xml`
 
+## 2026-10-01 增补：升降平台 + 温室环境 + 采摘闭环
+
+**升降平台（`tools/patch_lift_body.py`，对 XML 行级手术，幂等性靠先 git checkout）**
+- 台面 264 / 风琴罩 265 / 筐 330 / 控制箱 289+小件 / 传感器杆 328,329 / 杆顶相机件共 41 件
+  移入 `lift` body（slide，machine 系轴 (0,0,-1)=世界 +z，行程 [0,0.5]m，快照=0）；
+  `arm_base_mount` 整条臂挂到 lift 下；两台场景相机从 chassis 移入 lift（坐标值不变）。
+- chassis↔lift 整组 exclude（风琴罩底部本插在下板 263 里 35mm）；筐网格改纯视觉，
+  凹腔碰撞用 5 个隐形盒（`crate_col_*`）；新增 `lift_servo`（kp=20000，满载垂差 ~1.3cm）。
+- chassis/lift 惯性按 parts.json 体积占比重新合成（塑料密度标定 1.2 g/cm³ 不变）。
+- 轨道真身是 part_110/149（Ø40×906 钢管，一直埋在地下 0.25m）——已从机器人移出，
+  由环境平铺拉长；339/346 实为小滚筒件，与轨道无关。
+
+**温室环境（`tools/build_environment.py`，注入 XML 的 `<!-- ENV-* -->` 标计区，幂等重跑）**
+- 植株 = aoc_tomato_farm `asset_extract/out/variants/v0..v9`（12 变体选 10），assimp DAE→OBJ
+  按材质拆分；**顶点保持 OBJ 系（Y-up）不动**，marker 映射进 OBJ 系参与聚类，
+  植株 body 用 quat (0.7071,0.7071,0,0) 转正——曾因对顶点二次映射导致果串全粘到串0。
+- 果串两段式：`truss_p_k` **顶层** body（freejoint 不能嵌套！qpos 排在环境块=前 280 位，
+  home/lift_high 关键帧需前插扩写）；碰撞=每果一球 r≈27mm（曾用 0.08 大球被夹爪指笼关住，
+  松爪时把果串挤飞）；`hold_` weld（active，relpose=qpos0）+ `grip_` weld（inactive，
+  **激活前必须把当前相对位姿写进 m.eq_data[3:10]**，默认 relpose 是零位姿态会猛拽）。
+- 果串与主茎碰撞解耦用位掩码：果球 contype=2，主茎圆柱 contype=4 conaffinity=1，
+  机器人 contype/conaffinity=1——果球与臂/筐照常碰撞、与主茎不碰（串本来就贴茎长）。
+- 纹理注意：`meshdir` 只管网格，**纹理走 texturedir**；MuJoCo 3.3.5 OBJ 网格可贴 PNG（已验证）。
+- 摆放：每侧 5 株 x=[-1.8..1.8] 步 0.9，行 y=±0.8；轮距验证：驱动轮世界 y=±0.33，
+  轨道圆柱顶 z=0 与轮底相切（ncon 里那 4 个轮轨接触是正常的）。
+
+**采摘闭环（`tools/harvest_demo.py`）**
+- IK：DLS + TCP=gear_link+0.10m 工具轴（gear 系 +z = 腕部相机光轴方向）；失败扰动重启一次。
+- 升降启发式 lift=clip(cut_z−0.97, 0, 0.5)；到位 6-10mm 误差。
+- 释放序列（踩坑总结）：搬运到筐上方→**先降后对准**（软焊有稳态偏转，对准后再动就白对）
+  →原地慢开爪→上提 8cm 脱离爪壳→解除 weld→落筐判定（z<筐口+2cm 且水平距<16cm）。
+- 实测：最近成熟串 6_1 全流程 in_basket；本工位（|x|≤0.6）可达 10/12。
+
+**已知限制**
+- 剪切是 weld 切换状态机，没有真"剪断"动画/力学。
+- 地面仍无碰撞；掉出筐的果串由 z=−0.5 隐形接坠面（contype=2）兜住。
+- 臂 kp/kv 仍是占位值；果串 freejoint 无阻尼，搬运时软焊（solref 0.01）下会缓慢摆动。
+- 底盘仍焊死；行驶用运动学平移（mocap/程序化）尚未接。
+
 ## 模型结构
 
 ```

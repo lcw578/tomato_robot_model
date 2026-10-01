@@ -1,5 +1,5 @@
 <mujoco model="tomato_picker">
-  <compiler angle="radian" eulerseq="xyz" autolimits="true" meshdir="../"/>
+  <compiler angle="radian" eulerseq="xyz" autolimits="true" meshdir="../" texturedir="../"/>
   <option timestep="0.002" integrator="implicitfast"/>
   <visual><global offwidth="1920" offheight="1080"/></visual>
   <asset>
@@ -101,7 +101,6 @@
     <mesh name="v_part_107" file="meshes/cad/part_107_solid_107.stl" scale="0.001 0.001 0.001" inertia="shell"/>
     <mesh name="v_part_108" file="meshes/cad/part_108_solid_108.stl" scale="0.001 0.001 0.001" inertia="shell"/>
     <mesh name="v_part_109" file="meshes/cad/part_109_solid_109.stl" scale="0.001 0.001 0.001" inertia="shell"/>
-    <mesh name="v_part_110" file="meshes/cad/part_110_solid_110.stl" scale="0.001 0.001 0.001" inertia="shell"/>
     <mesh name="v_part_111" file="meshes/cad/part_111_solid_111.stl" scale="0.001 0.001 0.001" inertia="shell"/>
     <mesh name="v_part_112" file="meshes/cad/part_112_solid_112.stl" scale="0.001 0.001 0.001" inertia="shell"/>
     <mesh name="v_part_113" file="meshes/cad/part_113_solid_113.stl" scale="0.001 0.001 0.001" inertia="shell"/>
@@ -139,7 +138,6 @@
     <mesh name="v_part_146" file="meshes/cad/part_146_solid_146.stl" scale="0.001 0.001 0.001" inertia="shell"/>
     <mesh name="v_part_147" file="meshes/cad/part_147_solid_147.stl" scale="0.001 0.001 0.001" inertia="shell"/>
     <mesh name="v_part_148" file="meshes/cad/part_148_solid_148.stl" scale="0.001 0.001 0.001" inertia="shell"/>
-    <mesh name="v_part_149" file="meshes/cad/part_149_solid_149.stl" scale="0.001 0.001 0.001" inertia="shell"/>
     <mesh name="v_part_150" file="meshes/cad/part_150_solid_150.stl" scale="0.001 0.001 0.001" inertia="shell"/>
     <mesh name="v_part_151" file="meshes/cad/part_151_solid_151.stl" scale="0.001 0.001 0.001" inertia="shell"/>
     <mesh name="v_part_152" file="meshes/cad/part_152_solid_152.stl" scale="0.001 0.001 0.001" inertia="shell"/>
@@ -365,15 +363,951 @@
     <mesh name="c_part_368" file="model/meshes_baked/part_368_baked.stl" scale="1 1 1" inertia="shell"/>
     <mesh name="c_part_369" file="model/meshes_baked/part_369_baked.stl" scale="1 1 1" inertia="shell"/>
     <mesh name="c_part_371" file="model/meshes_baked/part_371_baked.stl" scale="1 1 1" inertia="shell"/>
+<!-- ENV-ASSET-BEGIN (tools/build_environment.py 生成, 勿手改) -->
+    <texture name="tex_frt2" type="2d" file="meshes/env/tex/frt2.png"/>
+    <material name="mat_red" texture="tex_frt2"/>
+    <texture name="tex_frt1" type="2d" file="meshes/env/tex/frt1.png"/>
+    <material name="mat_orange" texture="tex_frt1"/>
+    <texture name="tex_frt4" type="2d" file="meshes/env/tex/frt4.png"/>
+    <material name="mat_green" texture="tex_frt4"/>
+    <texture name="tex_brn1" type="2d" file="meshes/env/tex/brn1.png"/>
+    <material name="mat_vine" texture="tex_brn1"/>
+    <texture name="tex_lef1" type="2d" file="meshes/env/tex/lef1.png"/>
+    <material name="mat_leaf" texture="tex_lef1"/>
+    <texture name="tex_blo1" type="2d" file="meshes/env/tex/blo1.png"/>
+    <material name="mat_blossom" texture="tex_blo1"/>
+    <mesh name="m_v0_vine" file="meshes/env/plants/v0_vine.obj"/>
+    <mesh name="m_v0_leaf" file="meshes/env/plants/v0_leaf.obj"/>
+    <mesh name="m_v0_blossom" file="meshes/env/plants/v0_blossom.obj"/>
+    <mesh name="m_v0_truss0" file="meshes/env/plants/v0_truss0.obj"/>
+    <mesh name="m_v0_truss1" file="meshes/env/plants/v0_truss1.obj"/>
+    <mesh name="m_v0_truss2" file="meshes/env/plants/v0_truss2.obj"/>
+    <mesh name="m_v0_truss3" file="meshes/env/plants/v0_truss3.obj"/>
+    <mesh name="m_v1_vine" file="meshes/env/plants/v1_vine.obj"/>
+    <mesh name="m_v1_leaf" file="meshes/env/plants/v1_leaf.obj"/>
+    <mesh name="m_v1_blossom" file="meshes/env/plants/v1_blossom.obj"/>
+    <mesh name="m_v1_truss0" file="meshes/env/plants/v1_truss0.obj"/>
+    <mesh name="m_v1_truss1" file="meshes/env/plants/v1_truss1.obj"/>
+    <mesh name="m_v1_truss2" file="meshes/env/plants/v1_truss2.obj"/>
+    <mesh name="m_v1_truss3" file="meshes/env/plants/v1_truss3.obj"/>
+    <mesh name="m_v2_vine" file="meshes/env/plants/v2_vine.obj"/>
+    <mesh name="m_v2_leaf" file="meshes/env/plants/v2_leaf.obj"/>
+    <mesh name="m_v2_blossom" file="meshes/env/plants/v2_blossom.obj"/>
+    <mesh name="m_v2_truss0" file="meshes/env/plants/v2_truss0.obj"/>
+    <mesh name="m_v2_truss1" file="meshes/env/plants/v2_truss1.obj"/>
+    <mesh name="m_v2_truss2" file="meshes/env/plants/v2_truss2.obj"/>
+    <mesh name="m_v2_truss3" file="meshes/env/plants/v2_truss3.obj"/>
+    <mesh name="m_v3_vine" file="meshes/env/plants/v3_vine.obj"/>
+    <mesh name="m_v3_leaf" file="meshes/env/plants/v3_leaf.obj"/>
+    <mesh name="m_v3_blossom" file="meshes/env/plants/v3_blossom.obj"/>
+    <mesh name="m_v3_truss0" file="meshes/env/plants/v3_truss0.obj"/>
+    <mesh name="m_v3_truss1" file="meshes/env/plants/v3_truss1.obj"/>
+    <mesh name="m_v3_truss2" file="meshes/env/plants/v3_truss2.obj"/>
+    <mesh name="m_v3_truss3" file="meshes/env/plants/v3_truss3.obj"/>
+    <mesh name="m_v4_vine" file="meshes/env/plants/v4_vine.obj"/>
+    <mesh name="m_v4_leaf" file="meshes/env/plants/v4_leaf.obj"/>
+    <mesh name="m_v4_blossom" file="meshes/env/plants/v4_blossom.obj"/>
+    <mesh name="m_v4_truss0" file="meshes/env/plants/v4_truss0.obj"/>
+    <mesh name="m_v4_truss1" file="meshes/env/plants/v4_truss1.obj"/>
+    <mesh name="m_v4_truss2" file="meshes/env/plants/v4_truss2.obj"/>
+    <mesh name="m_v4_truss3" file="meshes/env/plants/v4_truss3.obj"/>
+    <mesh name="m_v5_vine" file="meshes/env/plants/v5_vine.obj"/>
+    <mesh name="m_v5_leaf" file="meshes/env/plants/v5_leaf.obj"/>
+    <mesh name="m_v5_blossom" file="meshes/env/plants/v5_blossom.obj"/>
+    <mesh name="m_v5_truss0" file="meshes/env/plants/v5_truss0.obj"/>
+    <mesh name="m_v5_truss1" file="meshes/env/plants/v5_truss1.obj"/>
+    <mesh name="m_v5_truss2" file="meshes/env/plants/v5_truss2.obj"/>
+    <mesh name="m_v5_truss3" file="meshes/env/plants/v5_truss3.obj"/>
+    <mesh name="m_v6_vine" file="meshes/env/plants/v6_vine.obj"/>
+    <mesh name="m_v6_leaf" file="meshes/env/plants/v6_leaf.obj"/>
+    <mesh name="m_v6_blossom" file="meshes/env/plants/v6_blossom.obj"/>
+    <mesh name="m_v6_truss0" file="meshes/env/plants/v6_truss0.obj"/>
+    <mesh name="m_v6_truss1" file="meshes/env/plants/v6_truss1.obj"/>
+    <mesh name="m_v6_truss2" file="meshes/env/plants/v6_truss2.obj"/>
+    <mesh name="m_v6_truss3" file="meshes/env/plants/v6_truss3.obj"/>
+    <mesh name="m_v7_vine" file="meshes/env/plants/v7_vine.obj"/>
+    <mesh name="m_v7_leaf" file="meshes/env/plants/v7_leaf.obj"/>
+    <mesh name="m_v7_blossom" file="meshes/env/plants/v7_blossom.obj"/>
+    <mesh name="m_v7_truss0" file="meshes/env/plants/v7_truss0.obj"/>
+    <mesh name="m_v7_truss1" file="meshes/env/plants/v7_truss1.obj"/>
+    <mesh name="m_v7_truss2" file="meshes/env/plants/v7_truss2.obj"/>
+    <mesh name="m_v7_truss3" file="meshes/env/plants/v7_truss3.obj"/>
+    <mesh name="m_v8_vine" file="meshes/env/plants/v8_vine.obj"/>
+    <mesh name="m_v8_leaf" file="meshes/env/plants/v8_leaf.obj"/>
+    <mesh name="m_v8_blossom" file="meshes/env/plants/v8_blossom.obj"/>
+    <mesh name="m_v8_truss0" file="meshes/env/plants/v8_truss0.obj"/>
+    <mesh name="m_v8_truss1" file="meshes/env/plants/v8_truss1.obj"/>
+    <mesh name="m_v8_truss2" file="meshes/env/plants/v8_truss2.obj"/>
+    <mesh name="m_v8_truss3" file="meshes/env/plants/v8_truss3.obj"/>
+    <mesh name="m_v9_vine" file="meshes/env/plants/v9_vine.obj"/>
+    <mesh name="m_v9_leaf" file="meshes/env/plants/v9_leaf.obj"/>
+    <mesh name="m_v9_blossom" file="meshes/env/plants/v9_blossom.obj"/>
+    <mesh name="m_v9_truss0" file="meshes/env/plants/v9_truss0.obj"/>
+    <mesh name="m_v9_truss1" file="meshes/env/plants/v9_truss1.obj"/>
+    <mesh name="m_v9_truss2" file="meshes/env/plants/v9_truss2.obj"/>
+    <mesh name="m_v9_truss3" file="meshes/env/plants/v9_truss3.obj"/>
+    <mesh name="m_pipe_a" file="meshes/env/pipe_a.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="m_pipe_b" file="meshes/env/pipe_b.stl" scale="0.001 0.001 0.001"/>
+<!-- ENV-ASSET-END -->
   </asset>
   <worldbody>
   <light name="top" directional="true" pos="0 0 3" dir="0 0 -1" diffuse="0.9 0.9 0.9" specular="0.3 0.3 0.3"/>
   <light name="side" directional="true" pos="2 -2 2" dir="-1 1 -0.8" diffuse="0.5 0.5 0.55" specular="0.1 0.1 0.1"/>
   <light name="back" directional="true" pos="-2 2 1.5" dir="1 -1 -0.5" diffuse="0.35 0.35 0.4"/>
   <geom name="floor" type="plane" size="6 6 0.05" contype="0" conaffinity="0" rgba="0.22 0.24 0.27 1"/>
+<!-- ENV-WORLD-BEGIN (tools/build_environment.py 生成, 勿手改) -->
+  <geom name="g_catch_plane" type="plane" pos="0 0 -0.5" size="12 12 0.1" contype="2" conaffinity="2" rgba="0 0 0 0"/>
+  <geom name="g_pipe_a_0" type="mesh" mesh="m_pipe_a" pos="-3.6240 0.323 -0.02" rgba="0.55 0.56 0.60 1" contype="0" conaffinity="0"/>
+  <geom name="g_pipe_a_1" type="mesh" mesh="m_pipe_a" pos="-2.7180 0.323 -0.02" rgba="0.55 0.56 0.60 1" contype="0" conaffinity="0"/>
+  <geom name="g_pipe_a_2" type="mesh" mesh="m_pipe_a" pos="-1.8120 0.323 -0.02" rgba="0.55 0.56 0.60 1" contype="0" conaffinity="0"/>
+  <geom name="g_pipe_a_3" type="mesh" mesh="m_pipe_a" pos="-0.9060 0.323 -0.02" rgba="0.55 0.56 0.60 1" contype="0" conaffinity="0"/>
+  <geom name="g_pipe_a_4" type="mesh" mesh="m_pipe_a" pos="0.0000 0.323 -0.02" rgba="0.55 0.56 0.60 1" contype="0" conaffinity="0"/>
+  <geom name="g_pipe_a_5" type="mesh" mesh="m_pipe_a" pos="0.9060 0.323 -0.02" rgba="0.55 0.56 0.60 1" contype="0" conaffinity="0"/>
+  <geom name="g_pipe_a_6" type="mesh" mesh="m_pipe_a" pos="1.8120 0.323 -0.02" rgba="0.55 0.56 0.60 1" contype="0" conaffinity="0"/>
+  <geom name="g_pipe_a_7" type="mesh" mesh="m_pipe_a" pos="2.7180 0.323 -0.02" rgba="0.55 0.56 0.60 1" contype="0" conaffinity="0"/>
+  <geom name="g_pipe_a_8" type="mesh" mesh="m_pipe_a" pos="3.6240 0.323 -0.02" rgba="0.55 0.56 0.60 1" contype="0" conaffinity="0"/>
+  <geom name="g_pipe_col_0" type="cylinder" pos="0 0.323 -0.02" size="0.02 4.077" euler="0 90 0" rgba="0 0 0 0"/>
+  <geom name="g_pipe_b_0" type="mesh" mesh="m_pipe_b" pos="-3.6240 -0.342 -0.02" rgba="0.55 0.56 0.60 1" contype="0" conaffinity="0"/>
+  <geom name="g_pipe_b_1" type="mesh" mesh="m_pipe_b" pos="-2.7180 -0.342 -0.02" rgba="0.55 0.56 0.60 1" contype="0" conaffinity="0"/>
+  <geom name="g_pipe_b_2" type="mesh" mesh="m_pipe_b" pos="-1.8120 -0.342 -0.02" rgba="0.55 0.56 0.60 1" contype="0" conaffinity="0"/>
+  <geom name="g_pipe_b_3" type="mesh" mesh="m_pipe_b" pos="-0.9060 -0.342 -0.02" rgba="0.55 0.56 0.60 1" contype="0" conaffinity="0"/>
+  <geom name="g_pipe_b_4" type="mesh" mesh="m_pipe_b" pos="0.0000 -0.342 -0.02" rgba="0.55 0.56 0.60 1" contype="0" conaffinity="0"/>
+  <geom name="g_pipe_b_5" type="mesh" mesh="m_pipe_b" pos="0.9060 -0.342 -0.02" rgba="0.55 0.56 0.60 1" contype="0" conaffinity="0"/>
+  <geom name="g_pipe_b_6" type="mesh" mesh="m_pipe_b" pos="1.8120 -0.342 -0.02" rgba="0.55 0.56 0.60 1" contype="0" conaffinity="0"/>
+  <geom name="g_pipe_b_7" type="mesh" mesh="m_pipe_b" pos="2.7180 -0.342 -0.02" rgba="0.55 0.56 0.60 1" contype="0" conaffinity="0"/>
+  <geom name="g_pipe_b_8" type="mesh" mesh="m_pipe_b" pos="3.6240 -0.342 -0.02" rgba="0.55 0.56 0.60 1" contype="0" conaffinity="0"/>
+  <geom name="g_pipe_col_1" type="cylinder" pos="0 -0.342 -0.02" size="0.02 4.077" euler="0 90 0" rgba="0 0 0 0"/>
+  <body name="plant_0" pos="-1.8 0.8 0" quat="0.70710678 0.70710678 0 0">
+      <geom name="g_v0_vine" type="mesh" mesh="m_v0_vine" material="mat_vine" contype="0" conaffinity="0"/>
+      <geom name="g_v0_leaf" type="mesh" mesh="m_v0_leaf" material="mat_leaf" contype="0" conaffinity="0"/>
+      <geom name="g_v0_blossom" type="mesh" mesh="m_v0_blossom" material="mat_blossom" contype="0" conaffinity="0"/>
+      <geom name="g_v0_stem" type="cylinder" pos="1.063 1.223 0.149" quat="0.59837 0.50564 -0.62151 0.00000" size="0.02 0.914" rgba="0.36 0.25 0.12 1" contype="4" conaffinity="1"/>
+      <geom name="g_v0_line" type="cylinder" pos="1.743 2.088 0.409" size="0.002 0.312" quat="0.70711 -0.70711 0.00000 0.00000" rgba="0.25 0.25 0.25 1" contype="0" conaffinity="0"/>
+    <site name="cut_p0_t0" pos="0.4305 0.6835 -0.0852" size="0.01" rgba="1 0 1 0.25"/>
+    <site name="cut_p0_t1" pos="0.7407 0.9789 0.0145" size="0.01" rgba="1 0 1 0.25"/>
+    <site name="cut_p0_t2" pos="1.3255 1.4123 0.2512" size="0.01" rgba="1 0 1 0.25"/>
+    <site name="cut_p0_t3" pos="1.6244 1.6551 0.3644" size="0.01" rgba="1 0 1 0.25"/>
+  </body>
+  <body name="plant_1" pos="-0.9 0.8 0" quat="0.70710678 0.70710678 0 0">
+      <geom name="g_v1_vine" type="mesh" mesh="m_v1_vine" material="mat_vine" contype="0" conaffinity="0"/>
+      <geom name="g_v1_leaf" type="mesh" mesh="m_v1_leaf" material="mat_leaf" contype="0" conaffinity="0"/>
+      <geom name="g_v1_blossom" type="mesh" mesh="m_v1_blossom" material="mat_blossom" contype="0" conaffinity="0"/>
+      <geom name="g_v1_stem" type="cylinder" pos="0.855 1.421 -0.012" quat="0.70734 0.50480 -0.49482 0.00000" size="0.02 1.046" rgba="0.36 0.25 0.12 1" contype="4" conaffinity="1"/>
+      <geom name="g_v1_line" type="cylinder" pos="1.588 2.284 -0.013" size="0.002 0.116" quat="0.70711 -0.70711 0.00000 0.00000" rgba="0.25 0.25 0.25 1" contype="0" conaffinity="0"/>
+    <site name="cut_p1_t0" pos="0.2039 0.6880 -0.0153" size="0.01" rgba="1 0 1 0.25"/>
+    <site name="cut_p1_t1" pos="0.4875 1.0489 0.0083" size="0.01" rgba="1 0 1 0.25"/>
+    <site name="cut_p1_t2" pos="0.9847 1.5511 0.0080" size="0.01" rgba="1 0 1 0.25"/>
+    <site name="cut_p1_t3" pos="1.4793 2.0291 -0.0096" size="0.01" rgba="1 0 1 0.25"/>
+  </body>
+  <body name="plant_2" pos="0.0 0.8 0" quat="0.70710678 0.70710678 0 0">
+      <geom name="g_v2_vine" type="mesh" mesh="m_v2_vine" material="mat_vine" contype="0" conaffinity="0"/>
+      <geom name="g_v2_leaf" type="mesh" mesh="m_v2_leaf" material="mat_leaf" contype="0" conaffinity="0"/>
+      <geom name="g_v2_blossom" type="mesh" mesh="m_v2_blossom" material="mat_blossom" contype="0" conaffinity="0"/>
+      <geom name="g_v2_stem" type="cylinder" pos="1.077 1.366 0.031" quat="0.65703 0.48837 -0.57429 0.00000" size="0.02 0.983" rgba="0.36 0.25 0.12 1" contype="4" conaffinity="1"/>
+      <geom name="g_v2_line" type="cylinder" pos="1.819 2.198 0.165" size="0.002 0.202" quat="0.70711 -0.70711 0.00000 0.00000" rgba="0.25 0.25 0.25 1" contype="0" conaffinity="0"/>
+    <site name="cut_p2_t0" pos="0.4081 0.7459 -0.0717" size="0.01" rgba="1 0 1 0.25"/>
+    <site name="cut_p2_t1" pos="0.6555 1.0276 -0.0303" size="0.01" rgba="1 0 1 0.25"/>
+    <site name="cut_p2_t2" pos="1.2998 1.5357 0.0564" size="0.01" rgba="1 0 1 0.25"/>
+    <site name="cut_p2_t3" pos="1.7195 1.8579 0.1500" size="0.01" rgba="1 0 1 0.25"/>
+  </body>
+  <body name="plant_3" pos="0.9 0.8 0" quat="0.70710678 0.70710678 0 0">
+      <geom name="g_v3_vine" type="mesh" mesh="m_v3_vine" material="mat_vine" contype="0" conaffinity="0"/>
+      <geom name="g_v3_leaf" type="mesh" mesh="m_v3_leaf" material="mat_leaf" contype="0" conaffinity="0"/>
+      <geom name="g_v3_blossom" type="mesh" mesh="m_v3_blossom" material="mat_blossom" contype="0" conaffinity="0"/>
+      <geom name="g_v3_stem" type="cylinder" pos="0.954 1.315 -0.020" quat="0.70886 0.45757 -0.53679 0.00000" size="0.02 0.972" rgba="0.36 0.25 0.12 1" contype="4" conaffinity="1"/>
+      <geom name="g_v3_line" type="cylinder" pos="1.694 2.173 -0.025" size="0.002 0.227" quat="0.70711 -0.70711 0.00000 0.00000" rgba="0.25 0.25 0.25 1" contype="0" conaffinity="0"/>
+    <site name="cut_p3_t0" pos="0.3095 0.6775 -0.0099" size="0.01" rgba="1 0 1 0.25"/>
+    <site name="cut_p3_t1" pos="0.6916 1.1170 -0.0220" size="0.01" rgba="1 0 1 0.25"/>
+    <site name="cut_p3_t2" pos="1.3565 1.6342 -0.0309" size="0.01" rgba="1 0 1 0.25"/>
+    <site name="cut_p3_t3" pos="1.5640 1.8275 -0.0047" size="0.01" rgba="1 0 1 0.25"/>
+  </body>
+  <body name="plant_4" pos="1.8 0.8 0" quat="0.70710678 0.70710678 0 0">
+      <geom name="g_v4_vine" type="mesh" mesh="m_v4_vine" material="mat_vine" contype="0" conaffinity="0"/>
+      <geom name="g_v4_leaf" type="mesh" mesh="m_v4_leaf" material="mat_leaf" contype="0" conaffinity="0"/>
+      <geom name="g_v4_blossom" type="mesh" mesh="m_v4_blossom" material="mat_blossom" contype="0" conaffinity="0"/>
+      <geom name="g_v4_stem" type="cylinder" pos="1.122 1.372 -0.128" quat="0.76870 0.48956 -0.41163 0.00000" size="0.02 1.086" rgba="0.36 0.25 0.12 1" contype="4" conaffinity="1"/>
+      <geom name="g_v4_line" type="cylinder" pos="1.810 2.295 -0.326" size="0.002 0.105" quat="0.70711 -0.70711 0.00000 0.00000" rgba="0.25 0.25 0.25 1" contype="0" conaffinity="0"/>
+    <site name="cut_p4_t0" pos="0.4912 0.5965 0.0444" size="0.01" rgba="1 0 1 0.25"/>
+    <site name="cut_p4_t1" pos="0.9033 1.1015 -0.0444" size="0.01" rgba="1 0 1 0.25"/>
+    <site name="cut_p4_t2" pos="1.2212 1.4892 -0.1360" size="0.01" rgba="1 0 1 0.25"/>
+    <site name="cut_p4_t3" pos="1.4361 1.7150 -0.2191" size="0.01" rgba="1 0 1 0.25"/>
+  </body>
+  <body name="plant_5" pos="-1.8 -0.8 0" quat="0.70710678 0.70710678 0 0">
+      <geom name="g_v5_vine" type="mesh" mesh="m_v5_vine" material="mat_vine" contype="0" conaffinity="0"/>
+      <geom name="g_v5_leaf" type="mesh" mesh="m_v5_leaf" material="mat_leaf" contype="0" conaffinity="0"/>
+      <geom name="g_v5_blossom" type="mesh" mesh="m_v5_blossom" material="mat_blossom" contype="0" conaffinity="0"/>
+      <geom name="g_v5_stem" type="cylinder" pos="0.918 1.531 0.063" quat="0.66851 0.64661 -0.36741 0.00000" size="0.02 1.041" rgba="0.36 0.25 0.12 1" contype="4" conaffinity="1"/>
+    <site name="cut_p5_t0" pos="0.4606 0.6953 -0.0261" size="0.01" rgba="1 0 1 0.25"/>
+    <site name="cut_p5_t1" pos="0.6447 1.0578 -0.0151" size="0.01" rgba="1 0 1 0.25"/>
+    <site name="cut_p5_t2" pos="0.8620 1.4474 0.0712" size="0.01" rgba="1 0 1 0.25"/>
+    <site name="cut_p5_t3" pos="1.0771 1.7733 0.1000" size="0.01" rgba="1 0 1 0.25"/>
+  </body>
+  <body name="plant_6" pos="-0.9 -0.8 0" quat="0.70710678 0.70710678 0 0">
+      <geom name="g_v6_vine" type="mesh" mesh="m_v6_vine" material="mat_vine" contype="0" conaffinity="0"/>
+      <geom name="g_v6_leaf" type="mesh" mesh="m_v6_leaf" material="mat_leaf" contype="0" conaffinity="0"/>
+      <geom name="g_v6_blossom" type="mesh" mesh="m_v6_blossom" material="mat_blossom" contype="0" conaffinity="0"/>
+      <geom name="g_v6_stem" type="cylinder" pos="0.961 1.186 0.019" quat="0.67892 0.44360 -0.58505 0.00000" size="0.02 0.884" rgba="0.36 0.25 0.12 1" contype="4" conaffinity="1"/>
+      <geom name="g_v6_line" type="cylinder" pos="1.663 2.059 0.088" size="0.002 0.341" quat="0.70711 -0.70711 0.00000 0.00000" rgba="0.25 0.25 0.25 1" contype="0" conaffinity="0"/>
+    <site name="cut_p6_t0" pos="0.3508 0.6178 -0.0332" size="0.01" rgba="1 0 1 0.25"/>
+    <site name="cut_p6_t1" pos="0.6692 0.9815 -0.0239" size="0.01" rgba="1 0 1 0.25"/>
+    <site name="cut_p6_t2" pos="1.4357 1.4888 0.0635" size="0.01" rgba="1 0 1 0.25"/>
+    <site name="cut_p6_t3" pos="1.1752 1.5409 0.0372" size="0.01" rgba="1 0 1 0.25"/>
+  </body>
+  <body name="plant_7" pos="0.0 -0.8 0" quat="0.70710678 0.70710678 0 0">
+      <geom name="g_v7_vine" type="mesh" mesh="m_v7_vine" material="mat_vine" contype="0" conaffinity="0"/>
+      <geom name="g_v7_leaf" type="mesh" mesh="m_v7_leaf" material="mat_leaf" contype="0" conaffinity="0"/>
+      <geom name="g_v7_blossom" type="mesh" mesh="m_v7_blossom" material="mat_blossom" contype="0" conaffinity="0"/>
+      <geom name="g_v7_stem" type="cylinder" pos="0.775 1.476 -0.163" quat="0.77796 0.54333 -0.31556 0.00000" size="0.02 1.062" rgba="0.36 0.25 0.12 1" contype="4" conaffinity="1"/>
+    <site name="cut_p7_t0" pos="0.3012 0.6348 0.0290" size="0.01" rgba="1 0 1 0.25"/>
+    <site name="cut_p7_t1" pos="0.4803 0.9891 -0.0229" size="0.01" rgba="1 0 1 0.25"/>
+    <site name="cut_p7_t2" pos="0.8028 1.4942 -0.1551" size="0.01" rgba="1 0 1 0.25"/>
+    <site name="cut_p7_t3" pos="1.0016 1.8591 -0.2384" size="0.01" rgba="1 0 1 0.25"/>
+  </body>
+  <body name="plant_8" pos="0.9 -0.8 0" quat="0.70710678 0.70710678 0 0">
+      <geom name="g_v8_vine" type="mesh" mesh="m_v8_vine" material="mat_vine" contype="0" conaffinity="0"/>
+      <geom name="g_v8_leaf" type="mesh" mesh="m_v8_leaf" material="mat_leaf" contype="0" conaffinity="0"/>
+      <geom name="g_v8_blossom" type="mesh" mesh="m_v8_blossom" material="mat_blossom" contype="0" conaffinity="0"/>
+      <geom name="g_v8_stem" type="cylinder" pos="1.022 1.383 0.147" quat="0.61217 0.60695 -0.50681 0.00000" size="0.02 0.971" rgba="0.36 0.25 0.12 1" contype="4" conaffinity="1"/>
+      <geom name="g_v8_line" type="cylinder" pos="1.624 2.252 0.390" size="0.002 0.148" quat="0.70711 -0.70711 0.00000 0.00000" rgba="0.25 0.25 0.25 1" contype="0" conaffinity="0"/>
+    <site name="cut_p8_t0" pos="0.4701 0.7009 -0.0652" size="0.01" rgba="1 0 1 0.25"/>
+    <site name="cut_p8_t1" pos="0.6829 0.9850 -0.0086" size="0.01" rgba="1 0 1 0.25"/>
+    <site name="cut_p8_t2" pos="1.0445 1.3811 0.1425" size="0.01" rgba="1 0 1 0.25"/>
+    <site name="cut_p8_t3" pos="1.3608 1.7724 0.2977" size="0.01" rgba="1 0 1 0.25"/>
+  </body>
+  <body name="plant_9" pos="1.8 -0.8 0" quat="0.70710678 0.70710678 0 0">
+      <geom name="g_v9_vine" type="mesh" mesh="m_v9_vine" material="mat_vine" contype="0" conaffinity="0"/>
+      <geom name="g_v9_leaf" type="mesh" mesh="m_v9_leaf" material="mat_leaf" contype="0" conaffinity="0"/>
+      <geom name="g_v9_blossom" type="mesh" mesh="m_v9_blossom" material="mat_blossom" contype="0" conaffinity="0"/>
+      <geom name="g_v9_stem" type="cylinder" pos="0.841 1.520 0.075" quat="0.66263 0.66654 -0.34153 0.00000" size="0.02 1.109" rgba="0.36 0.25 0.12 1" contype="4" conaffinity="1"/>
+    <site name="cut_p9_t0" pos="0.3892 0.6096 -0.0344" size="0.01" rgba="1 0 1 0.25"/>
+    <site name="cut_p9_t1" pos="0.5965 1.0399 -0.0116" size="0.01" rgba="1 0 1 0.25"/>
+    <site name="cut_p9_t2" pos="0.8140 1.5039 0.0819" size="0.01" rgba="1 0 1 0.25"/>
+    <site name="cut_p9_t3" pos="1.0502 1.8908 0.1380" size="0.01" rgba="1 0 1 0.25"/>
+  </body>
+  <body name="truss_0_0" pos="-1.3108 0.8218 0.5816" quat="0.70710678 0.70710678 0 0">
+    <freejoint name="j_truss_0_0"/>
+    <inertial pos="0 0 0" mass="0.3" diaginertia="0.0015 0.0015 0.0008"/>
+    <geom name="g_tr0_mesh" type="mesh" mesh="m_v0_truss0" material="mat_red" contype="0" conaffinity="0"/>
+    <geom name="g_tr0_s0" type="sphere" pos="0.024 0.102 -0.004" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr0_s1" type="sphere" pos="-0.003 0.064 -0.025" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr0_s2" type="sphere" pos="-0.007 0.108 -0.020" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr0_s3" type="sphere" pos="-0.009 0.020 -0.013" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr0_s4" type="sphere" pos="0.003 0.011 0.020" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr0_s5" type="sphere" pos="0.002 -0.025 0.020" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr0_s6" type="sphere" pos="0.027 0.061 -0.007" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr0_s7" type="sphere" pos="-0.016 -0.101 -0.006" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr0_s8" type="sphere" pos="-0.023 -0.059 0.003" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr0_s9" type="sphere" pos="0.007 -0.059 0.021" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr0_s10" type="sphere" pos="0.016 -0.098 0.009" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr0_s11" type="sphere" pos="-0.020 -0.023 0.002" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+    <geom name="g_tr0_ped" type="capsule" fromto="-0.009 0.015 -0.009 0 0 0" size="0.006" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
+  </body>
+  <body name="truss_0_1" pos="-1.0730 0.8199 1.0120" quat="0.70710678 0.70710678 0 0">
+    <freejoint name="j_truss_0_1"/>
+    <inertial pos="0 0 0" mass="0.3" diaginertia="0.0015 0.0015 0.0008"/>
+    <geom name="g_tr1_mesh" type="mesh" mesh="m_v0_truss1" material="mat_red" contype="0" conaffinity="0"/>
+    <geom name="g_tr1_s0" type="sphere" pos="-0.002 -0.023 0.020" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr1_s1" type="sphere" pos="0.012 -0.098 -0.013" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr1_s2" type="sphere" pos="0.022 -0.059 -0.003" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr1_s3" type="sphere" pos="-0.002 -0.059 0.023" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr1_s4" type="sphere" pos="-0.010 -0.101 0.015" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr1_s5" type="sphere" pos="-0.001 0.061 -0.028" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr1_s6" type="sphere" pos="0.020 -0.025 0.002" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr1_s7" type="sphere" pos="0.020 0.011 0.002" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr1_s8" type="sphere" pos="-0.015 0.020 0.006" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr1_s9" type="sphere" pos="-0.021 0.108 0.002" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr1_s10" type="sphere" pos="-0.025 0.064 -0.002" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr1_s11" type="sphere" pos="0.001 0.102 -0.024" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+    <geom name="g_tr1_ped" type="capsule" fromto="0.006 -0.013 0.014 0 0 0" size="0.006" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
+  </body>
+  <body name="truss_0_2" pos="-0.4434 0.5317 1.3660" quat="0.70710678 0.70710678 0 0">
+    <freejoint name="j_truss_0_2"/>
+    <inertial pos="0 0 0" mass="0.3" diaginertia="0.0015 0.0015 0.0008"/>
+    <geom name="g_tr2_mesh" type="mesh" mesh="m_v0_truss2" material="mat_red" contype="0" conaffinity="0"/>
+    <geom name="g_tr2_s0" type="sphere" pos="0.020 -0.023 0.001" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr2_s1" type="sphere" pos="-0.014 -0.098 -0.011" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr2_s2" type="sphere" pos="-0.004 -0.059 -0.022" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr2_s3" type="sphere" pos="0.023 -0.059 0.001" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr2_s4" type="sphere" pos="0.015 -0.101 0.009" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr2_s5" type="sphere" pos="-0.028 0.061 0.003" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr2_s6" type="sphere" pos="0.001 -0.025 -0.020" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr2_s7" type="sphere" pos="0.000 0.011 -0.020" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr2_s8" type="sphere" pos="0.007 0.020 0.015" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr2_s9" type="sphere" pos="0.003 0.108 0.021" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr2_s10" type="sphere" pos="-0.000 0.064 0.025" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr2_s11" type="sphere" pos="-0.024 0.102 0.000" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+    <geom name="g_tr2_ped" type="capsule" fromto="-0.011 0.016 -0.006 0 0 0" size="0.006" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
+  </body>
+  <body name="truss_0_3" pos="-0.1075 0.4043 1.5568" quat="0.70710678 0.70710678 0 0">
+    <freejoint name="j_truss_0_3"/>
+    <inertial pos="0 0 0" mass="0.3" diaginertia="0.0015 0.0015 0.0008"/>
+    <geom name="g_tr3_mesh" type="mesh" mesh="m_v0_truss3" material="mat_orange" contype="0" conaffinity="0"/>
+    <geom name="g_tr3_s0" type="sphere" pos="-0.011 -0.023 -0.017" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr3_s1" type="sphere" pos="-0.001 -0.098 0.018" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr3_s2" type="sphere" pos="-0.015 -0.059 0.016" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr3_s3" type="sphere" pos="-0.013 -0.059 -0.019" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr3_s4" type="sphere" pos="-0.002 -0.101 -0.017" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr3_s5" type="sphere" pos="0.019 0.061 0.021" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr3_s6" type="sphere" pos="-0.017 -0.025 0.011" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr3_s7" type="sphere" pos="-0.017 0.011 0.012" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr3_s8" type="sphere" pos="0.008 0.020 -0.014" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr3_s9" type="sphere" pos="0.015 0.108 -0.015" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr3_s10" type="sphere" pos="0.021 0.064 -0.015" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr3_s11" type="sphere" pos="0.014 0.102 0.019" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+    <geom name="g_tr3_ped" type="capsule" fromto="-0.011 0.016 -0.005 0 0 0" size="0.006" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
+  </body>
+  <body name="truss_1_0" pos="-0.5883 0.8283 0.5824" quat="0.70710678 0.70710678 0 0">
+    <freejoint name="j_truss_1_0"/>
+    <inertial pos="0 0 0" mass="0.3" diaginertia="0.0015 0.0015 0.0008"/>
+    <geom name="g_tr4_mesh" type="mesh" mesh="m_v1_truss0" material="mat_red" contype="0" conaffinity="0"/>
+    <geom name="g_tr4_s0" type="sphere" pos="0.010 0.119 -0.026" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr4_s1" type="sphere" pos="-0.027 0.074 -0.011" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr4_s2" type="sphere" pos="-0.024 0.125 -0.005" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr4_s3" type="sphere" pos="-0.019 0.023 0.002" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr4_s4" type="sphere" pos="0.022 0.013 0.009" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr4_s5" type="sphere" pos="0.022 -0.029 0.010" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr4_s6" type="sphere" pos="0.009 0.071 -0.032" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr4_s7" type="sphere" pos="-0.016 -0.118 0.013" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr4_s8" type="sphere" pos="-0.011 -0.069 0.025" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr4_s9" type="sphere" pos="0.026 -0.069 0.005" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr4_s10" type="sphere" pos="0.018 -0.114 -0.011" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr4_s11" type="sphere" pos="-0.009 -0.027 0.022" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+    <geom name="g_tr4_ped" type="capsule" fromto="-0.014 0.014 0.002 0 0 0" size="0.006" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
+  </body>
+  <body name="truss_1_1" pos="-0.4121 0.7968 1.0485" quat="0.70710678 0.70710678 0 0">
+    <freejoint name="j_truss_1_1"/>
+    <inertial pos="0 0 0" mass="0.3" diaginertia="0.0015 0.0015 0.0008"/>
+    <geom name="g_tr5_mesh" type="mesh" mesh="m_v1_truss1" material="mat_red" contype="0" conaffinity="0"/>
+    <geom name="g_tr5_s0" type="sphere" pos="0.018 -0.027 0.016" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr5_s1" type="sphere" pos="-0.004 -0.114 -0.020" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr5_s2" type="sphere" pos="0.013 -0.069 -0.023" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr5_s3" type="sphere" pos="0.020 -0.069 0.018" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr5_s4" type="sphere" pos="0.007 -0.118 0.019" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr5_s5" type="sphere" pos="-0.027 0.071 -0.019" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr5_s6" type="sphere" pos="0.016 -0.029 -0.017" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr5_s7" type="sphere" pos="0.016 0.013 -0.018" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr5_s8" type="sphere" pos="-0.004 0.023 0.018" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr5_s9" type="sphere" pos="-0.013 0.125 0.021" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr5_s10" type="sphere" pos="-0.019 0.074 0.022" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr5_s11" type="sphere" pos="-0.021 0.119 -0.018" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+    <geom name="g_tr5_ped" type="capsule" fromto="0.002 -0.002 -0.020 0 0 0" size="0.006" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
+  </body>
+  <body name="truss_1_2" pos="0.0865 0.7506 1.5494" quat="0.70710678 0.70710678 0 0">
+    <freejoint name="j_truss_1_2"/>
+    <inertial pos="0 0 0" mass="0.3" diaginertia="0.0015 0.0015 0.0008"/>
+    <geom name="g_tr6_mesh" type="mesh" mesh="m_v1_truss2" material="mat_red" contype="0" conaffinity="0"/>
+    <geom name="g_tr6_s0" type="sphere" pos="0.022 -0.027 -0.008" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr6_s1" type="sphere" pos="-0.020 -0.114 -0.006" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr6_s2" type="sphere" pos="-0.014 -0.069 -0.022" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr6_s3" type="sphere" pos="0.025 -0.069 -0.009" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr6_s4" type="sphere" pos="0.020 -0.118 0.003" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr6_s5" type="sphere" pos="-0.029 0.071 0.015" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr6_s6" type="sphere" pos="-0.008 -0.029 -0.022" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr6_s7" type="sphere" pos="-0.009 0.013 -0.022" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr6_s8" type="sphere" pos="0.014 0.023 0.013" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr6_s9" type="sphere" pos="0.013 0.125 0.021" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr6_s10" type="sphere" pos="0.011 0.074 0.027" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr6_s11" type="sphere" pos="-0.026 0.119 0.011" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+    <geom name="g_tr6_ped" type="capsule" fromto="-0.001 0.001 -0.020 0 0 0" size="0.006" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
+  </body>
+  <body name="truss_1_3" pos="0.6525 0.7947 1.9575" quat="0.70710678 0.70710678 0 0">
+    <freejoint name="j_truss_1_3"/>
+    <inertial pos="0 0 0" mass="0.3" diaginertia="0.0015 0.0015 0.0008"/>
+    <geom name="g_tr7_mesh" type="mesh" mesh="m_v1_truss3" material="mat_orange" contype="0" conaffinity="0"/>
+    <geom name="g_tr7_s0" type="sphere" pos="-0.000 -0.027 -0.024" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr7_s1" type="sphere" pos="-0.012 -0.114 0.017" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr7_s2" type="sphere" pos="-0.025 -0.069 0.006" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr7_s3" type="sphere" pos="-0.001 -0.069 -0.027" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr7_s4" type="sphere" pos="0.009 -0.118 -0.018" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr7_s5" type="sphere" pos="0.005 0.071 0.033" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr7_s6" type="sphere" pos="-0.024 -0.029 0.000" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr7_s7" type="sphere" pos="-0.024 0.013 0.001" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr7_s8" type="sphere" pos="0.016 0.023 -0.009" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr7_s9" type="sphere" pos="0.024 0.125 -0.005" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr7_s10" type="sphere" pos="0.029 0.074 -0.001" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr7_s11" type="sphere" pos="0.002 0.119 0.028" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+    <geom name="g_tr7_ped" type="capsule" fromto="-0.014 0.014 -0.003 0 0 0" size="0.006" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
+  </body>
+  <body name="truss_2_0" pos="0.4831 0.7986 0.6421" quat="0.70710678 0.70710678 0 0">
+    <freejoint name="j_truss_2_0"/>
+    <inertial pos="0 0 0" mass="0.3" diaginertia="0.0015 0.0015 0.0008"/>
+    <geom name="g_tr8_mesh" type="mesh" mesh="m_v2_truss0" material="mat_red" contype="0" conaffinity="0"/>
+    <geom name="g_tr8_s0" type="sphere" pos="0.018 0.115 0.020" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr8_s1" type="sphere" pos="0.022 0.072 -0.019" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr8_s2" type="sphere" pos="0.015 0.121 -0.019" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr8_s3" type="sphere" pos="0.007 0.022 -0.017" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr8_s4" type="sphere" pos="-0.017 0.013 0.015" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr8_s5" type="sphere" pos="-0.018 -0.028 0.014" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr8_s6" type="sphere" pos="0.023 0.069 0.022" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr8_s7" type="sphere" pos="-0.004 -0.114 -0.019" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr8_s8" type="sphere" pos="-0.016 -0.067 -0.020" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr8_s9" type="sphere" pos="-0.015 -0.067 0.020" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr8_s10" type="sphere" pos="0.001 -0.111 0.020" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr8_s11" type="sphere" pos="-0.015 -0.026 -0.018" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+    <geom name="g_tr8_ped" type="capsule" fromto="-0.010 0.014 -0.010 0 0 0" size="0.006" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
+  </body>
+  <body name="truss_2_1" pos="0.6541 0.8288 1.0288" quat="0.70710678 0.70710678 0 0">
+    <freejoint name="j_truss_2_1"/>
+    <inertial pos="0 0 0" mass="0.3" diaginertia="0.0015 0.0015 0.0008"/>
+    <geom name="g_tr9_mesh" type="mesh" mesh="m_v2_truss1" material="mat_red" contype="0" conaffinity="0"/>
+    <geom name="g_tr9_s0" type="sphere" pos="-0.012 -0.026 0.020" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr9_s1" type="sphere" pos="0.018 -0.111 -0.008" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr9_s2" type="sphere" pos="0.024 -0.067 0.008" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr9_s3" type="sphere" pos="-0.013 -0.067 0.022" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr9_s4" type="sphere" pos="-0.017 -0.114 0.011" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr9_s5" type="sphere" pos="0.012 0.069 -0.029" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr9_s6" type="sphere" pos="0.020 -0.028 0.012" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr9_s7" type="sphere" pos="0.020 0.013 0.011" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr9_s8" type="sphere" pos="-0.018 0.022 -0.001" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr9_s9" type="sphere" pos="-0.023 0.121 -0.008" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr9_s10" type="sphere" pos="-0.025 0.072 -0.014" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr9_s11" type="sphere" pos="0.013 0.115 -0.024" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+    <geom name="g_tr9_ped" type="capsule" fromto="0.011 -0.011 -0.013 0 0 0" size="0.006" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
+  </body>
+  <body name="truss_2_2" pos="1.3221 0.7700 1.5150" quat="0.70710678 0.70710678 0 0">
+    <freejoint name="j_truss_2_2"/>
+    <inertial pos="0 0 0" mass="0.3" diaginertia="0.0015 0.0015 0.0008"/>
+    <geom name="g_tr10_mesh" type="mesh" mesh="m_v2_truss2" material="mat_red" contype="0" conaffinity="0"/>
+    <geom name="g_tr10_s0" type="sphere" pos="0.018 -0.026 0.015" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr10_s1" type="sphere" pos="-0.005 -0.111 -0.020" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr10_s2" type="sphere" pos="0.011 -0.067 -0.023" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr10_s3" type="sphere" pos="0.020 -0.067 0.017" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr10_s4" type="sphere" pos="0.008 -0.114 0.018" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr10_s5" type="sphere" pos="-0.027 0.069 -0.017" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr10_s6" type="sphere" pos="0.015 -0.028 -0.017" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr10_s7" type="sphere" pos="0.014 0.013 -0.018" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr10_s8" type="sphere" pos="-0.004 0.022 0.018" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr10_s9" type="sphere" pos="-0.011 0.121 0.021" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr10_s10" type="sphere" pos="-0.018 0.072 0.022" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr10_s11" type="sphere" pos="-0.021 0.115 -0.016" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+    <geom name="g_tr10_ped" type="capsule" fromto="-0.011 0.010 0.013 0 0 0" size="0.006" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
+  </body>
+  <body name="truss_2_3" pos="1.8109 0.6248 1.7450" quat="0.70710678 0.70710678 0 0">
+    <freejoint name="j_truss_2_3"/>
+    <inertial pos="0 0 0" mass="0.3" diaginertia="0.0015 0.0015 0.0008"/>
+    <geom name="g_tr11_mesh" type="mesh" mesh="m_v2_truss3" material="mat_orange" contype="0" conaffinity="0"/>
+    <geom name="g_tr11_s0" type="sphere" pos="0.019 -0.026 -0.012" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr11_s1" type="sphere" pos="-0.020 -0.111 -0.001" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr11_s2" type="sphere" pos="-0.018 -0.067 -0.018" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr11_s3" type="sphere" pos="0.022 -0.067 -0.014" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr11_s4" type="sphere" pos="0.020 -0.114 -0.002" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr11_s5" type="sphere" pos="-0.024 0.069 0.020" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr11_s6" type="sphere" pos="-0.012 -0.028 -0.020" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr11_s7" type="sphere" pos="-0.013 0.013 -0.019" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr11_s8" type="sphere" pos="0.016 0.022 0.009" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr11_s9" type="sphere" pos="0.017 0.121 0.017" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr11_s10" type="sphere" pos="0.016 0.072 0.024" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr11_s11" type="sphere" pos="-0.022 0.115 0.015" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+    <geom name="g_tr11_ped" type="capsule" fromto="-0.012 0.015 -0.003 0 0 0" size="0.006" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
+  </body>
+  <body name="truss_3_0" pos="1.3040 0.7979 0.5668" quat="0.70710678 0.70710678 0 0">
+    <freejoint name="j_truss_3_0"/>
+    <inertial pos="0 0 0" mass="0.3" diaginertia="0.0015 0.0015 0.0008"/>
+    <geom name="g_tr12_mesh" type="mesh" mesh="m_v3_truss0" material="mat_red" contype="0" conaffinity="0"/>
+    <geom name="g_tr12_s0" type="sphere" pos="0.017 0.114 0.020" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr12_s1" type="sphere" pos="0.022 0.071 -0.018" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr12_s2" type="sphere" pos="0.016 0.120 -0.018" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr12_s3" type="sphere" pos="0.007 0.022 -0.017" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr12_s4" type="sphere" pos="-0.018 0.013 0.014" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr12_s5" type="sphere" pos="-0.018 -0.028 0.014" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr12_s6" type="sphere" pos="0.022 0.068 0.022" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr12_s7" type="sphere" pos="-0.004 -0.112 -0.019" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr12_s8" type="sphere" pos="-0.016 -0.066 -0.020" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr12_s9" type="sphere" pos="-0.016 -0.066 0.019" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr12_s10" type="sphere" pos="0.001 -0.109 0.020" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr12_s11" type="sphere" pos="-0.014 -0.026 -0.018" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+    <geom name="g_tr12_ped" type="capsule" fromto="-0.013 0.015 -0.002 0 0 0" size="0.006" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
+  </body>
+  <body name="truss_3_1" pos="1.5660 0.8295 1.1470" quat="0.70710678 0.70710678 0 0">
+    <freejoint name="j_truss_3_1"/>
+    <inertial pos="0 0 0" mass="0.3" diaginertia="0.0015 0.0015 0.0008"/>
+    <geom name="g_tr13_mesh" type="mesh" mesh="m_v3_truss1" material="mat_orange" contype="0" conaffinity="0"/>
+    <geom name="g_tr13_s0" type="sphere" pos="-0.019 -0.026 0.012" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr13_s1" type="sphere" pos="0.020 -0.109 0.001" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr13_s2" type="sphere" pos="0.018 -0.066 0.017" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr13_s3" type="sphere" pos="-0.021 -0.066 0.014" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr13_s4" type="sphere" pos="-0.019 -0.112 0.002" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr13_s5" type="sphere" pos="0.024 0.068 -0.021" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr13_s6" type="sphere" pos="0.012 -0.028 0.019" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr13_s7" type="sphere" pos="0.013 0.013 0.019" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr13_s8" type="sphere" pos="-0.016 0.022 -0.008" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr13_s9" type="sphere" pos="-0.017 0.120 -0.017" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr13_s10" type="sphere" pos="-0.016 0.071 -0.023" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr13_s11" type="sphere" pos="0.021 0.114 -0.016" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+    <geom name="g_tr13_ped" type="capsule" fromto="0.013 -0.015 0.004 0 0 0" size="0.006" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
+  </body>
+  <body name="truss_3_2" pos="2.3197 0.8766 1.5598" quat="0.70710678 0.70710678 0 0">
+    <freejoint name="j_truss_3_2"/>
+    <inertial pos="0 0 0" mass="0.3" diaginertia="0.0015 0.0015 0.0008"/>
+    <geom name="g_tr14_mesh" type="mesh" mesh="m_v3_truss2" material="mat_green" contype="0" conaffinity="0"/>
+    <geom name="g_tr14_s0" type="sphere" pos="0.007 -0.026 0.021" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr14_s1" type="sphere" pos="0.006 -0.109 -0.019" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr14_s2" type="sphere" pos="0.021 -0.066 -0.013" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr14_s3" type="sphere" pos="0.008 -0.066 0.024" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr14_s4" type="sphere" pos="-0.003 -0.112 0.019" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr14_s5" type="sphere" pos="-0.014 0.068 -0.028" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr14_s6" type="sphere" pos="0.022 -0.028 -0.007" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr14_s7" type="sphere" pos="0.021 0.013 -0.008" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr14_s8" type="sphere" pos="-0.012 0.022 0.013" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr14_s9" type="sphere" pos="-0.021 0.120 0.012" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr14_s10" type="sphere" pos="-0.026 0.071 0.010" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr14_s11" type="sphere" pos="-0.010 0.114 -0.025" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+    <geom name="g_tr14_ped" type="capsule" fromto="-0.012 0.014 0.008 0 0 0" size="0.006" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
+  </body>
+  <body name="truss_3_3" pos="2.4781 0.7312 1.8115" quat="0.70710678 0.70710678 0 0">
+    <freejoint name="j_truss_3_3"/>
+    <inertial pos="0 0 0" mass="0.3" diaginertia="0.0015 0.0015 0.0008"/>
+    <geom name="g_tr15_mesh" type="mesh" mesh="m_v3_truss3" material="mat_green" contype="0" conaffinity="0"/>
+    <geom name="g_tr15_s0" type="sphere" pos="0.022 -0.026 -0.006" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr15_s1" type="sphere" pos="-0.019 -0.109 -0.007" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr15_s2" type="sphere" pos="-0.012 -0.066 -0.022" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr15_s3" type="sphere" pos="0.025 -0.066 -0.007" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr15_s4" type="sphere" pos="0.019 -0.112 0.004" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr15_s5" type="sphere" pos="-0.029 0.068 0.012" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr15_s6" type="sphere" pos="-0.006 -0.028 -0.022" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr15_s7" type="sphere" pos="-0.006 0.013 -0.022" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr15_s8" type="sphere" pos="0.013 0.022 0.013" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr15_s9" type="sphere" pos="0.011 0.120 0.021" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr15_s10" type="sphere" pos="0.008 0.071 0.027" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr15_s11" type="sphere" pos="-0.025 0.114 0.008" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+    <geom name="g_tr15_ped" type="capsule" fromto="-0.004 0.004 -0.019 0 0 0" size="0.006" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
+  </body>
+  <body name="truss_4_0" pos="2.3481 0.8191 0.5333" quat="0.70710678 0.70710678 0 0">
+    <freejoint name="j_truss_4_0"/>
+    <inertial pos="0 0 0" mass="0.3" diaginertia="0.0015 0.0015 0.0008"/>
+    <geom name="g_tr16_mesh" type="mesh" mesh="m_v4_truss0" material="mat_red" contype="0" conaffinity="0"/>
+    <geom name="g_tr16_s0" type="sphere" pos="0.026 0.112 0.002" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr16_s1" type="sphere" pos="0.003 0.069 -0.028" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr16_s2" type="sphere" pos="-0.002 0.117 -0.023" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr16_s3" type="sphere" pos="-0.006 0.021 -0.017" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr16_s4" type="sphere" pos="-0.002 0.012 0.022" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr16_s5" type="sphere" pos="-0.003 -0.027 0.022" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr16_s6" type="sphere" pos="0.031 0.067 -0.000" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr16_s7" type="sphere" pos="-0.016 -0.110 -0.011" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr16_s8" type="sphere" pos="-0.025 -0.065 -0.003" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr16_s9" type="sphere" pos="0.002 -0.065 0.024" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr16_s10" type="sphere" pos="0.014 -0.107 0.013" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr16_s11" type="sphere" pos="-0.022 -0.025 -0.003" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+    <geom name="g_tr16_ped" type="capsule" fromto="-0.011 0.012 0.012 0 0 0" size="0.006" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
+  </body>
+  <body name="truss_4_1" pos="2.7147 0.8142 1.0992" quat="0.70710678 0.70710678 0 0">
+    <freejoint name="j_truss_4_1"/>
+    <inertial pos="0 0 0" mass="0.3" diaginertia="0.0015 0.0015 0.0008"/>
+    <geom name="g_tr17_mesh" type="mesh" mesh="m_v4_truss1" material="mat_orange" contype="0" conaffinity="0"/>
+    <geom name="g_tr17_s0" type="sphere" pos="0.005 -0.025 0.022" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr17_s1" type="sphere" pos="0.008 -0.107 -0.018" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr17_s2" type="sphere" pos="0.022 -0.065 -0.011" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr17_s3" type="sphere" pos="0.006 -0.065 0.024" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr17_s4" type="sphere" pos="-0.005 -0.110 0.018" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr17_s5" type="sphere" pos="-0.011 0.067 -0.029" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr17_s6" type="sphere" pos="0.022 -0.027 -0.005" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr17_s7" type="sphere" pos="0.022 0.012 -0.006" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr17_s8" type="sphere" pos="-0.013 0.021 0.012" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr17_s9" type="sphere" pos="-0.021 0.117 0.010" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr17_s10" type="sphere" pos="-0.027 0.069 0.007" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr17_s11" type="sphere" pos="-0.007 0.112 -0.025" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+    <geom name="g_tr17_ped" type="capsule" fromto="-0.007 0.001 -0.019 0 0 0" size="0.006" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
+  </body>
+  <body name="truss_4_2" pos="3.0251 0.9037 1.4937" quat="0.70710678 0.70710678 0 0">
+    <freejoint name="j_truss_4_2"/>
+    <inertial pos="0 0 0" mass="0.3" diaginertia="0.0015 0.0015 0.0008"/>
+    <geom name="g_tr18_mesh" type="mesh" mesh="m_v4_truss2" material="mat_green" contype="0" conaffinity="0"/>
+    <geom name="g_tr18_s0" type="sphere" pos="0.022 -0.025 -0.005" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr18_s1" type="sphere" pos="-0.018 -0.107 -0.008" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr18_s2" type="sphere" pos="-0.011 -0.065 -0.022" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr18_s3" type="sphere" pos="0.024 -0.065 -0.006" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr18_s4" type="sphere" pos="0.019 -0.110 0.005" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr18_s5" type="sphere" pos="-0.029 0.067 0.011" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr18_s6" type="sphere" pos="-0.005 -0.027 -0.022" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr18_s7" type="sphere" pos="-0.006 0.012 -0.022" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr18_s8" type="sphere" pos="0.012 0.021 0.013" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr18_s9" type="sphere" pos="0.010 0.117 0.021" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr18_s10" type="sphere" pos="0.007 0.069 0.027" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr18_s11" type="sphere" pos="-0.025 0.112 0.007" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+    <geom name="g_tr18_ped" type="capsule" fromto="-0.002 -0.003 -0.020 0 0 0" size="0.006" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
+  </body>
+  <body name="truss_4_3" pos="3.2813 1.0351 1.6732" quat="0.70710678 0.70710678 0 0">
+    <freejoint name="j_truss_4_3"/>
+    <inertial pos="0 0 0" mass="0.3" diaginertia="0.0015 0.0015 0.0008"/>
+    <geom name="g_tr19_mesh" type="mesh" mesh="m_v4_truss3" material="mat_green" contype="0" conaffinity="0"/>
+    <geom name="g_tr19_s0" type="sphere" pos="-0.005 -0.025 -0.022" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr19_s1" type="sphere" pos="-0.007 -0.107 0.018" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr19_s2" type="sphere" pos="-0.022 -0.065 0.011" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr19_s3" type="sphere" pos="-0.006 -0.065 -0.024" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr19_s4" type="sphere" pos="0.004 -0.110 -0.019" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr19_s5" type="sphere" pos="0.011 0.067 0.029" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr19_s6" type="sphere" pos="-0.022 -0.027 0.005" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr19_s7" type="sphere" pos="-0.022 0.012 0.006" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr19_s8" type="sphere" pos="0.013 0.021 -0.012" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr19_s9" type="sphere" pos="0.021 0.117 -0.010" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr19_s10" type="sphere" pos="0.027 0.069 -0.008" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr19_s11" type="sphere" pos="0.008 0.112 0.025" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+    <geom name="g_tr19_ped" type="capsule" fromto="-0.014 0.013 0.005 0 0 0" size="0.006" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
+  </body>
+  <body name="truss_5_0" pos="-1.3174 -0.7949 0.6802" quat="0.70710678 0.70710678 0 0">
+    <freejoint name="j_truss_5_0"/>
+    <inertial pos="0 0 0" mass="0.3" diaginertia="0.0015 0.0015 0.0008"/>
+    <geom name="g_tr20_mesh" type="mesh" mesh="m_v5_truss0" material="mat_red" contype="0" conaffinity="0"/>
+    <geom name="g_tr20_s0" type="sphere" pos="0.021 0.112 0.015" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr20_s1" type="sphere" pos="0.017 0.070 -0.022" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr20_s2" type="sphere" pos="0.011 0.118 -0.021" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr20_s3" type="sphere" pos="0.003 0.022 -0.018" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr20_s4" type="sphere" pos="-0.013 0.013 0.018" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr20_s5" type="sphere" pos="-0.014 -0.027 0.017" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr20_s6" type="sphere" pos="0.027 0.067 0.016" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr20_s7" type="sphere" pos="-0.008 -0.111 -0.017" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr20_s8" type="sphere" pos="-0.020 -0.065 -0.016" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr20_s9" type="sphere" pos="-0.010 -0.065 0.022" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr20_s10" type="sphere" pos="0.006 -0.108 0.019" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr20_s11" type="sphere" pos="-0.018 -0.025 -0.014" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+    <geom name="g_tr20_ped" type="capsule" fromto="-0.013 0.009 -0.012 0 0 0" size="0.006" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
+  </body>
+  <body name="truss_5_1" pos="-1.1566 -0.7720 1.0601" quat="0.70710678 0.70710678 0 0">
+    <freejoint name="j_truss_5_1"/>
+    <inertial pos="0 0 0" mass="0.3" diaginertia="0.0015 0.0015 0.0008"/>
+    <geom name="g_tr21_mesh" type="mesh" mesh="m_v5_truss1" material="mat_orange" contype="0" conaffinity="0"/>
+    <geom name="g_tr21_s0" type="sphere" pos="-0.011 -0.025 0.019" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr21_s1" type="sphere" pos="0.018 -0.108 -0.008" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr21_s2" type="sphere" pos="0.024 -0.065 0.007" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr21_s3" type="sphere" pos="-0.013 -0.065 0.022" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr21_s4" type="sphere" pos="-0.016 -0.111 0.010" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr21_s5" type="sphere" pos="0.012 0.067 -0.029" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr21_s6" type="sphere" pos="0.019 -0.027 0.012" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr21_s7" type="sphere" pos="0.020 0.013 0.011" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr21_s8" type="sphere" pos="-0.018 0.022 -0.000" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr21_s9" type="sphere" pos="-0.022 0.118 -0.008" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr21_s10" type="sphere" pos="-0.024 0.070 -0.013" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr21_s11" type="sphere" pos="0.012 0.112 -0.023" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+    <geom name="g_tr21_ped" type="capsule" fromto="0.002 -0.004 0.020 0 0 0" size="0.006" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
+  </body>
+  <body name="truss_5_2" pos="-0.9367 -0.8679 1.4471" quat="0.70710678 0.70710678 0 0">
+    <freejoint name="j_truss_5_2"/>
+    <inertial pos="0 0 0" mass="0.3" diaginertia="0.0015 0.0015 0.0008"/>
+    <geom name="g_tr22_mesh" type="mesh" mesh="m_v5_truss2" material="mat_orange" contype="0" conaffinity="0"/>
+    <geom name="g_tr22_s0" type="sphere" pos="0.017 -0.025 0.015" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr22_s1" type="sphere" pos="-0.005 -0.108 -0.019" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr22_s2" type="sphere" pos="0.011 -0.065 -0.022" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr22_s3" type="sphere" pos="0.019 -0.065 0.016" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr22_s4" type="sphere" pos="0.007 -0.111 0.018" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr22_s5" type="sphere" pos="-0.026 0.067 -0.017" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr22_s6" type="sphere" pos="0.015 -0.027 -0.017" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr22_s7" type="sphere" pos="0.014 0.013 -0.017" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr22_s8" type="sphere" pos="-0.004 0.022 0.017" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr22_s9" type="sphere" pos="-0.011 0.118 0.021" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr22_s10" type="sphere" pos="-0.018 0.070 0.022" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr22_s11" type="sphere" pos="-0.021 0.112 -0.016" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+    <geom name="g_tr22_ped" type="capsule" fromto="0.007 -0.002 -0.019 0 0 0" size="0.006" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
+  </body>
+  <body name="truss_5_3" pos="-0.6597 -0.9230 1.7346" quat="0.70710678 0.70710678 0 0">
+    <freejoint name="j_truss_5_3"/>
+    <inertial pos="0 0 0" mass="0.3" diaginertia="0.0015 0.0015 0.0008"/>
+    <geom name="g_tr23_mesh" type="mesh" mesh="m_v5_truss3" material="mat_green" contype="0" conaffinity="0"/>
+    <geom name="g_tr23_s0" type="sphere" pos="0.015 -0.025 -0.017" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr23_s1" type="sphere" pos="-0.019 -0.108 0.004" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr23_s2" type="sphere" pos="-0.022 -0.065 -0.012" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr23_s3" type="sphere" pos="0.017 -0.065 -0.019" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr23_s4" type="sphere" pos="0.018 -0.111 -0.007" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr23_s5" type="sphere" pos="-0.018 0.067 0.026" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr23_s6" type="sphere" pos="-0.016 -0.027 -0.015" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr23_s7" type="sphere" pos="-0.017 0.013 -0.015" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr23_s8" type="sphere" pos="0.017 0.022 0.004" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr23_s9" type="sphere" pos="0.020 0.118 0.012" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr23_s10" type="sphere" pos="0.021 0.070 0.018" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr23_s11" type="sphere" pos="-0.017 0.112 0.020" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+    <geom name="g_tr23_ped" type="capsule" fromto="-0.016 0.010 -0.006 0 0 0" size="0.006" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
+  </body>
+  <body name="truss_6_0" pos="-0.4689 -0.7870 0.5093" quat="0.70710678 0.70710678 0 0">
+    <freejoint name="j_truss_6_0"/>
+    <inertial pos="0 0 0" mass="0.3" diaginertia="0.0015 0.0015 0.0008"/>
+    <geom name="g_tr24_mesh" type="mesh" mesh="m_v6_truss0" material="mat_red" contype="0" conaffinity="0"/>
+    <geom name="g_tr24_s0" type="sphere" pos="0.023 0.105 0.007" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr24_s1" type="sphere" pos="0.008 0.065 -0.025" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr24_s2" type="sphere" pos="0.003 0.110 -0.022" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr24_s3" type="sphere" pos="-0.003 0.020 -0.016" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr24_s4" type="sphere" pos="-0.007 0.012 0.020" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr24_s5" type="sphere" pos="-0.007 -0.025 0.020" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr24_s6" type="sphere" pos="0.028 0.063 0.006" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr24_s7" type="sphere" pos="-0.012 -0.104 -0.013" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr24_s8" type="sphere" pos="-0.022 -0.061 -0.008" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr24_s9" type="sphere" pos="-0.003 -0.061 0.023" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr24_s10" type="sphere" pos="0.010 -0.101 0.015" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr24_s11" type="sphere" pos="-0.020 -0.024 -0.007" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+    <geom name="g_tr24_ped" type="capsule" fromto="-0.012 0.016 -0.003 0 0 0" size="0.006" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
+  </body>
+  <body name="truss_6_1" pos="-0.2298 -0.7783 0.9799" quat="0.70710678 0.70710678 0 0">
+    <freejoint name="j_truss_6_1"/>
+    <inertial pos="0 0 0" mass="0.3" diaginertia="0.0015 0.0015 0.0008"/>
+    <geom name="g_tr25_mesh" type="mesh" mesh="m_v6_truss1" material="mat_orange" contype="0" conaffinity="0"/>
+    <geom name="g_tr25_s0" type="sphere" pos="-0.004 -0.024 0.021" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr25_s1" type="sphere" pos="0.013 -0.101 -0.013" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr25_s2" type="sphere" pos="0.023 -0.061 -0.001" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr25_s3" type="sphere" pos="-0.004 -0.061 0.023" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr25_s4" type="sphere" pos="-0.011 -0.104 0.014" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr25_s5" type="sphere" pos="0.001 0.063 -0.029" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr25_s6" type="sphere" pos="0.021 -0.025 0.004" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr25_s7" type="sphere" pos="0.021 0.012 0.003" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr25_s8" type="sphere" pos="-0.016 0.020 0.005" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr25_s9" type="sphere" pos="-0.022 0.110 0.001" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr25_s10" type="sphere" pos="-0.026 0.065 -0.004" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr25_s11" type="sphere" pos="0.003 0.105 -0.024" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+    <geom name="g_tr25_ped" type="capsule" fromto="0.007 -0.011 0.015 0 0 0" size="0.006" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
+  </body>
+  <body name="truss_6_2" pos="0.6181 -0.8646 1.3800" quat="0.70710678 0.70710678 0 0">
+    <freejoint name="j_truss_6_2"/>
+    <inertial pos="0 0 0" mass="0.3" diaginertia="0.0015 0.0015 0.0008"/>
+    <geom name="g_tr26_mesh" type="mesh" mesh="m_v6_truss2" material="mat_green" contype="0" conaffinity="0"/>
+    <geom name="g_tr26_s0" type="sphere" pos="0.020 -0.024 0.006" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr26_s1" type="sphere" pos="-0.011 -0.101 -0.014" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr26_s2" type="sphere" pos="0.001 -0.061 -0.023" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr26_s3" type="sphere" pos="0.023 -0.061 0.007" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr26_s4" type="sphere" pos="0.013 -0.104 0.012" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr26_s5" type="sphere" pos="-0.029 0.063 -0.004" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr26_s6" type="sphere" pos="0.006 -0.025 -0.020" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr26_s7" type="sphere" pos="0.005 0.012 -0.020" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr26_s8" type="sphere" pos="0.004 0.020 0.016" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr26_s9" type="sphere" pos="-0.002 0.110 0.022" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr26_s10" type="sphere" pos="-0.007 0.065 0.025" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr26_s11" type="sphere" pos="-0.024 0.105 -0.006" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+    <geom name="g_tr26_ped" type="capsule" fromto="-0.012 0.016 -0.000 0 0 0" size="0.006" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
+  </body>
+  <body name="truss_6_3" pos="0.1936 -0.8264 1.6498" quat="0.70710678 0.70710678 0 0">
+    <freejoint name="j_truss_6_3"/>
+    <inertial pos="0 0 0" mass="0.3" diaginertia="0.0015 0.0015 0.0008"/>
+    <geom name="g_tr27_mesh" type="mesh" mesh="m_v6_truss3" material="mat_green" contype="0" conaffinity="0"/>
+    <geom name="g_tr27_s0" type="sphere" pos="0.011 -0.024 -0.018" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr27_s1" type="sphere" pos="-0.017 -0.101 0.007" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr27_s2" type="sphere" pos="-0.022 -0.061 -0.007" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr27_s3" type="sphere" pos="0.012 -0.061 -0.020" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr27_s4" type="sphere" pos="0.015 -0.104 -0.009" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr27_s5" type="sphere" pos="-0.012 0.063 0.026" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr27_s6" type="sphere" pos="-0.018 -0.025 -0.011" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr27_s7" type="sphere" pos="-0.018 0.012 -0.011" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr27_s8" type="sphere" pos="0.017 0.020 0.001" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr27_s9" type="sphere" pos="0.021 0.110 0.008" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr27_s10" type="sphere" pos="0.022 0.065 0.013" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr27_s11" type="sphere" pos="-0.012 0.105 0.021" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+    <geom name="g_tr27_ped" type="capsule" fromto="0.012 -0.016 0.002 0 0 0" size="0.006" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
+  </body>
+  <body name="truss_7_0" pos="0.3359 -0.7707 0.6002" quat="0.70710678 0.70710678 0 0">
+    <freejoint name="j_truss_7_0"/>
+    <inertial pos="0 0 0" mass="0.3" diaginertia="0.0015 0.0015 0.0008"/>
+    <geom name="g_tr28_mesh" type="mesh" mesh="m_v7_truss0" material="mat_red" contype="0" conaffinity="0"/>
+    <geom name="g_tr28_s0" type="sphere" pos="0.019 0.112 -0.018" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr28_s1" type="sphere" pos="-0.018 0.070 -0.021" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr28_s2" type="sphere" pos="-0.018 0.118 -0.015" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr28_s3" type="sphere" pos="-0.017 0.021 -0.007" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr28_s4" type="sphere" pos="0.015 0.013 0.017" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr28_s5" type="sphere" pos="0.014 -0.027 0.017" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr28_s6" type="sphere" pos="0.021 0.067 -0.023" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr28_s7" type="sphere" pos="-0.019 -0.111 0.004" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr28_s8" type="sphere" pos="-0.019 -0.065 0.016" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr28_s9" type="sphere" pos="0.020 -0.065 0.015" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr28_s10" type="sphere" pos="0.020 -0.108 -0.001" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr28_s11" type="sphere" pos="-0.017 -0.025 0.014" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+    <geom name="g_tr28_ped" type="capsule" fromto="-0.009 0.009 0.015 0 0 0" size="0.006" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
+  </body>
+  <body name="truss_7_1" pos="0.4767 -0.7853 0.9932" quat="0.70710678 0.70710678 0 0">
+    <freejoint name="j_truss_7_1"/>
+    <inertial pos="0 0 0" mass="0.3" diaginertia="0.0015 0.0015 0.0008"/>
+    <geom name="g_tr29_mesh" type="mesh" mesh="m_v7_truss1" material="mat_red" contype="0" conaffinity="0"/>
+    <geom name="g_tr29_s0" type="sphere" pos="0.005 -0.025 0.022" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr29_s1" type="sphere" pos="0.008 -0.108 -0.018" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr29_s2" type="sphere" pos="0.022 -0.065 -0.010" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr29_s3" type="sphere" pos="0.005 -0.065 0.025" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr29_s4" type="sphere" pos="-0.005 -0.111 0.018" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr29_s5" type="sphere" pos="-0.010 0.067 -0.029" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr29_s6" type="sphere" pos="0.022 -0.027 -0.004" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr29_s7" type="sphere" pos="0.022 0.013 -0.005" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr29_s8" type="sphere" pos="-0.014 0.021 0.012" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr29_s9" type="sphere" pos="-0.022 0.118 0.009" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr29_s10" type="sphere" pos="-0.027 0.070 0.006" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr29_s11" type="sphere" pos="-0.006 0.112 -0.025" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+    <geom name="g_tr29_ped" type="capsule" fromto="0.007 -0.008 -0.017 0 0 0" size="0.006" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
+  </body>
+  <body name="truss_7_2" pos="0.8176 -0.6590 1.4891" quat="0.70710678 0.70710678 0 0">
+    <freejoint name="j_truss_7_2"/>
+    <inertial pos="0 0 0" mass="0.3" diaginertia="0.0015 0.0015 0.0008"/>
+    <geom name="g_tr30_mesh" type="mesh" mesh="m_v7_truss2" material="mat_red" contype="0" conaffinity="0"/>
+    <geom name="g_tr30_s0" type="sphere" pos="0.021 -0.025 0.007" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr30_s1" type="sphere" pos="-0.012 -0.108 -0.016" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr30_s2" type="sphere" pos="0.002 -0.065 -0.025" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr30_s3" type="sphere" pos="0.024 -0.065 0.008" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr30_s4" type="sphere" pos="0.014 -0.111 0.013" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr30_s5" type="sphere" pos="-0.030 0.067 -0.006" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr30_s6" type="sphere" pos="0.007 -0.027 -0.021" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr30_s7" type="sphere" pos="0.006 0.013 -0.021" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr30_s8" type="sphere" pos="0.003 0.021 0.017" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr30_s9" type="sphere" pos="-0.003 0.118 0.023" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr30_s10" type="sphere" pos="-0.008 0.070 0.027" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr30_s11" type="sphere" pos="-0.025 0.112 -0.007" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+    <geom name="g_tr30_ped" type="capsule" fromto="-0.014 0.005 -0.013 0 0 0" size="0.006" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
+  </body>
+  <body name="truss_7_3" pos="0.9991 -0.5519 1.8581" quat="0.70710678 0.70710678 0 0">
+    <freejoint name="j_truss_7_3"/>
+    <inertial pos="0 0 0" mass="0.3" diaginertia="0.0015 0.0015 0.0008"/>
+    <geom name="g_tr31_mesh" type="mesh" mesh="m_v7_truss3" material="mat_orange" contype="0" conaffinity="0"/>
+    <geom name="g_tr31_s0" type="sphere" pos="-0.003 -0.025 -0.022" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr31_s1" type="sphere" pos="-0.009 -0.108 0.017" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr31_s2" type="sphere" pos="-0.023 -0.065 0.009" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr31_s3" type="sphere" pos="-0.004 -0.065 -0.025" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr31_s4" type="sphere" pos="0.006 -0.111 -0.018" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr31_s5" type="sphere" pos="0.008 0.067 0.030" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr31_s6" type="sphere" pos="-0.022 -0.027 0.003" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr31_s7" type="sphere" pos="-0.022 0.013 0.004" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr31_s8" type="sphere" pos="0.014 0.021 -0.011" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr31_s9" type="sphere" pos="0.022 0.118 -0.008" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr31_s10" type="sphere" pos="0.027 0.070 -0.005" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr31_s11" type="sphere" pos="0.005 0.112 0.026" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+    <geom name="g_tr31_ped" type="capsule" fromto="-0.005 -0.002 -0.019 0 0 0" size="0.006" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
+  </body>
+  <body name="truss_8_0" pos="1.4062 -0.7974 0.6496" quat="0.70710678 0.70710678 0 0">
+    <freejoint name="j_truss_8_0"/>
+    <inertial pos="0 0 0" mass="0.3" diaginertia="0.0015 0.0015 0.0008"/>
+    <geom name="g_tr32_mesh" type="mesh" mesh="m_v8_truss0" material="mat_red" contype="0" conaffinity="0"/>
+    <geom name="g_tr32_s0" type="sphere" pos="0.019 0.108 0.016" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr32_s1" type="sphere" pos="0.018 0.067 -0.020" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr32_s2" type="sphere" pos="0.012 0.114 -0.019" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr32_s3" type="sphere" pos="0.004 0.021 -0.017" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr32_s4" type="sphere" pos="-0.014 0.012 0.016" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr32_s5" type="sphere" pos="-0.015 -0.026 0.016" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr32_s6" type="sphere" pos="0.024 0.065 0.017" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr32_s7" type="sphere" pos="-0.006 -0.107 -0.017" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr32_s8" type="sphere" pos="-0.018 -0.063 -0.017" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr32_s9" type="sphere" pos="-0.012 -0.063 0.021" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr32_s10" type="sphere" pos="0.004 -0.104 0.019" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr32_s11" type="sphere" pos="-0.016 -0.024 -0.015" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+    <geom name="g_tr32_ped" type="capsule" fromto="-0.008 0.012 -0.014 0 0 0" size="0.006" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
+  </body>
+  <body name="truss_8_1" pos="1.5822 -0.7725 0.9920" quat="0.70710678 0.70710678 0 0">
+    <freejoint name="j_truss_8_1"/>
+    <inertial pos="0 0 0" mass="0.3" diaginertia="0.0015 0.0015 0.0008"/>
+    <geom name="g_tr33_mesh" type="mesh" mesh="m_v8_truss1" material="mat_orange" contype="0" conaffinity="0"/>
+    <geom name="g_tr33_s0" type="sphere" pos="-0.019 -0.024 0.010" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr33_s1" type="sphere" pos="0.019 -0.104 0.003" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr33_s2" type="sphere" pos="0.016 -0.063 0.018" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr33_s3" type="sphere" pos="-0.021 -0.063 0.011" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr33_s4" type="sphere" pos="-0.019 -0.107 0.000" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr33_s5" type="sphere" pos="0.024 0.065 -0.017" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr33_s6" type="sphere" pos="0.010 -0.026 0.019" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr33_s7" type="sphere" pos="0.011 0.012 0.019" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr33_s8" type="sphere" pos="-0.014 0.021 -0.009" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr33_s9" type="sphere" pos="-0.014 0.114 -0.017" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr33_s10" type="sphere" pos="-0.013 0.067 -0.023" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr33_s11" type="sphere" pos="0.022 0.108 -0.013" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+    <geom name="g_tr33_ped" type="capsule" fromto="0.001 -0.007 0.019 0 0 0" size="0.006" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
+  </body>
+  <body name="truss_8_2" pos="1.9710 -0.9305 1.3630" quat="0.70710678 0.70710678 0 0">
+    <freejoint name="j_truss_8_2"/>
+    <inertial pos="0 0 0" mass="0.3" diaginertia="0.0015 0.0015 0.0008"/>
+    <geom name="g_tr34_mesh" type="mesh" mesh="m_v8_truss2" material="mat_orange" contype="0" conaffinity="0"/>
+    <geom name="g_tr34_s0" type="sphere" pos="0.021 -0.024 0.005" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr34_s1" type="sphere" pos="-0.012 -0.104 -0.015" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr34_s2" type="sphere" pos="0.001 -0.063 -0.024" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr34_s3" type="sphere" pos="0.024 -0.063 0.006" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr34_s4" type="sphere" pos="0.014 -0.107 0.012" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr34_s5" type="sphere" pos="-0.030 0.065 -0.004" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr34_s6" type="sphere" pos="0.006 -0.026 -0.021" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr34_s7" type="sphere" pos="0.005 0.012 -0.021" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr34_s8" type="sphere" pos="0.004 0.021 0.017" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr34_s9" type="sphere" pos="-0.001 0.114 0.023" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr34_s10" type="sphere" pos="-0.006 0.067 0.026" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr34_s11" type="sphere" pos="-0.025 0.108 -0.005" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+    <geom name="g_tr34_ped" type="capsule" fromto="-0.015 0.011 0.007 0 0 0" size="0.006" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
+  </body>
+  <body name="truss_8_3" pos="2.2721 -1.1320 1.7515" quat="0.70710678 0.70710678 0 0">
+    <freejoint name="j_truss_8_3"/>
+    <inertial pos="0 0 0" mass="0.3" diaginertia="0.0015 0.0015 0.0008"/>
+    <geom name="g_tr35_mesh" type="mesh" mesh="m_v8_truss3" material="mat_green" contype="0" conaffinity="0"/>
+    <geom name="g_tr35_s0" type="sphere" pos="0.009 -0.024 -0.020" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr35_s1" type="sphere" pos="-0.017 -0.104 0.009" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr35_s2" type="sphere" pos="-0.023 -0.063 -0.005" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr35_s3" type="sphere" pos="0.010 -0.063 -0.022" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr35_s4" type="sphere" pos="0.015 -0.107 -0.011" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr35_s5" type="sphere" pos="-0.009 0.065 0.029" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr35_s6" type="sphere" pos="-0.019 -0.026 -0.009" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr35_s7" type="sphere" pos="-0.020 0.012 -0.009" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr35_s8" type="sphere" pos="0.017 0.021 -0.001" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr35_s9" type="sphere" pos="0.022 0.114 0.005" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr35_s10" type="sphere" pos="0.025 0.067 0.011" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr35_s11" type="sphere" pos="-0.010 0.108 0.023" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+    <geom name="g_tr35_ped" type="capsule" fromto="-0.005 0.010 -0.016 0 0 0" size="0.006" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
+  </body>
+  <body name="truss_9_0" pos="2.2103 -0.7970 0.5945" quat="0.70710678 0.70710678 0 0">
+    <freejoint name="j_truss_9_0"/>
+    <inertial pos="0 0 0" mass="0.3" diaginertia="0.0015 0.0015 0.0008"/>
+    <geom name="g_tr36_mesh" type="mesh" mesh="m_v9_truss0" material="mat_red" contype="0" conaffinity="0"/>
+    <geom name="g_tr36_s0" type="sphere" pos="0.020 0.114 0.017" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr36_s1" type="sphere" pos="0.018 0.071 -0.021" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr36_s2" type="sphere" pos="0.012 0.120 -0.021" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr36_s3" type="sphere" pos="0.004 0.022 -0.018" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr36_s4" type="sphere" pos="-0.015 0.013 0.017" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr36_s5" type="sphere" pos="-0.016 -0.028 0.017" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr36_s6" type="sphere" pos="0.026 0.069 0.018" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr36_s7" type="sphere" pos="-0.007 -0.113 -0.018" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr36_s8" type="sphere" pos="-0.019 -0.066 -0.017" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr36_s9" type="sphere" pos="-0.012 -0.066 0.022" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr36_s10" type="sphere" pos="0.004 -0.110 0.020" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr36_s11" type="sphere" pos="-0.017 -0.026 -0.015" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+    <geom name="g_tr36_ped" type="capsule" fromto="-0.010 0.007 -0.015 0 0 0" size="0.006" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
+  </body>
+  <body name="truss_9_1" pos="2.3983 -0.7701 1.0415" quat="0.70710678 0.70710678 0 0">
+    <freejoint name="j_truss_9_1"/>
+    <inertial pos="0 0 0" mass="0.3" diaginertia="0.0015 0.0015 0.0008"/>
+    <geom name="g_tr37_mesh" type="mesh" mesh="m_v9_truss1" material="mat_red" contype="0" conaffinity="0"/>
+    <geom name="g_tr37_s0" type="sphere" pos="-0.017 -0.026 0.015" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr37_s1" type="sphere" pos="0.020 -0.110 -0.002" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr37_s2" type="sphere" pos="0.020 -0.066 0.015" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr37_s3" type="sphere" pos="-0.020 -0.066 0.017" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr37_s4" type="sphere" pos="-0.019 -0.113 0.004" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr37_s5" type="sphere" pos="0.021 0.069 -0.023" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr37_s6" type="sphere" pos="0.015 -0.028 0.018" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr37_s7" type="sphere" pos="0.015 0.013 0.017" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr37_s8" type="sphere" pos="-0.017 0.022 -0.006" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr37_s9" type="sphere" pos="-0.019 0.120 -0.015" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr37_s10" type="sphere" pos="-0.019 0.071 -0.021" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr37_s11" type="sphere" pos="0.019 0.114 -0.018" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+    <geom name="g_tr37_ped" type="capsule" fromto="-0.002 -0.002 0.020 0 0 0" size="0.006" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
+  </body>
+  <body name="truss_9_2" pos="2.6248 -0.8748 1.4993" quat="0.70710678 0.70710678 0 0">
+    <freejoint name="j_truss_9_2"/>
+    <inertial pos="0 0 0" mass="0.3" diaginertia="0.0015 0.0015 0.0008"/>
+    <geom name="g_tr38_mesh" type="mesh" mesh="m_v9_truss2" material="mat_red" contype="0" conaffinity="0"/>
+    <geom name="g_tr38_s0" type="sphere" pos="0.011 -0.026 0.020" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr38_s1" type="sphere" pos="0.002 -0.110 -0.020" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr38_s2" type="sphere" pos="0.018 -0.066 -0.017" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr38_s3" type="sphere" pos="0.013 -0.066 0.022" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr38_s4" type="sphere" pos="0.001 -0.113 0.019" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr38_s5" type="sphere" pos="-0.019 0.069 -0.025" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr38_s6" type="sphere" pos="0.020 -0.028 -0.011" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr38_s7" type="sphere" pos="0.020 0.013 -0.012" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr38_s8" type="sphere" pos="-0.010 0.022 0.015" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr38_s9" type="sphere" pos="-0.018 0.120 0.016" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr38_s10" type="sphere" pos="-0.024 0.071 0.015" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr38_s11" type="sphere" pos="-0.014 0.114 -0.023" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+    <geom name="g_tr38_ped" type="capsule" fromto="0.016 -0.007 -0.010 0 0 0" size="0.006" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
+  </body>
+  <body name="truss_9_3" pos="2.8973 -0.9739 1.8618" quat="0.70710678 0.70710678 0 0">
+    <freejoint name="j_truss_9_3"/>
+    <inertial pos="0 0 0" mass="0.3" diaginertia="0.0015 0.0015 0.0008"/>
+    <geom name="g_tr39_mesh" type="mesh" mesh="m_v9_truss3" material="mat_orange" contype="0" conaffinity="0"/>
+    <geom name="g_tr39_s0" type="sphere" pos="0.011 -0.026 -0.020" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr39_s1" type="sphere" pos="-0.018 -0.110 0.008" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr39_s2" type="sphere" pos="-0.024 -0.066 -0.007" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr39_s3" type="sphere" pos="0.013 -0.066 -0.022" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr39_s4" type="sphere" pos="0.016 -0.113 -0.011" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr39_s5" type="sphere" pos="-0.012 0.069 0.029" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr39_s6" type="sphere" pos="-0.020 -0.028 -0.011" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr39_s7" type="sphere" pos="-0.020 0.013 -0.011" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr39_s8" type="sphere" pos="0.018 0.022 0.000" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr39_s9" type="sphere" pos="0.023 0.120 0.007" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr39_s10" type="sphere" pos="0.025 0.071 0.013" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+      <geom name="g_tr39_s11" type="sphere" pos="-0.012 0.114 0.024" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
+    <geom name="g_tr39_ped" type="capsule" fromto="-0.014 0.009 -0.011 0 0 0" size="0.006" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
+  </body>
+<!-- ENV-WORLD-END -->
   <body name="machine" pos="0 0 0.066379" quat="0 1 0 0">
   <body name="chassis" pos="0 0 0">
-    <inertial pos="0.044536 0.012376 -0.308592" mass="85.969003" fullinertia="7.69720475 13.60245804 7.59099579 -0.0366880853 1.2147496074 -0.0588750099"/>
+    <inertial pos="0.015086573 0.013393585 -0.1609009" mass="62.816035" fullinertia="2.1514412 5.090887 4.3724318 -0.046783404 -0.00320244 -0.023205715"/>
     <geom name="v_part_001" type="mesh" mesh="v_part_001" group="1"/>
     <geom name="v_part_002" type="mesh" mesh="v_part_002" group="1"/>
     <geom name="v_part_003" type="mesh" mesh="v_part_003" group="1"/>
@@ -472,7 +1406,6 @@
     <geom name="v_part_107" type="mesh" mesh="v_part_107" group="1"/>
     <geom name="v_part_108" type="mesh" mesh="v_part_108" group="1"/>
     <geom name="v_part_109" type="mesh" mesh="v_part_109" group="1"/>
-    <geom name="v_part_110" type="mesh" mesh="v_part_110" group="1"/>
     <geom name="v_part_111" type="mesh" mesh="v_part_111" group="1"/>
     <geom name="v_part_112" type="mesh" mesh="v_part_112" group="1"/>
     <geom name="v_part_113" type="mesh" mesh="v_part_113" group="1"/>
@@ -510,7 +1443,6 @@
     <geom name="v_part_146" type="mesh" mesh="v_part_146" group="1"/>
     <geom name="v_part_147" type="mesh" mesh="v_part_147" group="1"/>
     <geom name="v_part_148" type="mesh" mesh="v_part_148" group="1"/>
-    <geom name="v_part_149" type="mesh" mesh="v_part_149" group="1"/>
     <geom name="v_part_150" type="mesh" mesh="v_part_150" group="1"/>
     <geom name="v_part_151" type="mesh" mesh="v_part_151" group="1"/>
     <geom name="v_part_152" type="mesh" mesh="v_part_152" group="1"/>
@@ -620,49 +1552,6 @@
     <geom name="v_part_261" type="mesh" mesh="v_part_261" group="1"/>
     <geom name="v_part_262" type="mesh" mesh="v_part_262" group="1"/>
     <geom name="v_part_263" type="mesh" mesh="v_part_263" group="1"/>
-    <geom name="v_part_264" type="mesh" mesh="v_part_264" group="1"/>
-    <geom name="v_part_265" type="mesh" mesh="v_part_265" group="1"/>
-    <geom name="v_part_266" type="mesh" mesh="v_part_266" group="1"/>
-    <geom name="v_part_267" type="mesh" mesh="v_part_267" group="1"/>
-    <geom name="v_part_268" type="mesh" mesh="v_part_268" group="1"/>
-    <geom name="v_part_270" type="mesh" mesh="v_part_270" group="1"/>
-    <geom name="v_part_272" type="mesh" mesh="v_part_272" group="1"/>
-    <geom name="v_part_273" type="mesh" mesh="v_part_273" group="1"/>
-    <geom name="v_part_274" type="mesh" mesh="v_part_274" group="1"/>
-    <geom name="v_part_275" type="mesh" mesh="v_part_275" group="1"/>
-    <geom name="v_part_277" type="mesh" mesh="v_part_277" group="1"/>
-    <geom name="v_part_278" type="mesh" mesh="v_part_278" group="1"/>
-    <geom name="v_part_279" type="mesh" mesh="v_part_279" group="1"/>
-    <geom name="v_part_280" type="mesh" mesh="v_part_280" group="1"/>
-    <geom name="v_part_281" type="mesh" mesh="v_part_281" group="1"/>
-    <geom name="v_part_282" type="mesh" mesh="v_part_282" group="1"/>
-    <geom name="v_part_283" type="mesh" mesh="v_part_283" group="1"/>
-    <geom name="v_part_284" type="mesh" mesh="v_part_284" group="1"/>
-    <geom name="v_part_286" type="mesh" mesh="v_part_286" group="1"/>
-    <geom name="v_part_287" type="mesh" mesh="v_part_287" group="1"/>
-    <geom name="v_part_289" type="mesh" mesh="v_part_289" group="1"/>
-    <geom name="v_part_290" type="mesh" mesh="v_part_290" group="1"/>
-    <geom name="v_part_291" type="mesh" mesh="v_part_291" group="1"/>
-    <geom name="v_part_293" type="mesh" mesh="v_part_293" group="1"/>
-    <geom name="v_part_308" type="mesh" mesh="v_part_308" group="1"/>
-    <geom name="v_part_309" type="mesh" mesh="v_part_309" group="1"/>
-    <geom name="v_part_310" type="mesh" mesh="v_part_310" group="1"/>
-    <geom name="v_part_311" type="mesh" mesh="v_part_311" group="1"/>
-    <geom name="v_part_312" type="mesh" mesh="v_part_312" group="1"/>
-    <geom name="v_part_313" type="mesh" mesh="v_part_313" group="1"/>
-    <geom name="v_part_314" type="mesh" mesh="v_part_314" group="1"/>
-    <geom name="v_part_315" type="mesh" mesh="v_part_315" group="1"/>
-    <geom name="v_part_317" type="mesh" mesh="v_part_317" group="1"/>
-    <geom name="v_part_320" type="mesh" mesh="v_part_320" group="1"/>
-    <geom name="v_part_322" type="mesh" mesh="v_part_322" group="1"/>
-    <geom name="v_part_325" type="mesh" mesh="v_part_325" group="1"/>
-    <geom name="v_part_326" type="mesh" mesh="v_part_326" group="1"/>
-    <geom name="v_part_327" type="mesh" mesh="v_part_327" group="1"/>
-    <geom name="v_part_328" type="mesh" mesh="v_part_328" group="1"/>
-    <geom name="v_part_329" type="mesh" mesh="v_part_329" group="1"/>
-    <geom name="v_part_330" type="mesh" mesh="v_part_330" group="1"/>
-    <camera name="cam_scene_yp_l515" pos="0.360341 -0.036530 -1.149732" quat="-0.699354 0.699354 -0.104424 0.104424" fovy="43.4"/>
-    <camera name="cam_scene_yn_d435i" pos="0.360341 0.056365 -1.149732" quat="0.104424 -0.104424 0.699354 -0.699354" fovy="42.6"/>
     <body name="small_right_front" pos="0 0 0">
       <inertial pos="0.497042 0.392916 0.038000" mass="0.112089" fullinertia="0.0000353535 0.0000521605 0.0000353535 -0.000000000000 0.000000000007 0.000000000000"/>
       <joint name="small_right_front_joint" type="hinge" pos="0.497042 0.392916 0.038000" axis="0 1 0" damping="0.001" frictionloss="0.02"/>
@@ -714,118 +1603,254 @@
       <geom name="w_act_left" type="mesh" mesh="w_act_left" group="1"/>
     </body>
   </body>
-  <body name="arm_base_mount" pos="0.002 0.004 -0.704" quat="0 1 0 0">
-    <inertial pos="0 0 0.025" mass="0.9" diaginertia="0.002 0.002 0.002"/>
-    <geom name="a_base_link" type="mesh" mesh="a_base_link" group="1"/>
-    <body name="shoulder_Link" pos="0.000000 0.000000 0.122000" quat="-0.000004 0.000000 0.000000 1.000000">
-      <inertial pos="3.25089e-07 0.00534955 -0.00883689" quat="0.99587 -0.0907855 0 0" mass="1.57658" diaginertia="0.00406404 0.00395808 0.00305754"/>
-      <joint name="shoulder_joint" pos="0 0 0" axis="0 0 1" range="-3.0543 3.0543" damping="0.2" armature="0.01"/>
-      <geom name="a_shoulder_Link_col" type="mesh" mesh="a_shoulder_Link" group="3" rgba="0 0 0 0"/>
-      <geom name="a_shoulder_Link_vm1" type="mesh" mesh="d_shoulder_Link_m1" group="1" contype="0" conaffinity="0" rgba="0.99 0.37 0.06 1"/>
-      <geom name="a_shoulder_Link_vm2" type="mesh" mesh="d_shoulder_Link_m2" group="1" contype="0" conaffinity="0" rgba="0.10 0.10 0.11 1"/>
-    <body name="upperArm_Link" pos="0.000000 0.121500 0.000000" quat="0.499998 -0.500000 -0.500000 -0.500002">
-      <inertial pos="0.203997 2.01305e-10 0.0127642" quat="0.5 0.5 0.5 0.5" mass="4.04176" diaginertia="0.144994 0.142607 0.00965399"/>
-      <joint name="upperArm_joint" pos="0 0 0" axis="0 0 1" range="-3.0543 3.0543" damping="0.2" armature="0.01"/>
-      <geom name="a_upperArm_Link_col" type="mesh" mesh="a_upperArm_Link" group="3" rgba="0 0 0 0"/>
-      <geom name="a_upperArm_Link_vm1" type="mesh" mesh="d_upperArm_Link_m1" group="1" contype="0" conaffinity="0" rgba="0.99 0.37 0.06 1"/>
-      <geom name="a_upperArm_Link_vm2" type="mesh" mesh="d_upperArm_Link_m2" group="1" contype="0" conaffinity="0" rgba="0.10 0.10 0.11 1"/>
-    <body name="foreArm_Link" pos="0.408000 0.000000 0.000000" quat="-0.000004 -1.000000 0.000000 0.000000">
-      <inertial pos="0.188922 6.78882e-07 0.0981027" quat="0.504333 0.495629 0.495629 0.504333" mass="2.27146" diaginertia="0.0443926 0.0441401 0.00213049"/>
-      <joint name="foreArm_joint" pos="0 0 0" axis="0 0 1" range="-3.0543 3.0543" damping="0.2" armature="0.01"/>
-      <geom name="a_foreArm_Link_col" type="mesh" mesh="a_foreArm_Link" group="3" rgba="0 0 0 0"/>
-      <geom name="a_foreArm_Link_vm1" type="mesh" mesh="d_foreArm_Link_m1" group="1" contype="0" conaffinity="0" rgba="0.99 0.37 0.06 1"/>
-      <geom name="a_foreArm_Link_vm2" type="mesh" mesh="d_foreArm_Link_m2" group="1" contype="0" conaffinity="0" rgba="0.10 0.10 0.11 1"/>
-    <body name="wrist1_Link" pos="0.376000 0.000000 0.000000" quat="-0.000003 0.707105 0.707108 -0.000003">
-      <inertial pos="7.54205e-07 0.00624813 -0.00392367" quat="0.677608 0.735423 0 0" mass="0.500478" diaginertia="0.000711946 0.000687466 0.000403991"/>
-      <joint name="wrist1_joint" pos="0 0 0" axis="0 0 1" range="-3.0543 3.0543" damping="0.2" armature="0.01"/>
-      <geom name="a_wrist1_Link_col" type="mesh" mesh="a_wrist1_Link" group="3" rgba="0 0 0 0"/>
-      <geom name="a_wrist1_Link_vm1" type="mesh" mesh="d_wrist1_Link_m1" group="1" contype="0" conaffinity="0" rgba="0.99 0.37 0.06 1"/>
-      <geom name="a_wrist1_Link_vm2" type="mesh" mesh="d_wrist1_Link_m2" group="1" contype="0" conaffinity="0" rgba="0.10 0.10 0.11 1"/>
-    <body name="wrist2_Link" pos="0.000000 0.102500 0.000000" quat="0.707105 -0.707108 0.000000 0.000000">
-      <inertial pos="-7.54208e-07 -0.00624813 -0.00392367" quat="0.735423 0.677608 0 0" mass="0.500478" diaginertia="0.000711946 0.000687466 0.000403991"/>
-      <joint name="wrist2_joint" pos="0 0 0" axis="0 0 1" range="-3.0543 3.0543" damping="0.2" armature="0.01"/>
-      <geom name="a_wrist2_Link_col" type="mesh" mesh="a_wrist2_Link" group="3" rgba="0 0 0 0"/>
-      <geom name="a_wrist2_Link_vm1" type="mesh" mesh="d_wrist2_Link_m1" group="1" contype="0" conaffinity="0" rgba="0.99 0.37 0.06 1"/>
-      <geom name="a_wrist2_Link_vm2" type="mesh" mesh="d_wrist2_Link_m2" group="1" contype="0" conaffinity="0" rgba="0.10 0.10 0.11 1"/>
-    <body name="wrist3_Link" pos="0.000000 -0.094000 0.000000" quat="0.707105 0.707108 0.000000 0.000000">
-      <inertial pos="3.92049e-10 0.000175788 -0.0213294" quat="0.5 0.5 -0.5 0.5" mass="0.15831" diaginertia="0.000108772 7.31376e-05 7.19528e-05"/>
-      <joint name="wrist3_joint" pos="0 0 0" axis="0 0 1" range="-3.0543 3.0543" damping="0.2" armature="0.01"/>
-      <geom name="a_wrist3_Link_col" type="mesh" mesh="a_wrist3_Link" group="3" rgba="0 0 0 0"/>
-      <geom name="a_wrist3_Link_vm2" type="mesh" mesh="d_wrist3_Link_m2" group="1" contype="0" conaffinity="0" rgba="0.10 0.10 0.11 1"/>
-      <body name="base_link" pos="0.000000 0.000000 0.050952" quat="0.000000 0.707107 0.707107 0.000000">
-        <inertial pos="0.010859 0.006547 -0.003183" mass="0.348363" fullinertia="0.000394488 0.000557312 0.000646813 -0.00012937012 -0.00000898267 -0.00000904808"/>
-        <geom name="base_link_mesh_1" type="mesh" mesh="g_part_003_solid_003" pos="0.044658438 -0.040628404 0.036834671" euler="0 0 0" group="1" rgba="0.58 0.59 0.62 1" />
-        <geom name="base_link_mesh_2" type="mesh" mesh="g_part_010_solid_010" pos="0.044658438 -0.040628404 0.036834671" euler="0 0 0" group="1" rgba="0.58 0.59 0.62 1" />
-        <geom name="base_link_mesh_3" type="mesh" mesh="g_part_011_solid_011" pos="0.044658438 -0.040628404 0.036834671" euler="0 0 0" group="1" rgba="0.58 0.59 0.62 1" />
-        <geom name="base_link_mesh_4" type="mesh" mesh="g_part_012_solid_012" pos="0.044658438 -0.040628404 0.036834671" euler="0 0 0" group="1" rgba="0.58 0.59 0.62 1" />
-        <geom name="base_link_mesh_5" type="mesh" mesh="g_part_013_solid_013" pos="0.044658438 -0.040628404 0.036834671" euler="0 0 0" group="1" rgba="0.58 0.59 0.62 1" />
-        <geom name="base_link_mesh_6" type="mesh" mesh="g_part_027_solid_027" pos="0.044658438 -0.040628404 0.036834671" euler="0 0 0" group="1" rgba="0.58 0.59 0.62 1" />
-        <geom name="base_link_mesh_7" type="mesh" mesh="g_part_028_solid_028" pos="0.044658438 -0.040628404 0.036834671" euler="0 0 0" group="1" rgba="0.58 0.59 0.62 1" />
-        <geom name="base_link_mesh_8" type="mesh" mesh="g_part_029_solid_029" pos="0.044658438 -0.040628404 0.036834671" euler="0 0 0" group="1" rgba="0.58 0.59 0.62 1" />
-        <geom name="base_link_mesh_9" type="mesh" mesh="g_part_030_solid_030" pos="0.044658438 -0.040628404 0.036834671" euler="0 0 0" group="1" rgba="0.58 0.59 0.62 1" />
-        <geom name="base_link_mesh_10" type="mesh" mesh="g_part_031_solid_031" pos="0.044658438 -0.040628404 0.036834671" euler="0 0 0" group="1" rgba="0.58 0.59 0.62 1" />
-        <geom name="base_link_mesh_11" type="mesh" mesh="g_part_032_solid_032" pos="0.044658438 -0.040628404 0.036834671" euler="0 0 0" group="1" rgba="0.58 0.59 0.62 1" />
-        <geom name="base_link_mesh_12" type="mesh" mesh="g_part_033_solid_033" pos="0.044658438 -0.040628404 0.036834671" euler="0 0 0" group="1" rgba="0.58 0.59 0.62 1" />
-        <geom name="base_link_mesh_13" type="mesh" mesh="g_part_034_solid_034" pos="0.044658438 -0.040628404 0.036834671" euler="0 0 0" group="1" rgba="0.58 0.59 0.62 1" />
-        <geom name="base_link_mesh_14" type="mesh" mesh="g_part_035_solid_035" pos="0.044658438 -0.040628404 0.036834671" euler="0 0 0" group="1" rgba="0.58 0.59 0.62 1" />
-        <geom name="base_link_mesh_15" type="mesh" mesh="g_part_036_solid_036" pos="0.044658438 -0.040628404 0.036834671" euler="0 0 0" group="1" rgba="0.58 0.59 0.62 1" />
-        <geom name="base_link_mesh_16" type="mesh" mesh="g_part_037_solid_037" pos="0.044658438 -0.040628404 0.036834671" euler="0 0 0" group="1" rgba="0.58 0.59 0.62 1" />
-        <geom name="base_link_mesh_17" type="mesh" mesh="g_part_038_solid_038" pos="0.044658438 -0.040628404 0.036834671" euler="0 0 0" group="1" rgba="0.58 0.59 0.62 1" />
-        <geom name="base_link_mesh_18" type="mesh" mesh="g_part_039_solid_039" pos="0.044658438 -0.040628404 0.036834671" euler="0 0 0" group="1" rgba="0.58 0.59 0.62 1" />
-        <geom name="base_link_mesh_19" type="mesh" mesh="g_part_040_solid_040" pos="0.044658438 -0.040628404 0.036834671" euler="0 0 0" group="1" rgba="0.58 0.59 0.62 1" />
-        <geom name="base_link_mesh_20" type="mesh" mesh="g_part_041_solid_041" pos="0.044658438 -0.040628404 0.036834671" euler="0 0 0" group="1" rgba="0.58 0.59 0.62 1" />
-        <geom name="base_link_mesh_21" type="mesh" mesh="g_part_042_solid_042" pos="0.044658438 -0.040628404 0.036834671" euler="0 0 0" group="1" rgba="0.58 0.59 0.62 1" />
-        <geom name="base_link_mesh_22" type="mesh" mesh="g_part_043_solid_043" pos="0.044658438 -0.040628404 0.036834671" euler="0 0 0" group="1" rgba="0.58 0.59 0.62 1" />
-        <geom name="base_link_mesh_23" type="mesh" mesh="g_part_045_solid_045" pos="0.044658438 -0.040628404 0.036834671" euler="0 0 0" group="1" rgba="0.58 0.59 0.62 1" />
-        <geom name="base_link_mesh_24" type="mesh" mesh="g_part_044_solid_044" pos="0.044658438 -0.040628404 0.036834671" euler="0 0 0" group="1" rgba="0.58 0.59 0.62 1" />
-        <geom name="base_link_mesh_25" type="mesh" mesh="g_part_046_solid_046" pos="0.044658438 -0.040628404 0.036834671" euler="0 0 0" group="1" rgba="0.58 0.59 0.62 1" />
-        <geom name="base_link_mesh_26" type="mesh" mesh="g_part_047_solid_047" pos="0.044658438 -0.040628404 0.036834671" euler="0 0 0" group="1" rgba="0.58 0.59 0.62 1" />
-        <geom name="base_link_mesh_27" type="mesh" mesh="g_part_001_solid_001" pos="0.044658438 -0.040628404 0.036834671" euler="0 0 0" group="1" rgba="0.58 0.59 0.62 1" />
-        <geom name="base_link_mesh_28" type="mesh" mesh="g_part_009_solid_009" pos="0.044658438 -0.040628404 0.036834671" euler="0 0 0" group="1" rgba="0.58 0.59 0.62 1" />
-        <geom name="cam_part_363" type="mesh" mesh="c_part_363" group="1" rgba="0.15 0.15 0.16 1"/>
-        <geom name="cam_part_364" type="mesh" mesh="c_part_364" group="1" rgba="0.15 0.15 0.16 1"/>
-        <geom name="cam_part_365" type="mesh" mesh="c_part_365" group="1" rgba="0.15 0.15 0.16 1"/>
-        <geom name="cam_part_366" type="mesh" mesh="c_part_366" group="1" rgba="0.15 0.15 0.16 1"/>
-        <geom name="cam_part_367" type="mesh" mesh="c_part_367" group="1" rgba="0.15 0.15 0.16 1"/>
-        <geom name="cam_part_368" type="mesh" mesh="c_part_368" group="1" rgba="0.15 0.15 0.16 1"/>
-        <geom name="cam_part_369" type="mesh" mesh="c_part_369" group="1" rgba="0.15 0.15 0.16 1"/>
-        <geom name="ad_part_362" type="mesh" mesh="c_part_362" group="1" rgba="0.62 0.63 0.66 1"/>
-        <geom name="ad_part_371" type="mesh" mesh="c_part_371" group="1" rgba="0.62 0.63 0.66 1"/>
-      <camera name="cam_wrist_d405" pos="0.106042 -0.001376 0.025985" quat="0.707109 0.000006 -0.000002 -0.707105" fovy="58.0"/>
-      <body name="gear_link" pos="1.89e-09 2.2e-09 -0.0047500006" euler="3.1415927 0 0">
-        <joint name="gear_joint" type="hinge" pos="0 0 0" axis="0 0 1" limited="true" actuatorfrclimited="true" range="-0.474409 0.463234" damping="0.002" actuatorfrcrange="-2 2" frictionloss="0.005" />
-        <inertial pos="3.0045713e-07 -1.0867786e-05 0.026885779" mass="0.022650932" quat="0.99991087 -9.8761648e-05 -1.4878863e-06 0.013350794" diaginertia="2.8015663e-06 2.7182082e-06 4.5617203e-06" />
-        <geom name="gear_link_mesh_1" type="mesh" mesh="g_part_050_solid_050" pos="0.044658436 0.040628406 -0.041584672" euler="-3.1415927 0 0" group="1" rgba="0.50 0.51 0.54 1" />
-      </body>
-      <body name="right_finger_link" pos="0.0025000024 -0.032129281 -0.041864492" euler="1.5492542 0 0">
-        <joint name="right_finger_joint" type="slide" pos="0 0 0" axis="0 0 1" limited="true" range="-0.010648 0.010883" damping="0.05" />
-        <inertial pos="-0.014051232 -0.017179277 -0.016396853" mass="0.023069919" quat="0.97857788 -0.058044502 0.11602652 0.15985625" diaginertia="2.2182048e-05 5.4852153e-06 1.981857e-05" />
-        <geom name="right_finger_link_mesh_1" type="mesh" mesh="g_part_004_solid_004" pos="0.042158436 0.078497829 0.010192365" euler="-1.5492542 0 0" group="1" rgba="0.50 0.51 0.54 1" />
-        <geom name="right_finger_link_mesh_2" type="mesh" mesh="g_part_048_solid_048" pos="0.042158436 0.078497829 0.010192365" euler="-1.5492542 0 0" group="1" rgba="0.50 0.51 0.54 1" />
-        <geom name="right_finger_link_mesh_3" type="mesh" mesh="g_part_007_solid_007" pos="0.042158436 0.078497829 0.010192365" euler="-1.5492542 0 0" group="1" rgba="0.50 0.51 0.54 1" />
-      </body>
-      <body name="left_finger_link" pos="0.0022603458 0.022856628 -0.042805662" euler="-1.5710562 -0.00027471871 0">
-        <joint name="left_finger_joint" type="slide" pos="0 0 0" axis="0 0 1" limited="true" range="-0.012610 0.011837" damping="0.05" />
-        <inertial pos="0.0074745805 0.018070037 -0.0079754345" mass="0.025656609" quat="0.97682392 0.066355129 -0.12913666 0.15727602" diaginertia="2.5231822e-05 6.8915999e-06 2.2743687e-05" />
-        <geom name="left_finger_link_mesh_1" type="mesh" mesh="g_part_049_solid_049" pos="0.042380645 -0.079623834 -0.06351737" euler="1.5710562 -7.1387875e-08 -0.0002747187" group="1" rgba="0.50 0.51 0.54 1" />
-        <geom name="left_finger_link_mesh_2" type="mesh" mesh="g_part_008_solid_008" pos="0.042380645 -0.079623834 -0.06351737" euler="1.5710562 -7.1387875e-08 -0.0002747187" group="1" rgba="0.50 0.51 0.54 1" />
-        <geom name="left_finger_link_mesh_3" type="mesh" mesh="g_part_005_solid_005" pos="0.042380645 -0.079623834 -0.06351737" euler="1.5710562 -7.1387875e-08 -0.0002747187" group="1" rgba="0.50 0.51 0.54 1" />
-        <geom name="left_finger_link_mesh_4" type="mesh" mesh="g_part_006_solid_006" pos="0.042380645 -0.079623834 -0.06351737" euler="1.5710562 -7.1387875e-08 -0.0002747187" group="1" rgba="0.50 0.51 0.54 1" />
-        <geom name="left_finger_link_mesh_5" type="mesh" mesh="g_part_002_solid_002" pos="0.042380645 -0.079623834 -0.06351737" euler="1.5710562 -7.1387875e-08 -0.0002747187" group="1" rgba="0.50 0.51 0.54 1" />
-      </body>
+  <body name="lift" pos="0 0 0">
+    <joint name="lift_joint" type="slide" axis="0 0 -1" limited="true" range="0 0.5" damping="10"/>
+    <inertial pos="0.13257355 0.00956238 -0.72856106" mass="21.817583" fullinertia="0.19131448 3.0547945 2.8658811 0.0028752578 0.14460765 -0.00041066824"/>
+      <geom name="v_part_264" type="mesh" mesh="v_part_264" group="1"/>
+      <geom name="v_part_265" type="mesh" mesh="v_part_265" group="1"/>
+      <geom name="v_part_266" type="mesh" mesh="v_part_266" group="1"/>
+      <geom name="v_part_267" type="mesh" mesh="v_part_267" group="1"/>
+      <geom name="v_part_268" type="mesh" mesh="v_part_268" group="1"/>
+      <geom name="v_part_270" type="mesh" mesh="v_part_270" group="1"/>
+      <geom name="v_part_272" type="mesh" mesh="v_part_272" group="1"/>
+      <geom name="v_part_273" type="mesh" mesh="v_part_273" group="1"/>
+      <geom name="v_part_274" type="mesh" mesh="v_part_274" group="1"/>
+      <geom name="v_part_275" type="mesh" mesh="v_part_275" group="1"/>
+      <geom name="v_part_277" type="mesh" mesh="v_part_277" group="1"/>
+      <geom name="v_part_278" type="mesh" mesh="v_part_278" group="1"/>
+      <geom name="v_part_279" type="mesh" mesh="v_part_279" group="1"/>
+      <geom name="v_part_280" type="mesh" mesh="v_part_280" group="1"/>
+      <geom name="v_part_281" type="mesh" mesh="v_part_281" group="1"/>
+      <geom name="v_part_282" type="mesh" mesh="v_part_282" group="1"/>
+      <geom name="v_part_283" type="mesh" mesh="v_part_283" group="1"/>
+      <geom name="v_part_284" type="mesh" mesh="v_part_284" group="1"/>
+      <geom name="v_part_286" type="mesh" mesh="v_part_286" group="1"/>
+      <geom name="v_part_287" type="mesh" mesh="v_part_287" group="1"/>
+      <geom name="v_part_289" type="mesh" mesh="v_part_289" group="1"/>
+      <geom name="v_part_290" type="mesh" mesh="v_part_290" group="1"/>
+      <geom name="v_part_291" type="mesh" mesh="v_part_291" group="1"/>
+      <geom name="v_part_293" type="mesh" mesh="v_part_293" group="1"/>
+      <geom name="v_part_308" type="mesh" mesh="v_part_308" group="1"/>
+      <geom name="v_part_309" type="mesh" mesh="v_part_309" group="1"/>
+      <geom name="v_part_310" type="mesh" mesh="v_part_310" group="1"/>
+      <geom name="v_part_311" type="mesh" mesh="v_part_311" group="1"/>
+      <geom name="v_part_312" type="mesh" mesh="v_part_312" group="1"/>
+      <geom name="v_part_313" type="mesh" mesh="v_part_313" group="1"/>
+      <geom name="v_part_314" type="mesh" mesh="v_part_314" group="1"/>
+      <geom name="v_part_315" type="mesh" mesh="v_part_315" group="1"/>
+      <geom name="v_part_317" type="mesh" mesh="v_part_317" group="1"/>
+      <geom name="v_part_320" type="mesh" mesh="v_part_320" group="1"/>
+      <geom name="v_part_322" type="mesh" mesh="v_part_322" group="1"/>
+      <geom name="v_part_325" type="mesh" mesh="v_part_325" group="1"/>
+      <geom name="v_part_326" type="mesh" mesh="v_part_326" group="1"/>
+      <geom name="v_part_327" type="mesh" mesh="v_part_327" group="1"/>
+      <geom name="v_part_328" type="mesh" mesh="v_part_328" group="1"/>
+      <geom name="v_part_329" type="mesh" mesh="v_part_329" group="1"/>
+      <geom name="v_part_330" type="mesh" mesh="v_part_330" group="1"/>
+      <camera name="cam_scene_yp_l515" pos="0.360341 -0.036530 -1.149732" quat="-0.699354 0.699354 -0.104424 0.104424" fovy="43.4"/>
+      <camera name="cam_scene_yn_d435i" pos="0.360341 0.056365 -1.149732" quat="0.104424 -0.104424 0.699354 -0.699354" fovy="42.6"/>
+    <site name="basket_site" pos="-0.533 0.010 -0.880" type="cylinder" size="0.14 0.02" rgba="0.2 0.9 0.2 0.25"/>
+    <geom name="crate_col_0" type="box" pos="-0.533 0.01 -0.7106210000000001" size="0.17 0.225 0.006" group="3" rgba="0 0 0 0"/>
+    <geom name="crate_col_1" type="box" pos="-0.703 0.01 -0.779621" size="0.006 0.225 0.075" group="3" rgba="0 0 0 0"/>
+    <geom name="crate_col_2" type="box" pos="-0.363 0.01 -0.779621" size="0.006 0.225 0.075" group="3" rgba="0 0 0 0"/>
+    <geom name="crate_col_3" type="box" pos="-0.533 0.235 -0.779621" size="0.17 0.006 0.075" group="3" rgba="0 0 0 0"/>
+    <geom name="crate_col_4" type="box" pos="-0.533 -0.215 -0.779621" size="0.17 0.006 0.075" group="3" rgba="0 0 0 0"/>
+    <body name="arm_base_mount" pos="0.002 0.004 -0.704" quat="0 1 0 0">
+      <inertial pos="0 0 0.025" mass="0.9" diaginertia="0.002 0.002 0.002"/>
+      <geom name="a_base_link" type="mesh" mesh="a_base_link" group="1"/>
+      <body name="shoulder_Link" pos="0.000000 0.000000 0.122000" quat="-0.000004 0.000000 0.000000 1.000000">
+        <inertial pos="3.25089e-07 0.00534955 -0.00883689" quat="0.99587 -0.0907855 0 0" mass="1.57658" diaginertia="0.00406404 0.00395808 0.00305754"/>
+        <joint name="shoulder_joint" pos="0 0 0" axis="0 0 1" range="-3.0543 3.0543" damping="0.2" armature="0.01"/>
+        <geom name="a_shoulder_Link_col" type="mesh" mesh="a_shoulder_Link" group="3" rgba="0 0 0 0"/>
+        <geom name="a_shoulder_Link_vm1" type="mesh" mesh="d_shoulder_Link_m1" group="1" contype="0" conaffinity="0" rgba="0.99 0.37 0.06 1"/>
+        <geom name="a_shoulder_Link_vm2" type="mesh" mesh="d_shoulder_Link_m2" group="1" contype="0" conaffinity="0" rgba="0.10 0.10 0.11 1"/>
+      <body name="upperArm_Link" pos="0.000000 0.121500 0.000000" quat="0.499998 -0.500000 -0.500000 -0.500002">
+        <inertial pos="0.203997 2.01305e-10 0.0127642" quat="0.5 0.5 0.5 0.5" mass="4.04176" diaginertia="0.144994 0.142607 0.00965399"/>
+        <joint name="upperArm_joint" pos="0 0 0" axis="0 0 1" range="-3.0543 3.0543" damping="0.2" armature="0.01"/>
+        <geom name="a_upperArm_Link_col" type="mesh" mesh="a_upperArm_Link" group="3" rgba="0 0 0 0"/>
+        <geom name="a_upperArm_Link_vm1" type="mesh" mesh="d_upperArm_Link_m1" group="1" contype="0" conaffinity="0" rgba="0.99 0.37 0.06 1"/>
+        <geom name="a_upperArm_Link_vm2" type="mesh" mesh="d_upperArm_Link_m2" group="1" contype="0" conaffinity="0" rgba="0.10 0.10 0.11 1"/>
+      <body name="foreArm_Link" pos="0.408000 0.000000 0.000000" quat="-0.000004 -1.000000 0.000000 0.000000">
+        <inertial pos="0.188922 6.78882e-07 0.0981027" quat="0.504333 0.495629 0.495629 0.504333" mass="2.27146" diaginertia="0.0443926 0.0441401 0.00213049"/>
+        <joint name="foreArm_joint" pos="0 0 0" axis="0 0 1" range="-3.0543 3.0543" damping="0.2" armature="0.01"/>
+        <geom name="a_foreArm_Link_col" type="mesh" mesh="a_foreArm_Link" group="3" rgba="0 0 0 0"/>
+        <geom name="a_foreArm_Link_vm1" type="mesh" mesh="d_foreArm_Link_m1" group="1" contype="0" conaffinity="0" rgba="0.99 0.37 0.06 1"/>
+        <geom name="a_foreArm_Link_vm2" type="mesh" mesh="d_foreArm_Link_m2" group="1" contype="0" conaffinity="0" rgba="0.10 0.10 0.11 1"/>
+      <body name="wrist1_Link" pos="0.376000 0.000000 0.000000" quat="-0.000003 0.707105 0.707108 -0.000003">
+        <inertial pos="7.54205e-07 0.00624813 -0.00392367" quat="0.677608 0.735423 0 0" mass="0.500478" diaginertia="0.000711946 0.000687466 0.000403991"/>
+        <joint name="wrist1_joint" pos="0 0 0" axis="0 0 1" range="-3.0543 3.0543" damping="0.2" armature="0.01"/>
+        <geom name="a_wrist1_Link_col" type="mesh" mesh="a_wrist1_Link" group="3" rgba="0 0 0 0"/>
+        <geom name="a_wrist1_Link_vm1" type="mesh" mesh="d_wrist1_Link_m1" group="1" contype="0" conaffinity="0" rgba="0.99 0.37 0.06 1"/>
+        <geom name="a_wrist1_Link_vm2" type="mesh" mesh="d_wrist1_Link_m2" group="1" contype="0" conaffinity="0" rgba="0.10 0.10 0.11 1"/>
+      <body name="wrist2_Link" pos="0.000000 0.102500 0.000000" quat="0.707105 -0.707108 0.000000 0.000000">
+        <inertial pos="-7.54208e-07 -0.00624813 -0.00392367" quat="0.735423 0.677608 0 0" mass="0.500478" diaginertia="0.000711946 0.000687466 0.000403991"/>
+        <joint name="wrist2_joint" pos="0 0 0" axis="0 0 1" range="-3.0543 3.0543" damping="0.2" armature="0.01"/>
+        <geom name="a_wrist2_Link_col" type="mesh" mesh="a_wrist2_Link" group="3" rgba="0 0 0 0"/>
+        <geom name="a_wrist2_Link_vm1" type="mesh" mesh="d_wrist2_Link_m1" group="1" contype="0" conaffinity="0" rgba="0.99 0.37 0.06 1"/>
+        <geom name="a_wrist2_Link_vm2" type="mesh" mesh="d_wrist2_Link_m2" group="1" contype="0" conaffinity="0" rgba="0.10 0.10 0.11 1"/>
+      <body name="wrist3_Link" pos="0.000000 -0.094000 0.000000" quat="0.707105 0.707108 0.000000 0.000000">
+        <inertial pos="3.92049e-10 0.000175788 -0.0213294" quat="0.5 0.5 -0.5 0.5" mass="0.15831" diaginertia="0.000108772 7.31376e-05 7.19528e-05"/>
+        <joint name="wrist3_joint" pos="0 0 0" axis="0 0 1" range="-3.0543 3.0543" damping="0.2" armature="0.01"/>
+        <geom name="a_wrist3_Link_col" type="mesh" mesh="a_wrist3_Link" group="3" rgba="0 0 0 0"/>
+        <geom name="a_wrist3_Link_vm2" type="mesh" mesh="d_wrist3_Link_m2" group="1" contype="0" conaffinity="0" rgba="0.10 0.10 0.11 1"/>
+        <body name="base_link" pos="0.000000 0.000000 0.050952" quat="0.000000 0.707107 0.707107 0.000000">
+          <inertial pos="0.010859 0.006547 -0.003183" mass="0.348363" fullinertia="0.000394488 0.000557312 0.000646813 -0.00012937012 -0.00000898267 -0.00000904808"/>
+          <geom name="base_link_mesh_1" type="mesh" mesh="g_part_003_solid_003" pos="0.044658438 -0.040628404 0.036834671" euler="0 0 0" group="1" rgba="0.58 0.59 0.62 1" />
+          <geom name="base_link_mesh_2" type="mesh" mesh="g_part_010_solid_010" pos="0.044658438 -0.040628404 0.036834671" euler="0 0 0" group="1" rgba="0.58 0.59 0.62 1" />
+          <geom name="base_link_mesh_3" type="mesh" mesh="g_part_011_solid_011" pos="0.044658438 -0.040628404 0.036834671" euler="0 0 0" group="1" rgba="0.58 0.59 0.62 1" />
+          <geom name="base_link_mesh_4" type="mesh" mesh="g_part_012_solid_012" pos="0.044658438 -0.040628404 0.036834671" euler="0 0 0" group="1" rgba="0.58 0.59 0.62 1" />
+          <geom name="base_link_mesh_5" type="mesh" mesh="g_part_013_solid_013" pos="0.044658438 -0.040628404 0.036834671" euler="0 0 0" group="1" rgba="0.58 0.59 0.62 1" />
+          <geom name="base_link_mesh_6" type="mesh" mesh="g_part_027_solid_027" pos="0.044658438 -0.040628404 0.036834671" euler="0 0 0" group="1" rgba="0.58 0.59 0.62 1" />
+          <geom name="base_link_mesh_7" type="mesh" mesh="g_part_028_solid_028" pos="0.044658438 -0.040628404 0.036834671" euler="0 0 0" group="1" rgba="0.58 0.59 0.62 1" />
+          <geom name="base_link_mesh_8" type="mesh" mesh="g_part_029_solid_029" pos="0.044658438 -0.040628404 0.036834671" euler="0 0 0" group="1" rgba="0.58 0.59 0.62 1" />
+          <geom name="base_link_mesh_9" type="mesh" mesh="g_part_030_solid_030" pos="0.044658438 -0.040628404 0.036834671" euler="0 0 0" group="1" rgba="0.58 0.59 0.62 1" />
+          <geom name="base_link_mesh_10" type="mesh" mesh="g_part_031_solid_031" pos="0.044658438 -0.040628404 0.036834671" euler="0 0 0" group="1" rgba="0.58 0.59 0.62 1" />
+          <geom name="base_link_mesh_11" type="mesh" mesh="g_part_032_solid_032" pos="0.044658438 -0.040628404 0.036834671" euler="0 0 0" group="1" rgba="0.58 0.59 0.62 1" />
+          <geom name="base_link_mesh_12" type="mesh" mesh="g_part_033_solid_033" pos="0.044658438 -0.040628404 0.036834671" euler="0 0 0" group="1" rgba="0.58 0.59 0.62 1" />
+          <geom name="base_link_mesh_13" type="mesh" mesh="g_part_034_solid_034" pos="0.044658438 -0.040628404 0.036834671" euler="0 0 0" group="1" rgba="0.58 0.59 0.62 1" />
+          <geom name="base_link_mesh_14" type="mesh" mesh="g_part_035_solid_035" pos="0.044658438 -0.040628404 0.036834671" euler="0 0 0" group="1" rgba="0.58 0.59 0.62 1" />
+          <geom name="base_link_mesh_15" type="mesh" mesh="g_part_036_solid_036" pos="0.044658438 -0.040628404 0.036834671" euler="0 0 0" group="1" rgba="0.58 0.59 0.62 1" />
+          <geom name="base_link_mesh_16" type="mesh" mesh="g_part_037_solid_037" pos="0.044658438 -0.040628404 0.036834671" euler="0 0 0" group="1" rgba="0.58 0.59 0.62 1" />
+          <geom name="base_link_mesh_17" type="mesh" mesh="g_part_038_solid_038" pos="0.044658438 -0.040628404 0.036834671" euler="0 0 0" group="1" rgba="0.58 0.59 0.62 1" />
+          <geom name="base_link_mesh_18" type="mesh" mesh="g_part_039_solid_039" pos="0.044658438 -0.040628404 0.036834671" euler="0 0 0" group="1" rgba="0.58 0.59 0.62 1" />
+          <geom name="base_link_mesh_19" type="mesh" mesh="g_part_040_solid_040" pos="0.044658438 -0.040628404 0.036834671" euler="0 0 0" group="1" rgba="0.58 0.59 0.62 1" />
+          <geom name="base_link_mesh_20" type="mesh" mesh="g_part_041_solid_041" pos="0.044658438 -0.040628404 0.036834671" euler="0 0 0" group="1" rgba="0.58 0.59 0.62 1" />
+          <geom name="base_link_mesh_21" type="mesh" mesh="g_part_042_solid_042" pos="0.044658438 -0.040628404 0.036834671" euler="0 0 0" group="1" rgba="0.58 0.59 0.62 1" />
+          <geom name="base_link_mesh_22" type="mesh" mesh="g_part_043_solid_043" pos="0.044658438 -0.040628404 0.036834671" euler="0 0 0" group="1" rgba="0.58 0.59 0.62 1" />
+          <geom name="base_link_mesh_23" type="mesh" mesh="g_part_045_solid_045" pos="0.044658438 -0.040628404 0.036834671" euler="0 0 0" group="1" rgba="0.58 0.59 0.62 1" />
+          <geom name="base_link_mesh_24" type="mesh" mesh="g_part_044_solid_044" pos="0.044658438 -0.040628404 0.036834671" euler="0 0 0" group="1" rgba="0.58 0.59 0.62 1" />
+          <geom name="base_link_mesh_25" type="mesh" mesh="g_part_046_solid_046" pos="0.044658438 -0.040628404 0.036834671" euler="0 0 0" group="1" rgba="0.58 0.59 0.62 1" />
+          <geom name="base_link_mesh_26" type="mesh" mesh="g_part_047_solid_047" pos="0.044658438 -0.040628404 0.036834671" euler="0 0 0" group="1" rgba="0.58 0.59 0.62 1" />
+          <geom name="base_link_mesh_27" type="mesh" mesh="g_part_001_solid_001" pos="0.044658438 -0.040628404 0.036834671" euler="0 0 0" group="1" rgba="0.58 0.59 0.62 1" />
+          <geom name="base_link_mesh_28" type="mesh" mesh="g_part_009_solid_009" pos="0.044658438 -0.040628404 0.036834671" euler="0 0 0" group="1" rgba="0.58 0.59 0.62 1" />
+          <geom name="cam_part_363" type="mesh" mesh="c_part_363" group="1" rgba="0.15 0.15 0.16 1"/>
+          <geom name="cam_part_364" type="mesh" mesh="c_part_364" group="1" rgba="0.15 0.15 0.16 1"/>
+          <geom name="cam_part_365" type="mesh" mesh="c_part_365" group="1" rgba="0.15 0.15 0.16 1"/>
+          <geom name="cam_part_366" type="mesh" mesh="c_part_366" group="1" rgba="0.15 0.15 0.16 1"/>
+          <geom name="cam_part_367" type="mesh" mesh="c_part_367" group="1" rgba="0.15 0.15 0.16 1"/>
+          <geom name="cam_part_368" type="mesh" mesh="c_part_368" group="1" rgba="0.15 0.15 0.16 1"/>
+          <geom name="cam_part_369" type="mesh" mesh="c_part_369" group="1" rgba="0.15 0.15 0.16 1"/>
+          <geom name="ad_part_362" type="mesh" mesh="c_part_362" group="1" rgba="0.62 0.63 0.66 1"/>
+          <geom name="ad_part_371" type="mesh" mesh="c_part_371" group="1" rgba="0.62 0.63 0.66 1"/>
+        <camera name="cam_wrist_d405" pos="0.106042 -0.001376 0.025985" quat="0.707109 0.000006 -0.000002 -0.707105" fovy="58.0"/>
+        <body name="gear_link" pos="1.89e-09 2.2e-09 -0.0047500006" euler="3.1415927 0 0">
+          <joint name="gear_joint" type="hinge" pos="0 0 0" axis="0 0 1" limited="true" actuatorfrclimited="true" range="-0.474409 0.463234" damping="0.002" actuatorfrcrange="-2 2" frictionloss="0.005" />
+          <inertial pos="3.0045713e-07 -1.0867786e-05 0.026885779" mass="0.022650932" quat="0.99991087 -9.8761648e-05 -1.4878863e-06 0.013350794" diaginertia="2.8015663e-06 2.7182082e-06 4.5617203e-06" />
+          <geom name="gear_link_mesh_1" type="mesh" mesh="g_part_050_solid_050" pos="0.044658436 0.040628406 -0.041584672" euler="-3.1415927 0 0" group="1" rgba="0.50 0.51 0.54 1" />
+        </body>
+        <body name="right_finger_link" pos="0.0025000024 -0.032129281 -0.041864492" euler="1.5492542 0 0">
+          <joint name="right_finger_joint" type="slide" pos="0 0 0" axis="0 0 1" limited="true" range="-0.010648 0.010883" damping="0.05" />
+          <inertial pos="-0.014051232 -0.017179277 -0.016396853" mass="0.023069919" quat="0.97857788 -0.058044502 0.11602652 0.15985625" diaginertia="2.2182048e-05 5.4852153e-06 1.981857e-05" />
+          <geom name="right_finger_link_mesh_1" type="mesh" mesh="g_part_004_solid_004" pos="0.042158436 0.078497829 0.010192365" euler="-1.5492542 0 0" group="1" rgba="0.50 0.51 0.54 1" />
+          <geom name="right_finger_link_mesh_2" type="mesh" mesh="g_part_048_solid_048" pos="0.042158436 0.078497829 0.010192365" euler="-1.5492542 0 0" group="1" rgba="0.50 0.51 0.54 1" />
+          <geom name="right_finger_link_mesh_3" type="mesh" mesh="g_part_007_solid_007" pos="0.042158436 0.078497829 0.010192365" euler="-1.5492542 0 0" group="1" rgba="0.50 0.51 0.54 1" />
+        </body>
+        <body name="left_finger_link" pos="0.0022603458 0.022856628 -0.042805662" euler="-1.5710562 -0.00027471871 0">
+          <joint name="left_finger_joint" type="slide" pos="0 0 0" axis="0 0 1" limited="true" range="-0.012610 0.011837" damping="0.05" />
+          <inertial pos="0.0074745805 0.018070037 -0.0079754345" mass="0.025656609" quat="0.97682392 0.066355129 -0.12913666 0.15727602" diaginertia="2.5231822e-05 6.8915999e-06 2.2743687e-05" />
+          <geom name="left_finger_link_mesh_1" type="mesh" mesh="g_part_049_solid_049" pos="0.042380645 -0.079623834 -0.06351737" euler="1.5710562 -7.1387875e-08 -0.0002747187" group="1" rgba="0.50 0.51 0.54 1" />
+          <geom name="left_finger_link_mesh_2" type="mesh" mesh="g_part_008_solid_008" pos="0.042380645 -0.079623834 -0.06351737" euler="1.5710562 -7.1387875e-08 -0.0002747187" group="1" rgba="0.50 0.51 0.54 1" />
+          <geom name="left_finger_link_mesh_3" type="mesh" mesh="g_part_005_solid_005" pos="0.042380645 -0.079623834 -0.06351737" euler="1.5710562 -7.1387875e-08 -0.0002747187" group="1" rgba="0.50 0.51 0.54 1" />
+          <geom name="left_finger_link_mesh_4" type="mesh" mesh="g_part_006_solid_006" pos="0.042380645 -0.079623834 -0.06351737" euler="1.5710562 -7.1387875e-08 -0.0002747187" group="1" rgba="0.50 0.51 0.54 1" />
+          <geom name="left_finger_link_mesh_5" type="mesh" mesh="g_part_002_solid_002" pos="0.042380645 -0.079623834 -0.06351737" euler="1.5710562 -7.1387875e-08 -0.0002747187" group="1" rgba="0.50 0.51 0.54 1" />
+        </body>
+        </body>
       </body>
     </body>
+    </body>
+    </body>
+    </body>
+    </body>
+    </body>
   </body>
-  </body>
-  </body>
-  </body>
-  </body>
-  </body>
+
   </body>
   </worldbody>
   <equality>
     <joint name="couple_right" joint1="right_finger_joint" joint2="gear_joint" polycoef="0 -0.02099500 0 0 0" solref="0.004 1" solimp="0.9995 0.9999 0.000001" />
     <joint name="couple_left" joint1="left_finger_joint" joint2="gear_joint" polycoef="0 -0.02099900 0 0 0" solref="0.004 1" solimp="0.9995 0.9999 0.000001" />
+<!-- ENV-EQ-BEGIN (tools/build_environment.py 生成, 勿手改) -->
+  <weld name="hold_0_0" body1="plant_0" body2="truss_0_0" active="true" solref="0.005 1"/>
+  <weld name="grip_0_0" body1="base_link" body2="truss_0_0" active="false" solref="0.01 1"/>
+  <weld name="hold_0_1" body1="plant_0" body2="truss_0_1" active="true" solref="0.005 1"/>
+  <weld name="grip_0_1" body1="base_link" body2="truss_0_1" active="false" solref="0.01 1"/>
+  <weld name="hold_0_2" body1="plant_0" body2="truss_0_2" active="true" solref="0.005 1"/>
+  <weld name="grip_0_2" body1="base_link" body2="truss_0_2" active="false" solref="0.01 1"/>
+  <weld name="hold_0_3" body1="plant_0" body2="truss_0_3" active="true" solref="0.005 1"/>
+  <weld name="grip_0_3" body1="base_link" body2="truss_0_3" active="false" solref="0.01 1"/>
+  <weld name="hold_1_0" body1="plant_1" body2="truss_1_0" active="true" solref="0.005 1"/>
+  <weld name="grip_1_0" body1="base_link" body2="truss_1_0" active="false" solref="0.01 1"/>
+  <weld name="hold_1_1" body1="plant_1" body2="truss_1_1" active="true" solref="0.005 1"/>
+  <weld name="grip_1_1" body1="base_link" body2="truss_1_1" active="false" solref="0.01 1"/>
+  <weld name="hold_1_2" body1="plant_1" body2="truss_1_2" active="true" solref="0.005 1"/>
+  <weld name="grip_1_2" body1="base_link" body2="truss_1_2" active="false" solref="0.01 1"/>
+  <weld name="hold_1_3" body1="plant_1" body2="truss_1_3" active="true" solref="0.005 1"/>
+  <weld name="grip_1_3" body1="base_link" body2="truss_1_3" active="false" solref="0.01 1"/>
+  <weld name="hold_2_0" body1="plant_2" body2="truss_2_0" active="true" solref="0.005 1"/>
+  <weld name="grip_2_0" body1="base_link" body2="truss_2_0" active="false" solref="0.01 1"/>
+  <weld name="hold_2_1" body1="plant_2" body2="truss_2_1" active="true" solref="0.005 1"/>
+  <weld name="grip_2_1" body1="base_link" body2="truss_2_1" active="false" solref="0.01 1"/>
+  <weld name="hold_2_2" body1="plant_2" body2="truss_2_2" active="true" solref="0.005 1"/>
+  <weld name="grip_2_2" body1="base_link" body2="truss_2_2" active="false" solref="0.01 1"/>
+  <weld name="hold_2_3" body1="plant_2" body2="truss_2_3" active="true" solref="0.005 1"/>
+  <weld name="grip_2_3" body1="base_link" body2="truss_2_3" active="false" solref="0.01 1"/>
+  <weld name="hold_3_0" body1="plant_3" body2="truss_3_0" active="true" solref="0.005 1"/>
+  <weld name="grip_3_0" body1="base_link" body2="truss_3_0" active="false" solref="0.01 1"/>
+  <weld name="hold_3_1" body1="plant_3" body2="truss_3_1" active="true" solref="0.005 1"/>
+  <weld name="grip_3_1" body1="base_link" body2="truss_3_1" active="false" solref="0.01 1"/>
+  <weld name="hold_3_2" body1="plant_3" body2="truss_3_2" active="true" solref="0.005 1"/>
+  <weld name="grip_3_2" body1="base_link" body2="truss_3_2" active="false" solref="0.01 1"/>
+  <weld name="hold_3_3" body1="plant_3" body2="truss_3_3" active="true" solref="0.005 1"/>
+  <weld name="grip_3_3" body1="base_link" body2="truss_3_3" active="false" solref="0.01 1"/>
+  <weld name="hold_4_0" body1="plant_4" body2="truss_4_0" active="true" solref="0.005 1"/>
+  <weld name="grip_4_0" body1="base_link" body2="truss_4_0" active="false" solref="0.01 1"/>
+  <weld name="hold_4_1" body1="plant_4" body2="truss_4_1" active="true" solref="0.005 1"/>
+  <weld name="grip_4_1" body1="base_link" body2="truss_4_1" active="false" solref="0.01 1"/>
+  <weld name="hold_4_2" body1="plant_4" body2="truss_4_2" active="true" solref="0.005 1"/>
+  <weld name="grip_4_2" body1="base_link" body2="truss_4_2" active="false" solref="0.01 1"/>
+  <weld name="hold_4_3" body1="plant_4" body2="truss_4_3" active="true" solref="0.005 1"/>
+  <weld name="grip_4_3" body1="base_link" body2="truss_4_3" active="false" solref="0.01 1"/>
+  <weld name="hold_5_0" body1="plant_5" body2="truss_5_0" active="true" solref="0.005 1"/>
+  <weld name="grip_5_0" body1="base_link" body2="truss_5_0" active="false" solref="0.01 1"/>
+  <weld name="hold_5_1" body1="plant_5" body2="truss_5_1" active="true" solref="0.005 1"/>
+  <weld name="grip_5_1" body1="base_link" body2="truss_5_1" active="false" solref="0.01 1"/>
+  <weld name="hold_5_2" body1="plant_5" body2="truss_5_2" active="true" solref="0.005 1"/>
+  <weld name="grip_5_2" body1="base_link" body2="truss_5_2" active="false" solref="0.01 1"/>
+  <weld name="hold_5_3" body1="plant_5" body2="truss_5_3" active="true" solref="0.005 1"/>
+  <weld name="grip_5_3" body1="base_link" body2="truss_5_3" active="false" solref="0.01 1"/>
+  <weld name="hold_6_0" body1="plant_6" body2="truss_6_0" active="true" solref="0.005 1"/>
+  <weld name="grip_6_0" body1="base_link" body2="truss_6_0" active="false" solref="0.01 1"/>
+  <weld name="hold_6_1" body1="plant_6" body2="truss_6_1" active="true" solref="0.005 1"/>
+  <weld name="grip_6_1" body1="base_link" body2="truss_6_1" active="false" solref="0.01 1"/>
+  <weld name="hold_6_2" body1="plant_6" body2="truss_6_2" active="true" solref="0.005 1"/>
+  <weld name="grip_6_2" body1="base_link" body2="truss_6_2" active="false" solref="0.01 1"/>
+  <weld name="hold_6_3" body1="plant_6" body2="truss_6_3" active="true" solref="0.005 1"/>
+  <weld name="grip_6_3" body1="base_link" body2="truss_6_3" active="false" solref="0.01 1"/>
+  <weld name="hold_7_0" body1="plant_7" body2="truss_7_0" active="true" solref="0.005 1"/>
+  <weld name="grip_7_0" body1="base_link" body2="truss_7_0" active="false" solref="0.01 1"/>
+  <weld name="hold_7_1" body1="plant_7" body2="truss_7_1" active="true" solref="0.005 1"/>
+  <weld name="grip_7_1" body1="base_link" body2="truss_7_1" active="false" solref="0.01 1"/>
+  <weld name="hold_7_2" body1="plant_7" body2="truss_7_2" active="true" solref="0.005 1"/>
+  <weld name="grip_7_2" body1="base_link" body2="truss_7_2" active="false" solref="0.01 1"/>
+  <weld name="hold_7_3" body1="plant_7" body2="truss_7_3" active="true" solref="0.005 1"/>
+  <weld name="grip_7_3" body1="base_link" body2="truss_7_3" active="false" solref="0.01 1"/>
+  <weld name="hold_8_0" body1="plant_8" body2="truss_8_0" active="true" solref="0.005 1"/>
+  <weld name="grip_8_0" body1="base_link" body2="truss_8_0" active="false" solref="0.01 1"/>
+  <weld name="hold_8_1" body1="plant_8" body2="truss_8_1" active="true" solref="0.005 1"/>
+  <weld name="grip_8_1" body1="base_link" body2="truss_8_1" active="false" solref="0.01 1"/>
+  <weld name="hold_8_2" body1="plant_8" body2="truss_8_2" active="true" solref="0.005 1"/>
+  <weld name="grip_8_2" body1="base_link" body2="truss_8_2" active="false" solref="0.01 1"/>
+  <weld name="hold_8_3" body1="plant_8" body2="truss_8_3" active="true" solref="0.005 1"/>
+  <weld name="grip_8_3" body1="base_link" body2="truss_8_3" active="false" solref="0.01 1"/>
+  <weld name="hold_9_0" body1="plant_9" body2="truss_9_0" active="true" solref="0.005 1"/>
+  <weld name="grip_9_0" body1="base_link" body2="truss_9_0" active="false" solref="0.01 1"/>
+  <weld name="hold_9_1" body1="plant_9" body2="truss_9_1" active="true" solref="0.005 1"/>
+  <weld name="grip_9_1" body1="base_link" body2="truss_9_1" active="false" solref="0.01 1"/>
+  <weld name="hold_9_2" body1="plant_9" body2="truss_9_2" active="true" solref="0.005 1"/>
+  <weld name="grip_9_2" body1="base_link" body2="truss_9_2" active="false" solref="0.01 1"/>
+  <weld name="hold_9_3" body1="plant_9" body2="truss_9_3" active="true" solref="0.005 1"/>
+  <weld name="grip_9_3" body1="base_link" body2="truss_9_3" active="false" solref="0.01 1"/>
+<!-- ENV-EQ-END -->
   </equality>
   <contact>
     <exclude body1="base_link" body2="gear_link" />
@@ -848,6 +1873,7 @@
     <exclude body1="base_link" body2="wrist1_Link"/>
     <exclude body1="base_link" body2="wrist2_Link"/>
     <exclude body1="base_link" body2="wrist3_Link"/>
+    <exclude body1="chassis" body2="lift"/>
   </contact>
   <actuator>
     <position name="gear_servo" joint="gear_joint" kp="1.5" ctrlrange="-0.474409 0.463234" forcerange="-2 2" />
@@ -859,8 +1885,10 @@
     <position name="j4" joint="wrist1_joint" kp="300" kv="22" ctrlrange="-3.0543 3.0543" forcerange="-40 40"/>
     <position name="j5" joint="wrist2_joint" kp="300" kv="22" ctrlrange="-3.0543 3.0543" forcerange="-40 40"/>
     <position name="j6" joint="wrist3_joint" kp="200" kv="15" ctrlrange="-3.0543 3.0543" forcerange="-40 40"/>
+    <position name="lift_servo" joint="lift_joint" kp="20000" kv="600" ctrlrange="0 0.5" forcerange="-2500 2500"/>
   </actuator>
   <keyframe>
-    <key name="home" qpos="0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 -1.590000 -0.061100 1.500000 -1.590000 -1.650000 3.050000 -0.474000 0.009952 0.009954" ctrl="-0.474000 0.000000 0.000000 -1.590000 -0.061100 1.500000 -1.590000 -1.650000 3.050000"/>
+    <key name="home" qpos="-1.3108 0.8218 0.5816 0.7071068 0.7071068 0 0 -1.0730 0.8199 1.0120 0.7071068 0.7071068 0 0 -0.4434 0.5317 1.3660 0.7071068 0.7071068 0 0 -0.1075 0.4043 1.5568 0.7071068 0.7071068 0 0 -0.5883 0.8283 0.5824 0.7071068 0.7071068 0 0 -0.4121 0.7968 1.0485 0.7071068 0.7071068 0 0 0.0865 0.7506 1.5494 0.7071068 0.7071068 0 0 0.6525 0.7947 1.9575 0.7071068 0.7071068 0 0 0.4831 0.7986 0.6421 0.7071068 0.7071068 0 0 0.6541 0.8288 1.0288 0.7071068 0.7071068 0 0 1.3221 0.7700 1.5150 0.7071068 0.7071068 0 0 1.8109 0.6248 1.7450 0.7071068 0.7071068 0 0 1.3040 0.7979 0.5668 0.7071068 0.7071068 0 0 1.5660 0.8295 1.1470 0.7071068 0.7071068 0 0 2.3197 0.8766 1.5598 0.7071068 0.7071068 0 0 2.4781 0.7312 1.8115 0.7071068 0.7071068 0 0 2.3481 0.8191 0.5333 0.7071068 0.7071068 0 0 2.7147 0.8142 1.0992 0.7071068 0.7071068 0 0 3.0251 0.9037 1.4937 0.7071068 0.7071068 0 0 3.2813 1.0351 1.6732 0.7071068 0.7071068 0 0 -1.3174 -0.7949 0.6802 0.7071068 0.7071068 0 0 -1.1566 -0.7720 1.0601 0.7071068 0.7071068 0 0 -0.9367 -0.8679 1.4471 0.7071068 0.7071068 0 0 -0.6597 -0.9230 1.7346 0.7071068 0.7071068 0 0 -0.4689 -0.7870 0.5093 0.7071068 0.7071068 0 0 -0.2298 -0.7783 0.9799 0.7071068 0.7071068 0 0 0.6181 -0.8646 1.3800 0.7071068 0.7071068 0 0 0.1936 -0.8264 1.6498 0.7071068 0.7071068 0 0 0.3359 -0.7707 0.6002 0.7071068 0.7071068 0 0 0.4767 -0.7853 0.9932 0.7071068 0.7071068 0 0 0.8176 -0.6590 1.4891 0.7071068 0.7071068 0 0 0.9991 -0.5519 1.8581 0.7071068 0.7071068 0 0 1.4062 -0.7974 0.6496 0.7071068 0.7071068 0 0 1.5822 -0.7725 0.9920 0.7071068 0.7071068 0 0 1.9710 -0.9305 1.3630 0.7071068 0.7071068 0 0 2.2721 -1.1320 1.7515 0.7071068 0.7071068 0 0 2.2103 -0.7970 0.5945 0.7071068 0.7071068 0 0 2.3983 -0.7701 1.0415 0.7071068 0.7071068 0 0 2.6248 -0.8748 1.4993 0.7071068 0.7071068 0 0 2.8973 -0.9739 1.8618 0.7071068 0.7071068 0 0 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 0.000 -1.590000 -0.061100 1.500000 -1.590000 -1.650000 3.050000 -0.474000 0.009952 0.009954" ctrl="-0.474000 0.000000 0.000000 -1.590000 -0.061100 1.500000 -1.590000 -1.650000 3.050000 0.000"/>
+    <key name="lift_high" qpos="-1.3108 0.8218 0.5816 0.7071068 0.7071068 0 0 -1.0730 0.8199 1.0120 0.7071068 0.7071068 0 0 -0.4434 0.5317 1.3660 0.7071068 0.7071068 0 0 -0.1075 0.4043 1.5568 0.7071068 0.7071068 0 0 -0.5883 0.8283 0.5824 0.7071068 0.7071068 0 0 -0.4121 0.7968 1.0485 0.7071068 0.7071068 0 0 0.0865 0.7506 1.5494 0.7071068 0.7071068 0 0 0.6525 0.7947 1.9575 0.7071068 0.7071068 0 0 0.4831 0.7986 0.6421 0.7071068 0.7071068 0 0 0.6541 0.8288 1.0288 0.7071068 0.7071068 0 0 1.3221 0.7700 1.5150 0.7071068 0.7071068 0 0 1.8109 0.6248 1.7450 0.7071068 0.7071068 0 0 1.3040 0.7979 0.5668 0.7071068 0.7071068 0 0 1.5660 0.8295 1.1470 0.7071068 0.7071068 0 0 2.3197 0.8766 1.5598 0.7071068 0.7071068 0 0 2.4781 0.7312 1.8115 0.7071068 0.7071068 0 0 2.3481 0.8191 0.5333 0.7071068 0.7071068 0 0 2.7147 0.8142 1.0992 0.7071068 0.7071068 0 0 3.0251 0.9037 1.4937 0.7071068 0.7071068 0 0 3.2813 1.0351 1.6732 0.7071068 0.7071068 0 0 -1.3174 -0.7949 0.6802 0.7071068 0.7071068 0 0 -1.1566 -0.7720 1.0601 0.7071068 0.7071068 0 0 -0.9367 -0.8679 1.4471 0.7071068 0.7071068 0 0 -0.6597 -0.9230 1.7346 0.7071068 0.7071068 0 0 -0.4689 -0.7870 0.5093 0.7071068 0.7071068 0 0 -0.2298 -0.7783 0.9799 0.7071068 0.7071068 0 0 0.6181 -0.8646 1.3800 0.7071068 0.7071068 0 0 0.1936 -0.8264 1.6498 0.7071068 0.7071068 0 0 0.3359 -0.7707 0.6002 0.7071068 0.7071068 0 0 0.4767 -0.7853 0.9932 0.7071068 0.7071068 0 0 0.8176 -0.6590 1.4891 0.7071068 0.7071068 0 0 0.9991 -0.5519 1.8581 0.7071068 0.7071068 0 0 1.4062 -0.7974 0.6496 0.7071068 0.7071068 0 0 1.5822 -0.7725 0.9920 0.7071068 0.7071068 0 0 1.9710 -0.9305 1.3630 0.7071068 0.7071068 0 0 2.2721 -1.1320 1.7515 0.7071068 0.7071068 0 0 2.2103 -0.7970 0.5945 0.7071068 0.7071068 0 0 2.3983 -0.7701 1.0415 0.7071068 0.7071068 0 0 2.6248 -0.8748 1.4993 0.7071068 0.7071068 0 0 2.8973 -0.9739 1.8618 0.7071068 0.7071068 0 0 0 0 0 0 0 0 0 0 0 0 0.450 -1.590000 -0.061100 1.500000 -1.590000 -1.650000 3.050000 -0.474000 0.009952 0.009954" ctrl="-0.474000 0.000000 0.000000 -1.590000 -0.061100 1.500000 -1.590000 -1.650000 3.050000 0.450000"/>
   </keyframe>
 </mujoco>
