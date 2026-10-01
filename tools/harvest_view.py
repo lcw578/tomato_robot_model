@@ -29,7 +29,7 @@ def main():
     ap.add_argument('--no-follow', action='store_true')
     ap.add_argument('--follow', action='store_true', help='MP4 也用跟随视角 (默认固定机位)')
     ap.add_argument('--mp4', default=None, help='导出 MP4 (无显示器模式, 默认垄道端点固定机位)')
-    ap.add_argument('--azim', type=float, default=180.0)
+    ap.add_argument('--azim', type=float, default=0.0)
     ap.add_argument('--elev', type=float, default=-14.0)
     ap.add_argument('--dist', type=float, default=4.2)
     args = ap.parse_args()
