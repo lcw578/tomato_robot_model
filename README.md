@@ -73,6 +73,13 @@ python3 tools/harvest_demo.py --reach        # 全部果串 IK 可达性抽检 (
 ```
 剪切 = weld 状态机（`hold_` 断开、`grip_` 按当前相对位姿激活），物理上没有真"剪断"。
 
+**可视化**：
+```bash
+python3 tools/harvest_view.py                    # 实时查看器, 相机跟随夹爪, --speed 0.5 慢放
+python3 tools/harvest_view.py --mp4 docs/x.mp4   # 无显示器导出 MP4 (带阶段标签)
+```
+效果样例：[`docs/harvest_demo.mp4`](docs/harvest_demo.mp4)（20 s，全流程）。
+
 ## 观测脚本说明
 
 - `observe_cameras.py`：`--steps N` 先仿真 N 步再出图；`--live N` 连续出 L515 序列。

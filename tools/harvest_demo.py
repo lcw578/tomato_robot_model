@@ -27,6 +27,8 @@ class Picker:
     def __init__(self):
         self.m = mujoco.MjModel.from_xml_path(XML)
         self.d = mujoco.MjData(self.m)
+        self.tick = None          # 可视化钩子: 每个步进循环里周期调用 (harvest_view 用)
+        self.stage = '初始化'          # 可视化钩子: 每个步进循环里周期调用 (harvest_view 用)
         m = self.m
         self.qadr = [m.jnt_qposadr[m.joint(n).id] for n in ARM]
         self.aadr = [m.actuator(a).id for a in ['j1', 'j2', 'j3', 'j4', 'j5', 'j6']]
@@ -65,19 +67,27 @@ class Picker:
         d.ctrl[self.lift_a] = lift
         mujoco.mj_forward(m, d)
 
+    def _steps(self, n, every=10):
+        """步进 n 步, 周期触发可视化钩子"""
+        for i in range(n):
+            mujoco.mj_step(self.m, self.d)
+            if self.tick and i % every == 0:
+                self.tick()
+
     # ---------- 基础动作 ----------
     def set_lift(self, lift, settle=True):
         self.d.ctrl[self.lift_a] = lift
         if settle:
-            for _ in range(LIFT_KP_STEP):
-                mujoco.mj_step(self.m, self.d)
+            self._steps(LIFT_KP_STEP)
 
     def ik_to(self, target, iters=250, tol=TOL):
         """阻尼最小二乘把 TCP (指尖中点, gear_link 沿工具轴 +0.10m) 移到 target."""
         m, d = self.m, self.d
         dofs = [m.jnt_dofadr[m.joint(n).id] for n in ARM]
-        for _ in range(iters):
+        for it in range(iters):
             mujoco.mj_forward(m, d)
+            if self.tick and it % 10 == 0:
+                self.tick()
             R = d.xmat[self.tcp].reshape(3, 3)
             off = R @ self.tcp_off
             p = d.xpos[self.tcp] + off
@@ -117,8 +127,7 @@ class Picker:
 
     def gear(self, pos, steps=250):
         self.d.ctrl[self.gear_a] = pos
-        for _ in range(steps):
-            mujoco.mj_step(self.m, self.d)
+        self._steps(steps)
 
     # ---------- 果串工具 ----------
     def cut_site_pos(self, name):
@@ -150,13 +159,16 @@ class Picker:
         self.set_lift(lift)
 
         log = dict(truss=truss, lift=round(lift, 3), cut=np.round(cut, 3).tolist())
+        self.stage = 'LIFT & APPROACH'
         okC, eC = self.goto(approach)
         okB, eB = self.goto(cut - nrm * 0.01)
         log['approach_err'] = round(eC, 4)
         log['reach_err'] = round(eB, 4)
         if not (okC and okB):
             log['result'] = 'unreachable'
+            self.stage = 'UNREACHABLE'
             return log
+        self.stage = 'CLOSE & CUT'
         # 闭爪 + weld 切换: 先把"当前相对位姿"写进 grip weld 再激活 (默认 relpose
         # 是编译零位下的, 直接激活会把果串猛拽走)
         hold, grip = self.eq_ids(truss)
@@ -176,6 +188,7 @@ class Picker:
         if snap:
             self._snap('_cut')
         # 回撤到接近点, 再到筐上方; 先降到释放高度, 再迭代对准 (此后不再运动)
+        self.stage = 'TRANSPORT TO BASKET'
         self.goto(approach)
         bw = self.basket_above()
         okT, eT = self.goto(bw)
@@ -184,8 +197,7 @@ class Picker:
         bwlo[2] -= 0.17          # 带果降入筐口: 果实贴底, 松爪几乎零落差
         self.goto(bwlo, iters=200)
         for _ in range(3):
-            for _ in range(300):             # 摆动/偏转沉降
-                mujoco.mj_step(m, d)
+            self._steps(300)                 # 摆动/偏转沉降
             mujoco.mj_forward(m, d)
             off = d.xipos[bid][:2] - bw[:2]
             log['align_err'] = round(float(np.linalg.norm(off)), 4)
@@ -196,6 +208,7 @@ class Picker:
             self.goto(bw2)
         log['transport_err'] = round(eT, 4)
         # 原地慢开爪, 沉降; 上提 8cm 让爪壳脱离果球, 再解除约束原地释放
+        self.stage = 'RELEASE'
         self.gear(GEAR_HOME, steps=500)
         for _ in range(500):
             mujoco.mj_step(m, d)
@@ -204,8 +217,7 @@ class Picker:
         self.goto(bwout, iters=200)
         d.eq_active[grip] = 0
         # 落筐判定: 2s 后果串应停在筐内 (z 低于筐口, 水平距 site < 0.15)
-        for _ in range(1000):
-            mujoco.mj_step(m, d)
+        self._steps(1000, every=20)
         if snap:
             self._snap('_above_basket')
         # 带果上提 15cm (仍焊在爪上), 使果串完全离开筐口区
