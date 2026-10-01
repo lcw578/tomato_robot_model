@@ -161,7 +161,9 @@ def prep_variant(vname):
         t = trusses[k]
         sel = tr_of_face == ki
         faces = [f for f, s2 in zip(flist, sel) if s2]
-        emit_obj(f'{PLANT_DIR}/{vname}_truss{k}.obj', vs, vts, faces)
+        # 顶点减质心: 网格必须以 body 原点为中心, 否则 MuJoCo 的"按授权位置补偿"
+        # 会把渲染/碰撞放到双倍偏移处 (果梗错位的根源)
+        emit_obj(f'{PLANT_DIR}/{vname}_truss{k}.obj', vs - t['centroid'], vts, faces)
         ctr = t['centroid']
         ab = axis_b - axis_a
         tt = np.clip(np.dot(ctr - axis_a, ab) / np.dot(ab, ab), 0, 1)
@@ -173,7 +175,7 @@ def prep_variant(vname):
         # 碰撞: 每颗果实一个真尺寸球 (按 marker), 直径小于指间距, 不会被指笼关住
         spheres = [(rel, FRUIT_R * 1.9) for rel in (t['markers'] - ctr)]
         out['trusses'].append(dict(k=k, pos=ctr, mesh=f'{vname}_truss{k}', rip=t['rip'],
-                                   spheres=spheres, cut=cut, ped_from=ctr - dirc * 0.02))
+                                   spheres=spheres, cut=cut, attach=attach, dirc=dirc))
     return out
 
 # ---------------------------------------------------------------- 材质声明
@@ -220,7 +222,8 @@ for p, vname in enumerate(VARIANTS):
             f'<geom name="g_tr{truss_idx}_s{s}" type="sphere" pos="{o[0]:.3f} {o[1]:.3f} {o[2]:.3f}" '
             f'size="{r:.3f}" contype="2" conaffinity="1" rgba="0 0 0 0"/>'
             for s, (o, r) in enumerate(t['spheres']))
-        ped = t['ped_from'] - t['pos']
+        ped_a = t['attach'] - t['pos']          # 柄根(主茎挂点)
+        ped_b = t['cut'] - t['pos']             # 柄梢(剪切点, 果簇边缘)
         assets.append(f'    <mesh name="m_{t["mesh"]}" file="meshes/env/plants/{t["mesh"]}.obj"/>')
         tx, ty, tz = t['pos']
         # freejoint 必须是顶层 body: 世界位姿 = plant_pos + R@obj_pos, 姿态 = R
@@ -234,12 +237,19 @@ for p, vname in enumerate(VARIANTS):
             f'contype="0" conaffinity="0"/>\n'
             f'    {sp}\n'
             f'    <geom name="g_tr{truss_idx}_ped" type="capsule" '
-            f'fromto="{ped[0]:.3f} {ped[1]:.3f} {ped[2]:.3f} 0 0 0" size="0.006" '
+            f'fromto="{ped_a[0]:.3f} {ped_a[1]:.3f} {ped_a[2]:.3f} '
+            f'{ped_b[0]:.3f} {ped_b[1]:.3f} {ped_b[2]:.3f}" size="0.004" '
             f'rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>\n'
             f'  </body>')
         cut = t['cut']
         body_lines.append(f'    <site name="cut_p{p}_t{t["k"]}" pos="{cut[0]:.4f} {cut[1]:.4f} '
                           f'{cut[2]:.4f}" size="0.01" rgba="1 0 1 0.25"/>')
+        aa = t['attach'] - t['dirc'] * 0.015
+        ab2 = t['attach'] + t['dirc'] * 0.015
+        body_lines.append(f'    <geom name="g_{vname}_stub_{t["k"]}" type="capsule" '
+                          f'fromto="{aa[0]:.3f} {aa[1]:.3f} {aa[2]:.3f} '
+                          f'{ab2[0]:.3f} {ab2[1]:.3f} {ab2[2]:.3f}" size="0.004" '
+                          f'rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>')
         welds.append(f'  <weld name="hold_{p}_{t["k"]}" body1="plant_{p}" body2="truss_{p}_{t["k"]}" '
                      f'active="true" solref="0.005 1"/>')
         welds.append(f'  <weld name="grip_{p}_{t["k"]}" body1="base_link" body2="truss_{p}_{t["k"]}" '

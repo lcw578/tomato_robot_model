@@ -484,9 +484,13 @@
       <geom name="g_v0_stem" type="cylinder" pos="1.063 1.223 0.149" quat="0.59837 0.50564 -0.62151 0.00000" size="0.02 0.914" rgba="0.36 0.25 0.12 1" contype="4" conaffinity="1"/>
       <geom name="g_v0_line" type="cylinder" pos="1.743 2.088 0.409" size="0.002 0.312" quat="0.70711 -0.70711 0.00000 0.00000" rgba="0.25 0.25 0.25 1" contype="0" conaffinity="0"/>
     <site name="cut_p0_t0" pos="0.4305 0.6835 -0.0852" size="0.01" rgba="1 0 1 0.25"/>
+    <geom name="g_v0_stub_0" type="capsule" fromto="0.414 0.712 -0.103 0.427 0.689 -0.089" size="0.004" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
     <site name="cut_p0_t1" pos="0.7407 0.9789 0.0145" size="0.01" rgba="1 0 1 0.25"/>
+    <geom name="g_v0_stub_1" type="capsule" fromto="0.750 0.956 0.039 0.742 0.976 0.018" size="0.004" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
     <site name="cut_p0_t2" pos="1.3255 1.4123 0.2512" size="0.01" rgba="1 0 1 0.25"/>
+    <geom name="g_v0_stub_2" type="capsule" fromto="1.307 1.440 0.241 1.323 1.416 0.250" size="0.004" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
     <site name="cut_p0_t3" pos="1.6244 1.6551 0.3644" size="0.01" rgba="1 0 1 0.25"/>
+    <geom name="g_v0_stub_3" type="capsule" fromto="1.605 1.683 0.356 1.622 1.659 0.363" size="0.004" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
   </body>
   <body name="plant_1" pos="-0.9 0.8 0" quat="0.70710678 0.70710678 0 0">
       <geom name="g_v1_vine" type="mesh" mesh="m_v1_vine" material="mat_vine" contype="0" conaffinity="0"/>
@@ -495,9 +499,13 @@
       <geom name="g_v1_stem" type="cylinder" pos="0.855 1.421 -0.012" quat="0.70734 0.50480 -0.49482 0.00000" size="0.02 1.046" rgba="0.36 0.25 0.12 1" contype="4" conaffinity="1"/>
       <geom name="g_v1_line" type="cylinder" pos="1.588 2.284 -0.013" size="0.002 0.116" quat="0.70711 -0.70711 0.00000 0.00000" rgba="0.25 0.25 0.25 1" contype="0" conaffinity="0"/>
     <site name="cut_p1_t0" pos="0.2039 0.6880 -0.0153" size="0.01" rgba="1 0 1 0.25"/>
+    <geom name="g_v1_stub_0" type="capsule" fromto="0.159 0.732 -0.010 0.180 0.711 -0.013" size="0.004" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
     <site name="cut_p1_t1" pos="0.4875 1.0489 0.0083" size="0.01" rgba="1 0 1 0.25"/>
+    <geom name="g_v1_stub_1" type="capsule" fromto="0.490 1.046 -0.026 0.488 1.049 0.003" size="0.004" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
     <site name="cut_p1_t2" pos="0.9847 1.5511 0.0080" size="0.01" rgba="1 0 1 0.25"/>
+    <geom name="g_v1_stub_2" type="capsule" fromto="0.983 1.552 -0.027 0.984 1.551 0.003" size="0.004" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
     <site name="cut_p1_t3" pos="1.4793 2.0291 -0.0096" size="0.01" rgba="1 0 1 0.25"/>
+    <geom name="g_v1_stub_3" type="capsule" fromto="1.455 2.053 -0.015 1.476 2.033 -0.010" size="0.004" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
   </body>
   <body name="plant_2" pos="0.0 0.8 0" quat="0.70710678 0.70710678 0 0">
       <geom name="g_v2_vine" type="mesh" mesh="m_v2_vine" material="mat_vine" contype="0" conaffinity="0"/>
@@ -506,9 +514,13 @@
       <geom name="g_v2_stem" type="cylinder" pos="1.077 1.366 0.031" quat="0.65703 0.48837 -0.57429 0.00000" size="0.02 0.983" rgba="0.36 0.25 0.12 1" contype="4" conaffinity="1"/>
       <geom name="g_v2_line" type="cylinder" pos="1.819 2.198 0.165" size="0.002 0.202" quat="0.70711 -0.70711 0.00000 0.00000" rgba="0.25 0.25 0.25 1" contype="0" conaffinity="0"/>
     <site name="cut_p2_t0" pos="0.4081 0.7459 -0.0717" size="0.01" rgba="1 0 1 0.25"/>
+    <geom name="g_v2_stub_0" type="capsule" fromto="0.378 0.788 -0.101 0.393 0.767 -0.087" size="0.004" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
     <site name="cut_p2_t1" pos="0.6555 1.0276 -0.0303" size="0.01" rgba="1 0 1 0.25"/>
+    <geom name="g_v2_stub_1" type="capsule" fromto="0.675 1.009 -0.053 0.658 1.025 -0.033" size="0.004" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
     <site name="cut_p2_t2" pos="1.2998 1.5357 0.0564" size="0.01" rgba="1 0 1 0.25"/>
+    <geom name="g_v2_stub_2" type="capsule" fromto="1.280 1.554 0.079 1.297 1.538 0.060" size="0.004" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
     <site name="cut_p2_t3" pos="1.7195 1.8579 0.1500" size="0.01" rgba="1 0 1 0.25"/>
+    <geom name="g_v2_stub_3" type="capsule" fromto="1.684 1.902 0.140 1.703 1.879 0.145" size="0.004" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
   </body>
   <body name="plant_3" pos="0.9 0.8 0" quat="0.70710678 0.70710678 0 0">
       <geom name="g_v3_vine" type="mesh" mesh="m_v3_vine" material="mat_vine" contype="0" conaffinity="0"/>
@@ -517,9 +529,13 @@
       <geom name="g_v3_stem" type="cylinder" pos="0.954 1.315 -0.020" quat="0.70886 0.45757 -0.53679 0.00000" size="0.02 0.972" rgba="0.36 0.25 0.12 1" contype="4" conaffinity="1"/>
       <geom name="g_v3_line" type="cylinder" pos="1.694 2.173 -0.025" size="0.002 0.227" quat="0.70711 -0.70711 0.00000 0.00000" rgba="0.25 0.25 0.25 1" contype="0" conaffinity="0"/>
     <site name="cut_p3_t0" pos="0.3095 0.6775 -0.0099" size="0.01" rgba="1 0 1 0.25"/>
+    <geom name="g_v3_stub_0" type="capsule" fromto="0.256 0.740 -0.017 0.276 0.717 -0.014" size="0.004" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
     <site name="cut_p3_t1" pos="0.6916 1.1170 -0.0220" size="0.01" rgba="1 0 1 0.25"/>
+    <geom name="g_v3_stub_1" type="capsule" fromto="0.714 1.091 -0.015 0.695 1.113 -0.021" size="0.004" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
     <site name="cut_p3_t2" pos="1.3565 1.6342 -0.0309" size="0.01" rgba="1 0 1 0.25"/>
+    <geom name="g_v3_stub_2" type="capsule" fromto="1.336 1.658 -0.016 1.354 1.638 -0.029" size="0.004" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
     <site name="cut_p3_t3" pos="1.5640 1.8275 -0.0047" size="0.01" rgba="1 0 1 0.25"/>
+    <geom name="g_v3_stub_3" type="capsule" fromto="1.557 1.835 -0.038 1.563 1.829 -0.009" size="0.004" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
   </body>
   <body name="plant_4" pos="1.8 0.8 0" quat="0.70710678 0.70710678 0 0">
       <geom name="g_v4_vine" type="mesh" mesh="m_v4_vine" material="mat_vine" contype="0" conaffinity="0"/>
@@ -528,9 +544,13 @@
       <geom name="g_v4_stem" type="cylinder" pos="1.122 1.372 -0.128" quat="0.76870 0.48956 -0.41163 0.00000" size="0.02 1.086" rgba="0.36 0.25 0.12 1" contype="4" conaffinity="1"/>
       <geom name="g_v4_line" type="cylinder" pos="1.810 2.295 -0.326" size="0.002 0.105" quat="0.70711 -0.70711 0.00000 0.00000" rgba="0.25 0.25 0.25 1" contype="0" conaffinity="0"/>
     <site name="cut_p4_t0" pos="0.4912 0.5965 0.0444" size="0.01" rgba="1 0 1 0.25"/>
+    <geom name="g_v4_stub_0" type="capsule" fromto="0.472 0.617 0.065 0.488 0.599 0.047" size="0.004" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
     <site name="cut_p4_t1" pos="0.9033 1.1015 -0.0444" size="0.01" rgba="1 0 1 0.25"/>
+    <geom name="g_v4_stub_1" type="capsule" fromto="0.891 1.104 -0.077 0.902 1.102 -0.049" size="0.004" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
     <site name="cut_p4_t2" pos="1.2212 1.4892 -0.1360" size="0.01" rgba="1 0 1 0.25"/>
+    <geom name="g_v4_stub_2" type="capsule" fromto="1.217 1.484 -0.170 1.221 1.489 -0.141" size="0.004" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
     <site name="cut_p4_t3" pos="1.4361 1.7150 -0.2191" size="0.01" rgba="1 0 1 0.25"/>
+    <geom name="g_v4_stub_3" type="capsule" fromto="1.411 1.738 -0.210 1.433 1.718 -0.218" size="0.004" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
   </body>
   <body name="plant_5" pos="-1.8 -0.8 0" quat="0.70710678 0.70710678 0 0">
       <geom name="g_v5_vine" type="mesh" mesh="m_v5_vine" material="mat_vine" contype="0" conaffinity="0"/>
@@ -538,9 +558,13 @@
       <geom name="g_v5_blossom" type="mesh" mesh="m_v5_blossom" material="mat_blossom" contype="0" conaffinity="0"/>
       <geom name="g_v5_stem" type="cylinder" pos="0.918 1.531 0.063" quat="0.66851 0.64661 -0.36741 0.00000" size="0.02 1.041" rgba="0.36 0.25 0.12 1" contype="4" conaffinity="1"/>
     <site name="cut_p5_t0" pos="0.4606 0.6953 -0.0261" size="0.01" rgba="1 0 1 0.25"/>
+    <geom name="g_v5_stub_0" type="capsule" fromto="0.438 0.711 -0.048 0.457 0.697 -0.029" size="0.004" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
     <site name="cut_p5_t1" pos="0.6447 1.0578 -0.0151" size="0.01" rgba="1 0 1 0.25"/>
+    <geom name="g_v5_stub_1" type="capsule" fromto="0.648 1.052 0.019 0.645 1.057 -0.010" size="0.004" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
     <site name="cut_p5_t2" pos="0.8620 1.4474 0.0712" size="0.01" rgba="1 0 1 0.25"/>
+    <geom name="g_v5_stub_2" type="capsule" fromto="0.874 1.444 0.039 0.864 1.447 0.067" size="0.004" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
     <site name="cut_p5_t3" pos="1.0771 1.7733 0.1000" size="0.01" rgba="1 0 1 0.25"/>
+    <geom name="g_v5_stub_3" type="capsule" fromto="1.049 1.791 0.090 1.073 1.776 0.098" size="0.004" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
   </body>
   <body name="plant_6" pos="-0.9 -0.8 0" quat="0.70710678 0.70710678 0 0">
       <geom name="g_v6_vine" type="mesh" mesh="m_v6_vine" material="mat_vine" contype="0" conaffinity="0"/>
@@ -549,9 +573,13 @@
       <geom name="g_v6_stem" type="cylinder" pos="0.961 1.186 0.019" quat="0.67892 0.44360 -0.58505 0.00000" size="0.02 0.884" rgba="0.36 0.25 0.12 1" contype="4" conaffinity="1"/>
       <geom name="g_v6_line" type="cylinder" pos="1.663 2.059 0.088" size="0.002 0.341" quat="0.70711 -0.70711 0.00000 0.00000" rgba="0.25 0.25 0.25 1" contype="0" conaffinity="0"/>
     <site name="cut_p6_t0" pos="0.3508 0.6178 -0.0332" size="0.01" rgba="1 0 1 0.25"/>
+    <geom name="g_v6_stub_0" type="capsule" fromto="0.292 0.698 -0.048 0.309 0.674 -0.044" size="0.004" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
     <site name="cut_p6_t1" pos="0.6692 0.9815 -0.0239" size="0.01" rgba="1 0 1 0.25"/>
+    <geom name="g_v6_stub_1" type="capsule" fromto="0.681 0.962 0.002 0.671 0.979 -0.020" size="0.004" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
     <site name="cut_p6_t2" pos="1.4357 1.4888 0.0635" size="0.01" rgba="1 0 1 0.25"/>
+    <geom name="g_v6_stub_2" type="capsule" fromto="1.399 1.537 0.063 1.417 1.513 0.063" size="0.004" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
     <site name="cut_p6_t3" pos="1.1752 1.5409 0.0372" size="0.01" rgba="1 0 1 0.25"/>
+    <geom name="g_v6_stub_3" type="capsule" fromto="1.276 1.406 0.050 1.258 1.430 0.048" size="0.004" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
   </body>
   <body name="plant_7" pos="0.0 -0.8 0" quat="0.70710678 0.70710678 0 0">
       <geom name="g_v7_vine" type="mesh" mesh="m_v7_vine" material="mat_vine" contype="0" conaffinity="0"/>
@@ -559,9 +587,13 @@
       <geom name="g_v7_blossom" type="mesh" mesh="m_v7_blossom" material="mat_blossom" contype="0" conaffinity="0"/>
       <geom name="g_v7_stem" type="cylinder" pos="0.775 1.476 -0.163" quat="0.77796 0.54333 -0.31556 0.00000" size="0.02 1.062" rgba="0.36 0.25 0.12 1" contype="4" conaffinity="1"/>
     <site name="cut_p7_t0" pos="0.3012 0.6348 0.0290" size="0.01" rgba="1 0 1 0.25"/>
+    <geom name="g_v7_stub_0" type="capsule" fromto="0.285 0.651 0.056 0.299 0.637 0.033" size="0.004" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
     <site name="cut_p7_t1" pos="0.4803 0.9891 -0.0229" size="0.01" rgba="1 0 1 0.25"/>
+    <geom name="g_v7_stub_1" type="capsule" fromto="0.493 0.974 -0.052 0.482 0.987 -0.027" size="0.004" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
     <site name="cut_p7_t2" pos="0.8028 1.4942 -0.1551" size="0.01" rgba="1 0 1 0.25"/>
+    <geom name="g_v7_stub_2" type="capsule" fromto="0.778 1.503 -0.179 0.799 1.495 -0.158" size="0.004" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
     <site name="cut_p7_t3" pos="1.0016 1.8591 -0.2384" size="0.01" rgba="1 0 1 0.25"/>
+    <geom name="g_v7_stub_3" type="capsule" fromto="0.993 1.856 -0.272 1.000 1.859 -0.243" size="0.004" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
   </body>
   <body name="plant_8" pos="0.9 -0.8 0" quat="0.70710678 0.70710678 0 0">
       <geom name="g_v8_vine" type="mesh" mesh="m_v8_vine" material="mat_vine" contype="0" conaffinity="0"/>
@@ -570,9 +602,13 @@
       <geom name="g_v8_stem" type="cylinder" pos="1.022 1.383 0.147" quat="0.61217 0.60695 -0.50681 0.00000" size="0.02 0.971" rgba="0.36 0.25 0.12 1" contype="4" conaffinity="1"/>
       <geom name="g_v8_line" type="cylinder" pos="1.624 2.252 0.390" size="0.002 0.148" quat="0.70711 -0.70711 0.00000 0.00000" rgba="0.25 0.25 0.25 1" contype="0" conaffinity="0"/>
     <site name="cut_p8_t0" pos="0.4701 0.7009 -0.0652" size="0.01" rgba="1 0 1 0.25"/>
+    <geom name="g_v8_stub_0" type="capsule" fromto="0.456 0.721 -0.090 0.468 0.704 -0.069" size="0.004" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
     <site name="cut_p8_t1" pos="0.6829 0.9850 -0.0086" size="0.01" rgba="1 0 1 0.25"/>
+    <geom name="g_v8_stub_1" type="capsule" fromto="0.684 0.973 0.024 0.683 0.983 -0.004" size="0.004" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
     <site name="cut_p8_t2" pos="1.0445 1.3811 0.1425" size="0.01" rgba="1 0 1 0.25"/>
+    <geom name="g_v8_stub_2" type="capsule" fromto="1.017 1.400 0.155 1.041 1.384 0.144" size="0.004" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
     <site name="cut_p8_t3" pos="1.3608 1.7724 0.2977" size="0.01" rgba="1 0 1 0.25"/>
+    <geom name="g_v8_stub_3" type="capsule" fromto="1.351 1.790 0.269 1.359 1.775 0.294" size="0.004" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
   </body>
   <body name="plant_9" pos="1.8 -0.8 0" quat="0.70710678 0.70710678 0 0">
       <geom name="g_v9_vine" type="mesh" mesh="m_v9_vine" material="mat_vine" contype="0" conaffinity="0"/>
@@ -580,9 +616,13 @@
       <geom name="g_v9_blossom" type="mesh" mesh="m_v9_blossom" material="mat_blossom" contype="0" conaffinity="0"/>
       <geom name="g_v9_stem" type="cylinder" pos="0.841 1.520 0.075" quat="0.66263 0.66654 -0.34153 0.00000" size="0.02 1.109" rgba="0.36 0.25 0.12 1" contype="4" conaffinity="1"/>
     <site name="cut_p9_t0" pos="0.3892 0.6096 -0.0344" size="0.01" rgba="1 0 1 0.25"/>
+    <geom name="g_v9_stub_0" type="capsule" fromto="0.371 0.623 -0.061 0.387 0.611 -0.038" size="0.004" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
     <site name="cut_p9_t1" pos="0.5965 1.0399 -0.0116" size="0.01" rgba="1 0 1 0.25"/>
+    <geom name="g_v9_stub_1" type="capsule" fromto="0.593 1.037 0.023 0.596 1.039 -0.007" size="0.004" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
     <site name="cut_p9_t2" pos="0.8140 1.5039 0.0819" size="0.01" rgba="1 0 1 0.25"/>
+    <geom name="g_v9_stub_2" type="capsule" fromto="0.842 1.492 0.064 0.818 1.502 0.079" size="0.004" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
     <site name="cut_p9_t3" pos="1.0502 1.8908 0.1380" size="0.01" rgba="1 0 1 0.25"/>
+    <geom name="g_v9_stub_3" type="capsule" fromto="1.025 1.906 0.119 1.047 1.893 0.135" size="0.004" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
   </body>
   <body name="truss_0_0" pos="-1.3108 0.8218 0.5816" quat="0.70710678 0.70710678 0 0">
     <freejoint name="j_truss_0_0"/>
@@ -600,7 +640,7 @@
       <geom name="g_tr0_s9" type="sphere" pos="0.007 -0.059 0.021" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
       <geom name="g_tr0_s10" type="sphere" pos="0.016 -0.098 0.009" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
       <geom name="g_tr0_s11" type="sphere" pos="-0.020 -0.023 0.002" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
-    <geom name="g_tr0_ped" type="capsule" fromto="-0.009 0.015 -0.009 0 0 0" size="0.006" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
+    <geom name="g_tr0_ped" type="capsule" fromto="-0.069 0.119 -0.074 -0.059 0.102 -0.063" size="0.004" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
   </body>
   <body name="truss_0_1" pos="-1.0730 0.8199 1.0120" quat="0.70710678 0.70710678 0 0">
     <freejoint name="j_truss_0_1"/>
@@ -618,7 +658,7 @@
       <geom name="g_tr1_s9" type="sphere" pos="-0.021 0.108 0.002" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
       <geom name="g_tr1_s10" type="sphere" pos="-0.025 0.064 -0.002" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
       <geom name="g_tr1_s11" type="sphere" pos="0.001 0.102 -0.024" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
-    <geom name="g_tr1_ped" type="capsule" fromto="0.006 -0.013 0.014 0 0 0" size="0.006" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
+    <geom name="g_tr1_ped" type="capsule" fromto="0.019 -0.046 0.048 0.014 -0.033 0.034" size="0.004" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
   </body>
   <body name="truss_0_2" pos="-0.4434 0.5317 1.3660" quat="0.70710678 0.70710678 0 0">
     <freejoint name="j_truss_0_2"/>
@@ -636,7 +676,7 @@
       <geom name="g_tr2_s9" type="sphere" pos="0.003 0.108 0.021" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
       <geom name="g_tr2_s10" type="sphere" pos="-0.000 0.064 0.025" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
       <geom name="g_tr2_s11" type="sphere" pos="-0.024 0.102 0.000" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
-    <geom name="g_tr2_ped" type="capsule" fromto="-0.011 0.016 -0.006 0 0 0" size="0.006" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
+    <geom name="g_tr2_ped" type="capsule" fromto="-0.042 0.062 -0.023 -0.031 0.046 -0.017" size="0.004" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
   </body>
   <body name="truss_0_3" pos="-0.1075 0.4043 1.5568" quat="0.70710678 0.70710678 0 0">
     <freejoint name="j_truss_0_3"/>
@@ -654,7 +694,7 @@
       <geom name="g_tr3_s9" type="sphere" pos="0.015 0.108 -0.015" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
       <geom name="g_tr3_s10" type="sphere" pos="0.021 0.064 -0.015" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
       <geom name="g_tr3_s11" type="sphere" pos="0.014 0.102 0.019" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
-    <geom name="g_tr3_ped" type="capsule" fromto="-0.011 0.016 -0.005 0 0 0" size="0.006" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
+    <geom name="g_tr3_ped" type="capsule" fromto="-0.079 0.114 -0.036 -0.068 0.098 -0.031" size="0.004" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
   </body>
   <body name="truss_1_0" pos="-0.5883 0.8283 0.5824" quat="0.70710678 0.70710678 0 0">
     <freejoint name="j_truss_1_0"/>
@@ -672,7 +712,7 @@
       <geom name="g_tr4_s9" type="sphere" pos="0.026 -0.069 0.005" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
       <geom name="g_tr4_s10" type="sphere" pos="0.018 -0.114 -0.011" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
       <geom name="g_tr4_s11" type="sphere" pos="-0.009 -0.027 0.022" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
-    <geom name="g_tr4_ped" type="capsule" fromto="-0.014 0.014 0.002 0 0 0" size="0.006" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
+    <geom name="g_tr4_ped" type="capsule" fromto="-0.142 0.139 0.017 -0.108 0.106 0.013" size="0.004" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
   </body>
   <body name="truss_1_1" pos="-0.4121 0.7968 1.0485" quat="0.70710678 0.70710678 0 0">
     <freejoint name="j_truss_1_1"/>
@@ -690,7 +730,7 @@
       <geom name="g_tr5_s9" type="sphere" pos="-0.013 0.125 0.021" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
       <geom name="g_tr5_s10" type="sphere" pos="-0.019 0.074 0.022" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
       <geom name="g_tr5_s11" type="sphere" pos="-0.021 0.119 -0.018" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
-    <geom name="g_tr5_ped" type="capsule" fromto="0.002 -0.002 -0.020 0 0 0" size="0.006" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
+    <geom name="g_tr5_ped" type="capsule" fromto="0.001 -0.001 -0.015 -0.000 0.000 0.005" size="0.004" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
   </body>
   <body name="truss_1_2" pos="0.0865 0.7506 1.5494" quat="0.70710678 0.70710678 0 0">
     <freejoint name="j_truss_1_2"/>
@@ -708,7 +748,7 @@
       <geom name="g_tr6_s9" type="sphere" pos="0.013 0.125 0.021" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
       <geom name="g_tr6_s10" type="sphere" pos="0.011 0.074 0.027" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
       <geom name="g_tr6_s11" type="sphere" pos="-0.026 0.119 0.011" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
-    <geom name="g_tr6_ped" type="capsule" fromto="-0.001 0.001 -0.020 0 0 0" size="0.006" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
+    <geom name="g_tr6_ped" type="capsule" fromto="-0.003 0.003 -0.061 -0.002 0.002 -0.041" size="0.004" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
   </body>
   <body name="truss_1_3" pos="0.6525 0.7947 1.9575" quat="0.70710678 0.70710678 0 0">
     <freejoint name="j_truss_1_3"/>
@@ -726,7 +766,7 @@
       <geom name="g_tr7_s9" type="sphere" pos="0.024 0.125 -0.005" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
       <geom name="g_tr7_s10" type="sphere" pos="0.029 0.074 -0.001" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
       <geom name="g_tr7_s11" type="sphere" pos="0.002 0.119 0.028" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
-    <geom name="g_tr7_ped" type="capsule" fromto="-0.014 0.014 -0.003 0 0 0" size="0.006" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
+    <geom name="g_tr7_ped" type="capsule" fromto="-0.087 0.086 -0.018 -0.073 0.072 -0.015" size="0.004" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
   </body>
   <body name="truss_2_0" pos="0.4831 0.7986 0.6421" quat="0.70710678 0.70710678 0 0">
     <freejoint name="j_truss_2_0"/>
@@ -744,7 +784,7 @@
       <geom name="g_tr8_s9" type="sphere" pos="-0.015 -0.067 0.020" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
       <geom name="g_tr8_s10" type="sphere" pos="0.001 -0.111 0.020" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
       <geom name="g_tr8_s11" type="sphere" pos="-0.015 -0.026 -0.018" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
-    <geom name="g_tr8_ped" type="capsule" fromto="-0.010 0.014 -0.010 0 0 0" size="0.006" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
+    <geom name="g_tr8_ped" type="capsule" fromto="-0.098 0.135 -0.095 -0.075 0.104 -0.073" size="0.004" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
   </body>
   <body name="truss_2_1" pos="0.6541 0.8288 1.0288" quat="0.70710678 0.70710678 0 0">
     <freejoint name="j_truss_2_1"/>
@@ -762,7 +802,7 @@
       <geom name="g_tr9_s9" type="sphere" pos="-0.023 0.121 -0.008" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
       <geom name="g_tr9_s10" type="sphere" pos="-0.025 0.072 -0.014" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
       <geom name="g_tr9_s11" type="sphere" pos="0.013 0.115 -0.024" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
-    <geom name="g_tr9_ped" type="capsule" fromto="0.011 -0.011 -0.013 0 0 0" size="0.006" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
+    <geom name="g_tr9_ped" type="capsule" fromto="0.013 -0.012 -0.014 0.001 -0.001 -0.002" size="0.004" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
   </body>
   <body name="truss_2_2" pos="1.3221 0.7700 1.5150" quat="0.70710678 0.70710678 0 0">
     <freejoint name="j_truss_2_2"/>
@@ -780,7 +820,7 @@
       <geom name="g_tr10_s9" type="sphere" pos="-0.011 0.121 0.021" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
       <geom name="g_tr10_s10" type="sphere" pos="-0.018 0.072 0.022" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
       <geom name="g_tr10_s11" type="sphere" pos="-0.021 0.115 -0.016" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
-    <geom name="g_tr10_ped" type="capsule" fromto="-0.011 0.010 0.013 0 0 0" size="0.006" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
+    <geom name="g_tr10_ped" type="capsule" fromto="-0.033 0.031 0.040 -0.022 0.021 0.026" size="0.004" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
   </body>
   <body name="truss_2_3" pos="1.8109 0.6248 1.7450" quat="0.70710678 0.70710678 0 0">
     <freejoint name="j_truss_2_3"/>
@@ -798,7 +838,7 @@
       <geom name="g_tr11_s9" type="sphere" pos="0.017 0.121 0.017" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
       <geom name="g_tr11_s10" type="sphere" pos="0.016 0.072 0.024" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
       <geom name="g_tr11_s11" type="sphere" pos="-0.022 0.115 0.015" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
-    <geom name="g_tr11_ped" type="capsule" fromto="-0.012 0.015 -0.003 0 0 0" size="0.006" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
+    <geom name="g_tr11_ped" type="capsule" fromto="-0.118 0.145 -0.032 -0.091 0.113 -0.025" size="0.004" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
   </body>
   <body name="truss_3_0" pos="1.3040 0.7979 0.5668" quat="0.70710678 0.70710678 0 0">
     <freejoint name="j_truss_3_0"/>
@@ -816,7 +856,7 @@
       <geom name="g_tr12_s9" type="sphere" pos="-0.016 -0.066 0.019" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
       <geom name="g_tr12_s10" type="sphere" pos="0.001 -0.109 0.020" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
       <geom name="g_tr12_s11" type="sphere" pos="-0.014 -0.026 -0.018" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
-    <geom name="g_tr12_ped" type="capsule" fromto="-0.013 0.015 -0.002 0 0 0" size="0.006" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
+    <geom name="g_tr12_ped" type="capsule" fromto="-0.138 0.162 -0.018 -0.094 0.111 -0.012" size="0.004" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
   </body>
   <body name="truss_3_1" pos="1.5660 0.8295 1.1470" quat="0.70710678 0.70710678 0 0">
     <freejoint name="j_truss_3_1"/>
@@ -834,7 +874,7 @@
       <geom name="g_tr13_s9" type="sphere" pos="-0.017 0.120 -0.017" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
       <geom name="g_tr13_s10" type="sphere" pos="-0.016 0.071 -0.023" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
       <geom name="g_tr13_s11" type="sphere" pos="0.021 0.114 -0.016" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
-    <geom name="g_tr13_ped" type="capsule" fromto="0.013 -0.015 0.004 0 0 0" size="0.006" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
+    <geom name="g_tr13_ped" type="capsule" fromto="0.038 -0.045 0.011 0.026 -0.030 0.007" size="0.004" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
   </body>
   <body name="truss_3_2" pos="2.3197 0.8766 1.5598" quat="0.70710678 0.70710678 0 0">
     <freejoint name="j_truss_3_2"/>
@@ -852,7 +892,7 @@
       <geom name="g_tr14_s9" type="sphere" pos="-0.021 0.120 0.012" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
       <geom name="g_tr14_s10" type="sphere" pos="-0.026 0.071 0.010" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
       <geom name="g_tr14_s11" type="sphere" pos="-0.010 0.114 -0.025" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
-    <geom name="g_tr14_ped" type="capsule" fromto="-0.012 0.014 0.008 0 0 0" size="0.006" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
+    <geom name="g_tr14_ped" type="capsule" fromto="-0.075 0.088 0.054 -0.063 0.074 0.046" size="0.004" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
   </body>
   <body name="truss_3_3" pos="2.4781 0.7312 1.8115" quat="0.70710678 0.70710678 0 0">
     <freejoint name="j_truss_3_3"/>
@@ -870,7 +910,7 @@
       <geom name="g_tr15_s9" type="sphere" pos="0.011 0.120 0.021" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
       <geom name="g_tr15_s10" type="sphere" pos="0.008 0.071 0.027" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
       <geom name="g_tr15_s11" type="sphere" pos="-0.025 0.114 0.008" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
-    <geom name="g_tr15_ped" type="capsule" fromto="-0.004 0.004 -0.019 0 0 0" size="0.006" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
+    <geom name="g_tr15_ped" type="capsule" fromto="-0.018 0.020 -0.093 -0.014 0.016 -0.073" size="0.004" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
   </body>
   <body name="truss_4_0" pos="2.3481 0.8191 0.5333" quat="0.70710678 0.70710678 0 0">
     <freejoint name="j_truss_4_0"/>
@@ -888,7 +928,7 @@
       <geom name="g_tr16_s9" type="sphere" pos="0.002 -0.065 0.024" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
       <geom name="g_tr16_s10" type="sphere" pos="0.014 -0.107 0.013" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
       <geom name="g_tr16_s11" type="sphere" pos="-0.022 -0.025 -0.003" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
-    <geom name="g_tr16_ped" type="capsule" fromto="-0.011 0.012 0.012 0 0 0" size="0.006" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
+    <geom name="g_tr16_ped" type="capsule" fromto="-0.068 0.075 0.076 -0.057 0.063 0.064" size="0.004" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
   </body>
   <body name="truss_4_1" pos="2.7147 0.8142 1.0992" quat="0.70710678 0.70710678 0 0">
     <freejoint name="j_truss_4_1"/>
@@ -906,7 +946,7 @@
       <geom name="g_tr17_s9" type="sphere" pos="-0.021 0.117 0.010" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
       <geom name="g_tr17_s10" type="sphere" pos="-0.027 0.069 0.007" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
       <geom name="g_tr17_s11" type="sphere" pos="-0.007 0.112 -0.025" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
-    <geom name="g_tr17_ped" type="capsule" fromto="-0.007 0.001 -0.019 0 0 0" size="0.006" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
+    <geom name="g_tr17_ped" type="capsule" fromto="-0.018 0.004 -0.049 -0.011 0.002 -0.030" size="0.004" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
   </body>
   <body name="truss_4_2" pos="3.0251 0.9037 1.4937" quat="0.70710678 0.70710678 0 0">
     <freejoint name="j_truss_4_2"/>
@@ -924,7 +964,7 @@
       <geom name="g_tr18_s9" type="sphere" pos="0.010 0.117 0.021" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
       <geom name="g_tr18_s10" type="sphere" pos="0.007 0.069 0.027" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
       <geom name="g_tr18_s11" type="sphere" pos="-0.025 0.112 0.007" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
-    <geom name="g_tr18_ped" type="capsule" fromto="-0.002 -0.003 -0.020 0 0 0" size="0.006" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
+    <geom name="g_tr18_ped" type="capsule" fromto="-0.006 -0.007 -0.052 -0.004 -0.004 -0.032" size="0.004" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
   </body>
   <body name="truss_4_3" pos="3.2813 1.0351 1.6732" quat="0.70710678 0.70710678 0 0">
     <freejoint name="j_truss_4_3"/>
@@ -942,7 +982,7 @@
       <geom name="g_tr19_s9" type="sphere" pos="0.021 0.117 -0.010" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
       <geom name="g_tr19_s10" type="sphere" pos="0.027 0.069 -0.008" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
       <geom name="g_tr19_s11" type="sphere" pos="0.008 0.112 0.025" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
-    <geom name="g_tr19_ped" type="capsule" fromto="-0.014 0.013 0.005 0 0 0" size="0.006" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
+    <geom name="g_tr19_ped" type="capsule" fromto="-0.059 0.055 0.021 -0.045 0.042 0.016" size="0.004" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
   </body>
   <body name="truss_5_0" pos="-1.3174 -0.7949 0.6802" quat="0.70710678 0.70710678 0 0">
     <freejoint name="j_truss_5_0"/>
@@ -960,7 +1000,7 @@
       <geom name="g_tr20_s9" type="sphere" pos="-0.010 -0.065 0.022" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
       <geom name="g_tr20_s10" type="sphere" pos="0.006 -0.108 0.019" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
       <geom name="g_tr20_s11" type="sphere" pos="-0.018 -0.025 -0.014" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
-    <geom name="g_tr20_ped" type="capsule" fromto="-0.013 0.009 -0.012 0 0 0" size="0.006" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
+    <geom name="g_tr20_ped" type="capsule" fromto="-0.035 0.024 -0.033 -0.022 0.015 -0.021" size="0.004" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
   </body>
   <body name="truss_5_1" pos="-1.1566 -0.7720 1.0601" quat="0.70710678 0.70710678 0 0">
     <freejoint name="j_truss_5_1"/>
@@ -978,7 +1018,7 @@
       <geom name="g_tr21_s9" type="sphere" pos="-0.022 0.118 -0.008" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
       <geom name="g_tr21_s10" type="sphere" pos="-0.024 0.070 -0.013" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
       <geom name="g_tr21_s11" type="sphere" pos="0.012 0.112 -0.023" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
-    <geom name="g_tr21_ped" type="capsule" fromto="0.002 -0.004 0.020 0 0 0" size="0.006" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
+    <geom name="g_tr21_ped" type="capsule" fromto="0.003 -0.006 0.033 0.001 -0.002 0.013" size="0.004" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
   </body>
   <body name="truss_5_2" pos="-0.9367 -0.8679 1.4471" quat="0.70710678 0.70710678 0 0">
     <freejoint name="j_truss_5_2"/>
@@ -996,7 +1036,7 @@
       <geom name="g_tr22_s9" type="sphere" pos="-0.011 0.118 0.021" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
       <geom name="g_tr22_s10" type="sphere" pos="-0.018 0.070 0.022" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
       <geom name="g_tr22_s11" type="sphere" pos="-0.021 0.112 -0.016" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
-    <geom name="g_tr22_ped" type="capsule" fromto="0.007 -0.002 -0.019 0 0 0" size="0.006" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
+    <geom name="g_tr22_ped" type="capsule" fromto="0.006 -0.001 -0.015 -0.001 0.000 0.003" size="0.004" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
   </body>
   <body name="truss_5_3" pos="-0.6597 -0.9230 1.7346" quat="0.70710678 0.70710678 0 0">
     <freejoint name="j_truss_5_3"/>
@@ -1014,7 +1054,7 @@
       <geom name="g_tr23_s9" type="sphere" pos="0.020 0.118 0.012" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
       <geom name="g_tr23_s10" type="sphere" pos="0.021 0.070 0.018" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
       <geom name="g_tr23_s11" type="sphere" pos="-0.017 0.112 0.020" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
-    <geom name="g_tr23_ped" type="capsule" fromto="-0.016 0.010 -0.006 0 0 0" size="0.006" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
+    <geom name="g_tr23_ped" type="capsule" fromto="-0.079 0.049 -0.029 -0.063 0.039 -0.023" size="0.004" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
   </body>
   <body name="truss_6_0" pos="-0.4689 -0.7870 0.5093" quat="0.70710678 0.70710678 0 0">
     <freejoint name="j_truss_6_0"/>
@@ -1032,7 +1072,7 @@
       <geom name="g_tr24_s9" type="sphere" pos="-0.003 -0.061 0.023" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
       <geom name="g_tr24_s10" type="sphere" pos="0.010 -0.101 0.015" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
       <geom name="g_tr24_s11" type="sphere" pos="-0.020 -0.024 -0.007" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
-    <geom name="g_tr24_ped" type="capsule" fromto="-0.012 0.016 -0.003 0 0 0" size="0.006" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
+    <geom name="g_tr24_ped" type="capsule" fromto="-0.130 0.176 -0.033 -0.080 0.109 -0.020" size="0.004" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
   </body>
   <body name="truss_6_1" pos="-0.2298 -0.7783 0.9799" quat="0.70710678 0.70710678 0 0">
     <freejoint name="j_truss_6_1"/>
@@ -1050,7 +1090,7 @@
       <geom name="g_tr25_s9" type="sphere" pos="-0.022 0.110 0.001" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
       <geom name="g_tr25_s10" type="sphere" pos="-0.026 0.065 -0.004" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
       <geom name="g_tr25_s11" type="sphere" pos="0.003 0.105 -0.024" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
-    <geom name="g_tr25_ped" type="capsule" fromto="0.007 -0.011 0.015 0 0 0" size="0.006" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
+    <geom name="g_tr25_ped" type="capsule" fromto="0.006 -0.010 0.013 -0.001 0.002 -0.002" size="0.004" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
   </body>
   <body name="truss_6_2" pos="0.6181 -0.8646 1.3800" quat="0.70710678 0.70710678 0 0">
     <freejoint name="j_truss_6_2"/>
@@ -1068,7 +1108,7 @@
       <geom name="g_tr26_s9" type="sphere" pos="-0.002 0.110 0.022" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
       <geom name="g_tr26_s10" type="sphere" pos="-0.007 0.065 0.025" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
       <geom name="g_tr26_s11" type="sphere" pos="-0.024 0.105 -0.006" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
-    <geom name="g_tr26_ped" type="capsule" fromto="-0.012 0.016 -0.000 0 0 0" size="0.006" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
+    <geom name="g_tr26_ped" type="capsule" fromto="-0.110 0.145 -0.001 -0.082 0.109 -0.001" size="0.004" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
   </body>
   <body name="truss_6_3" pos="0.1936 -0.8264 1.6498" quat="0.70710678 0.70710678 0 0">
     <freejoint name="j_truss_6_3"/>
@@ -1086,7 +1126,7 @@
       <geom name="g_tr27_s9" type="sphere" pos="0.021 0.110 0.008" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
       <geom name="g_tr27_s10" type="sphere" pos="0.022 0.065 0.013" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
       <geom name="g_tr27_s11" type="sphere" pos="-0.012 0.105 0.021" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
-    <geom name="g_tr27_ped" type="capsule" fromto="0.012 -0.016 0.002 0 0 0" size="0.006" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
+    <geom name="g_tr27_ped" type="capsule" fromto="0.173 -0.232 0.023 0.082 -0.109 0.011" size="0.004" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
   </body>
   <body name="truss_7_0" pos="0.3359 -0.7707 0.6002" quat="0.70710678 0.70710678 0 0">
     <freejoint name="j_truss_7_0"/>
@@ -1104,7 +1144,7 @@
       <geom name="g_tr28_s9" type="sphere" pos="0.020 -0.065 0.015" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
       <geom name="g_tr28_s10" type="sphere" pos="0.020 -0.108 -0.001" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
       <geom name="g_tr28_s11" type="sphere" pos="-0.017 -0.025 0.014" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
-    <geom name="g_tr28_ped" type="capsule" fromto="-0.009 0.009 0.015 0 0 0" size="0.006" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
+    <geom name="g_tr28_ped" type="capsule" fromto="-0.044 0.044 0.074 -0.035 0.035 0.058" size="0.004" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
   </body>
   <body name="truss_7_1" pos="0.4767 -0.7853 0.9932" quat="0.70710678 0.70710678 0 0">
     <freejoint name="j_truss_7_1"/>
@@ -1122,7 +1162,7 @@
       <geom name="g_tr29_s9" type="sphere" pos="-0.022 0.118 0.009" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
       <geom name="g_tr29_s10" type="sphere" pos="-0.027 0.070 0.006" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
       <geom name="g_tr29_s11" type="sphere" pos="-0.006 0.112 -0.025" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
-    <geom name="g_tr29_ped" type="capsule" fromto="0.007 -0.008 -0.017 0 0 0" size="0.006" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
+    <geom name="g_tr29_ped" type="capsule" fromto="0.011 -0.013 -0.025 0.004 -0.004 -0.008" size="0.004" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
   </body>
   <body name="truss_7_2" pos="0.8176 -0.6590 1.4891" quat="0.70710678 0.70710678 0 0">
     <freejoint name="j_truss_7_2"/>
@@ -1140,7 +1180,7 @@
       <geom name="g_tr30_s9" type="sphere" pos="-0.003 0.118 0.023" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
       <geom name="g_tr30_s10" type="sphere" pos="-0.008 0.070 0.027" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
       <geom name="g_tr30_s11" type="sphere" pos="-0.025 0.112 -0.007" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
-    <geom name="g_tr30_ped" type="capsule" fromto="-0.014 0.005 -0.013 0 0 0" size="0.006" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
+    <geom name="g_tr30_ped" type="capsule" fromto="-0.029 0.010 -0.028 -0.015 0.005 -0.014" size="0.004" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
   </body>
   <body name="truss_7_3" pos="0.9991 -0.5519 1.8581" quat="0.70710678 0.70710678 0 0">
     <freejoint name="j_truss_7_3"/>
@@ -1158,7 +1198,7 @@
       <geom name="g_tr31_s9" type="sphere" pos="0.022 0.118 -0.008" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
       <geom name="g_tr31_s10" type="sphere" pos="0.027 0.070 -0.005" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
       <geom name="g_tr31_s11" type="sphere" pos="0.005 0.112 0.026" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
-    <geom name="g_tr31_ped" type="capsule" fromto="-0.005 -0.002 -0.019 0 0 0" size="0.006" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
+    <geom name="g_tr31_ped" type="capsule" fromto="-0.002 -0.001 -0.010 0.002 0.001 0.010" size="0.004" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
   </body>
   <body name="truss_8_0" pos="1.4062 -0.7974 0.6496" quat="0.70710678 0.70710678 0 0">
     <freejoint name="j_truss_8_0"/>
@@ -1176,7 +1216,7 @@
       <geom name="g_tr32_s9" type="sphere" pos="-0.012 -0.063 0.021" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
       <geom name="g_tr32_s10" type="sphere" pos="0.004 -0.104 0.019" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
       <geom name="g_tr32_s11" type="sphere" pos="-0.016 -0.024 -0.015" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
-    <geom name="g_tr32_ped" type="capsule" fromto="-0.008 0.012 -0.014 0 0 0" size="0.006" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
+    <geom name="g_tr32_ped" type="capsule" fromto="-0.044 0.063 -0.077 -0.036 0.051 -0.063" size="0.004" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
   </body>
   <body name="truss_8_1" pos="1.5822 -0.7725 0.9920" quat="0.70710678 0.70710678 0 0">
     <freejoint name="j_truss_8_1"/>
@@ -1194,7 +1234,7 @@
       <geom name="g_tr33_s9" type="sphere" pos="-0.014 0.114 -0.017" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
       <geom name="g_tr33_s10" type="sphere" pos="-0.013 0.067 -0.023" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
       <geom name="g_tr33_s11" type="sphere" pos="0.022 0.108 -0.013" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
-    <geom name="g_tr33_ped" type="capsule" fromto="0.001 -0.007 0.019 0 0 0" size="0.006" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
+    <geom name="g_tr33_ped" type="capsule" fromto="0.002 -0.014 0.038 0.001 -0.007 0.019" size="0.004" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
   </body>
   <body name="truss_8_2" pos="1.9710 -0.9305 1.3630" quat="0.70710678 0.70710678 0 0">
     <freejoint name="j_truss_8_2"/>
@@ -1212,7 +1252,7 @@
       <geom name="g_tr34_s9" type="sphere" pos="-0.001 0.114 0.023" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
       <geom name="g_tr34_s10" type="sphere" pos="-0.006 0.067 0.026" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
       <geom name="g_tr34_s11" type="sphere" pos="-0.025 0.108 -0.005" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
-    <geom name="g_tr34_ped" type="capsule" fromto="-0.015 0.011 0.007 0 0 0" size="0.006" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
+    <geom name="g_tr34_ped" type="capsule" fromto="-0.042 0.029 0.019 -0.026 0.018 0.012" size="0.004" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
   </body>
   <body name="truss_8_3" pos="2.2721 -1.1320 1.7515" quat="0.70710678 0.70710678 0 0">
     <freejoint name="j_truss_8_3"/>
@@ -1230,7 +1270,7 @@
       <geom name="g_tr35_s9" type="sphere" pos="0.022 0.114 0.005" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
       <geom name="g_tr35_s10" type="sphere" pos="0.025 0.067 0.011" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
       <geom name="g_tr35_s11" type="sphere" pos="-0.010 0.108 0.023" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
-    <geom name="g_tr35_ped" type="capsule" fromto="-0.005 0.010 -0.016 0 0 0" size="0.006" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
+    <geom name="g_tr35_ped" type="capsule" fromto="-0.017 0.031 -0.051 -0.011 0.021 -0.034" size="0.004" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
   </body>
   <body name="truss_9_0" pos="2.2103 -0.7970 0.5945" quat="0.70710678 0.70710678 0 0">
     <freejoint name="j_truss_9_0"/>
@@ -1248,7 +1288,7 @@
       <geom name="g_tr36_s9" type="sphere" pos="-0.012 -0.066 0.022" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
       <geom name="g_tr36_s10" type="sphere" pos="0.004 -0.110 0.020" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
       <geom name="g_tr36_s11" type="sphere" pos="-0.017 -0.026 -0.015" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
-    <geom name="g_tr36_ped" type="capsule" fromto="-0.010 0.007 -0.015 0 0 0" size="0.006" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
+    <geom name="g_tr36_ped" type="capsule" fromto="-0.031 0.023 -0.047 -0.021 0.015 -0.031" size="0.004" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
   </body>
   <body name="truss_9_1" pos="2.3983 -0.7701 1.0415" quat="0.70710678 0.70710678 0 0">
     <freejoint name="j_truss_9_1"/>
@@ -1266,7 +1306,7 @@
       <geom name="g_tr37_s9" type="sphere" pos="-0.019 0.120 -0.015" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
       <geom name="g_tr37_s10" type="sphere" pos="-0.019 0.071 -0.021" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
       <geom name="g_tr37_s11" type="sphere" pos="0.019 0.114 -0.018" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
-    <geom name="g_tr37_ped" type="capsule" fromto="-0.002 -0.002 0.020 0 0 0" size="0.006" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
+    <geom name="g_tr37_ped" type="capsule" fromto="-0.004 -0.003 0.038 -0.002 -0.002 0.018" size="0.004" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
   </body>
   <body name="truss_9_2" pos="2.6248 -0.8748 1.4993" quat="0.70710678 0.70710678 0 0">
     <freejoint name="j_truss_9_2"/>
@@ -1284,7 +1324,7 @@
       <geom name="g_tr38_s9" type="sphere" pos="-0.018 0.120 0.016" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
       <geom name="g_tr38_s10" type="sphere" pos="-0.024 0.071 0.015" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
       <geom name="g_tr38_s11" type="sphere" pos="-0.014 0.114 -0.023" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
-    <geom name="g_tr38_ped" type="capsule" fromto="0.016 -0.007 -0.010 0 0 0" size="0.006" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
+    <geom name="g_tr38_ped" type="capsule" fromto="0.005 -0.002 -0.003 -0.011 0.005 0.007" size="0.004" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
   </body>
   <body name="truss_9_3" pos="2.8973 -0.9739 1.8618" quat="0.70710678 0.70710678 0 0">
     <freejoint name="j_truss_9_3"/>
@@ -1302,7 +1342,7 @@
       <geom name="g_tr39_s9" type="sphere" pos="0.023 0.120 0.007" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
       <geom name="g_tr39_s10" type="sphere" pos="0.025 0.071 0.013" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
       <geom name="g_tr39_s11" type="sphere" pos="-0.012 0.114 0.024" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
-    <geom name="g_tr39_ped" type="capsule" fromto="-0.014 0.009 -0.011 0 0 0" size="0.006" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
+    <geom name="g_tr39_ped" type="capsule" fromto="-0.061 0.038 -0.047 -0.047 0.029 -0.036" size="0.004" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
   </body>
 <!-- ENV-WORLD-END -->
   <body name="machine" pos="0 0 0.066379" quat="0 1 0 0">
