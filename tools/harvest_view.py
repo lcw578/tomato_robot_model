@@ -27,7 +27,11 @@ def main():
     ap.add_argument('--target', default=None)
     ap.add_argument('--speed', type=float, default=1.0, help='实时回放倍率')
     ap.add_argument('--no-follow', action='store_true')
-    ap.add_argument('--mp4', default=None, help='导出 MP4 (无显示器模式)')
+    ap.add_argument('--follow', action='store_true', help='MP4 也用跟随视角 (默认固定机位)')
+    ap.add_argument('--mp4', default=None, help='导出 MP4 (无显示器模式, 默认垄道端点固定机位)')
+    ap.add_argument('--azim', type=float, default=90.0)
+    ap.add_argument('--elev', type=float, default=-14.0)
+    ap.add_argument('--dist', type=float, default=4.2)
     args = ap.parse_args()
 
     pk = Picker()
@@ -37,6 +41,8 @@ def main():
     base = pk.d.xpos[pk.m.body('arm_base_mount').id]
     if args.target:
         target = args.target
+    elif args.mp4:
+        target = '1_2'          # 固定机位默认: +y 近侧行高处串, 顺带展示升降
     else:
         ripe = sorted((t for t in pk.trusses if t['ripe']),
                       key=lambda t: np.linalg.norm(pk.cut_site_pos(t['site']) - base))
@@ -49,14 +55,14 @@ def main():
         r = mujoco.Renderer(pk.m, H, W)
         cam = mujoco.MjvCamera()
         cam.type = mujoco.mjtCamera.mjCAMERA_FREE
-        cam.distance, cam.azimuth, cam.elevation = 1.5, -60, -15
-        lookat = pk.tcp_pos().copy()
+        lookat = np.array([0.0, 0.0, 0.95])
+        cam.lookat[:] = lookat
+        cam.distance, cam.azimuth, cam.elevation = args.dist, args.azim, args.elev
 
         def tick():
-            nonlocal lookat
-            tcp = pk.tcp_pos()
-            lookat += 0.15 * (tcp - lookat)          # 平滑跟随
-            cam.lookat[:] = lookat
+            if args.follow:                          # 跟随视角 (--follow)
+                lookat += 0.15 * (pk.tcp_pos() - lookat)
+                cam.lookat[:] = lookat
             r.update_scene(pk.d, camera=cam)
             img = cv2.cvtColor(r.render(), cv2.COLOR_RGB2BGR)
             cv2.putText(img, pk.stage, (20, 44), cv2.FONT_HERSHEY_SIMPLEX,

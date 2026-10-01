@@ -116,10 +116,12 @@ class Picker:
     def goto(self, target, **kw):
         target = np.asarray(target, dtype=float)
         ok, e = self.ik_to(target, **kw)
-        if not ok:                       # 局部极值重启: 回 home 姿态加扰动再试一次
-            home_arm = self.d.qpos[self.qadr] * 0 + \
-                np.array([-1.59, -0.0611, 1.5, -1.59, -1.65, 3.05])
-            self.d.qpos[self.qadr] = home_arm + np.random.uniform(-0.4, 0.4, 6)
+        home_arm = np.array([-1.59, -0.0611, 1.5, -1.59, -1.65, 3.05])
+        for seed in range(3):            # 局部极值重启: 多组扰动种子
+            if ok:
+                break
+            rng = np.random.default_rng(seed)
+            self.d.qpos[self.qadr] = home_arm + rng.uniform(-0.5, 0.5, 6)
             for i in range(6):
                 self.d.ctrl[self.aadr[i]] = self.d.qpos[self.qadr[i]]
             ok, e = self.ik_to(target, **kw)
@@ -196,7 +198,7 @@ class Picker:
         bwlo = bw.copy()
         bwlo[2] -= 0.17          # 带果降入筐口: 果实贴底, 松爪几乎零落差
         self.goto(bwlo, iters=200)
-        for _ in range(3):
+        for _ in range(5):
             self._steps(300)                 # 摆动/偏转沉降
             mujoco.mj_forward(m, d)
             off = d.xipos[bid][:2] - bw[:2]
