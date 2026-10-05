@@ -170,8 +170,8 @@ crate_boxes = [
     ( -0.533, -0.215, Z_TOP,        0.170, T,     0.075 ),   # 世界 +y 壁 -> machine -y
 ]
 crate_col = [f'    <geom name="crate_col_{i}" type="box" pos="{x} {y} {z}" '
-             f'size="{a} {b} {c}" group="3" rgba="0 0 0 0"/>' for i, (x, y, z, a, b, c)
-             in enumerate(crate_boxes)]
+             f'size="{a} {b} {c}" group="3" rgba="0 0 0 0" solref="0.04 1"/>'
+             for i, (x, y, z, a, b, c) in enumerate(crate_boxes)]
 lift_block = (['  <body name="lift" pos="0 0 0">',
                '    <joint name="lift_joint" type="slide" axis="0 0 -1" limited="true" '
                'range="0 0.5" damping="10"/>',

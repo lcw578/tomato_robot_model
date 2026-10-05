@@ -50,7 +50,7 @@ def main():
     print('目标果串:', target)
 
     if args.mp4:
-        W, H, FPS = 960, 540, 10
+        W, H, FPS = 960, 540, 60
         vw = cv2.VideoWriter(args.mp4, cv2.VideoWriter_fourcc(*'mp4v'), FPS, (W, H))
         r = mujoco.Renderer(pk.m, H, W)
         cam = mujoco.MjvCamera()

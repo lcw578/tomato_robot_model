@@ -171,7 +171,7 @@ def prep_variant(vname):
         dirc = ctr - attach
         dist = max(np.linalg.norm(dirc), 1e-9)
         dirc /= dist
-        cut = attach + dirc * max(dist - t['radius'] - 0.01, 0.02)
+        cut = attach + dirc * max(dist * 0.30, 0.03)   # 果柄内 1/3 处 (论文式剪切点, 避开冠层深处)
         # 碰撞: 每颗果实一个真尺寸球 (按 marker), 直径小于指间距, 不会被指笼关住
         spheres = [(rel, FRUIT_R * 1.9) for rel in (t['markers'] - ctr)]
         out['trusses'].append(dict(k=k, pos=ctr, mesh=f'{vname}_truss{k}', rip=t['rip'],
@@ -222,8 +222,10 @@ for p, vname in enumerate(VARIANTS):
             f'<geom name="g_tr{truss_idx}_s{s}" type="sphere" pos="{o[0]:.3f} {o[1]:.3f} {o[2]:.3f}" '
             f'size="{r:.3f}" contype="2" conaffinity="1" rgba="0 0 0 0"/>'
             for s, (o, r) in enumerate(t['spheres']))
-        ped_a = t['attach'] - t['pos']          # 柄根(主茎挂点)
-        ped_b = t['cut'] - t['pos']             # 柄梢(剪切点, 果簇边缘)
+        ped_a = t['cut'] - t['pos']             # 柄梢(剪切点): 剪断后果串带走外段
+        ped_b = np.zeros(3)                     # 到果簇中心
+        if np.linalg.norm(ped_a - ped_b) < 0.02:   # 极短果柄: 保证胶囊最小长度
+            ped_a = -t['dirc'] * 0.02
         assets.append(f'    <mesh name="m_{t["mesh"]}" file="meshes/env/plants/{t["mesh"]}.obj"/>')
         tx, ty, tz = t['pos']
         # freejoint 必须是顶层 body: 世界位姿 = plant_pos + R@obj_pos, 姿态 = R
@@ -245,7 +247,7 @@ for p, vname in enumerate(VARIANTS):
         body_lines.append(f'    <site name="cut_p{p}_t{t["k"]}" pos="{cut[0]:.4f} {cut[1]:.4f} '
                           f'{cut[2]:.4f}" size="0.01" rgba="1 0 1 0.25"/>')
         aa = t['attach'] - t['dirc'] * 0.015
-        ab2 = t['attach'] + t['dirc'] * 0.015
+        ab2 = t['cut'] + t['dirc'] * 0.005
         body_lines.append(f'    <geom name="g_{vname}_stub_{t["k"]}" type="capsule" '
                           f'fromto="{aa[0]:.3f} {aa[1]:.3f} {aa[2]:.3f} '
                           f'{ab2[0]:.3f} {ab2[1]:.3f} {ab2[2]:.3f}" size="0.004" '

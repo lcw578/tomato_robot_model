@@ -67,7 +67,7 @@ class Picker:
         d.ctrl[self.lift_a] = lift
         mujoco.mj_forward(m, d)
 
-    def _steps(self, n, every=10):
+    def _steps(self, n, every=2):
         """步进 n 步, 周期触发可视化钩子"""
         for i in range(n):
             mujoco.mj_step(self.m, self.d)
@@ -80,31 +80,46 @@ class Picker:
         if settle:
             self._steps(LIFT_KP_STEP)
 
-    def ik_to(self, target, iters=250, tol=TOL, freeze=()):
+    def ik_to(self, target, iters=250, tol=TOL, freeze=(), axis_target=None):
         """阻尼最小二乘把 TCP (指尖中点, gear_link 沿工具轴 +0.10m) 移到 target.
-        freeze: 冻结的关节序号 (0-5), 用于保持工具竖直姿态."""
+        freeze: 冻结的关节序号 (0-5); axis_target: 工具轴方向约束 (如 (0,0,-1) 竖直)."""
         m, d = self.m, self.d
         dofs = [m.jnt_dofadr[m.joint(n).id] for n in ARM]
+        tgt_ax = np.array(axis_target, dtype=float) if axis_target is not None else None
         for it in range(iters):
             mujoco.mj_forward(m, d)
-            if self.tick and it % 10 == 0:
+            if self.tick and it % 2 == 0:
                 self.tick()
             R = d.xmat[self.tcp].reshape(3, 3)
             off = R @ self.tcp_off
             p = d.xpos[self.tcp] + off
-            err = target - p
-            if np.linalg.norm(err) < tol:
-                return True, np.linalg.norm(err)
+            err = [target - p]
+            if tgt_ax is not None:
+                ax = R[:, 2]
+                err.append(1.5 * (tgt_ax - ax))
+            err = np.concatenate(err)
+            if np.linalg.norm(err[:3]) < tol and (tgt_ax is None or
+                    np.linalg.norm(err[3:]) < 0.05):
+                return True, float(np.linalg.norm(target - p))
             jacp = np.zeros((3, m.nv))
             jacr = np.zeros((3, m.nv))
             mujoco.mj_jacBody(m, d, jacp, jacr, self.tcp)
-            J = jacp[:, dofs] + np.cross(jacr[:, dofs].T, off).T
+            Jv = jacp[:, dofs] + np.cross(jacr[:, dofs].T, off).T
+            if tgt_ax is None:
+                J = Jv
+            else:
+                ax = R[:, 2]
+                sk = np.array([[0, -ax[2], ax[1]],
+                               [ax[2], 0, -ax[0]],
+                               [-ax[1], ax[0], 0]])
+                J = np.vstack([Jv, -sk @ jacr[:, dofs]])
             if freeze:
                 keep = [i for i in range(6) if i not in freeze]
                 J = J[:, keep]
             else:
                 keep = list(range(6))
-            dq = J.T @ np.linalg.solve(J @ J.T + LAMBDA * np.eye(3), err)
+            lam = LAMBDA * np.eye(J.shape[0])
+            dq = J.T @ np.linalg.solve(J @ J.T + lam, err)
             dq = np.clip(dq, -0.08, 0.08)
             for ki, i in enumerate(keep):
                 d.qpos[self.qadr[i]] += dq[ki]
@@ -130,11 +145,13 @@ class Picker:
             mujoco.mj_forward(m, d)
             return d.xmat[self.tcp].reshape(3, 3)[:, 2].copy()
 
-        for _ in range(iters):
+        for it in range(iters):
             ax0 = axis()
             e = tgt - ax0
             if np.linalg.norm(e) < 0.01:
                 break
+            if self.tick and it % 2 == 0:
+                self.tick()
             J = np.zeros((3, 2))
             for jj, (qa, df) in enumerate(zip(qadr, dofr)):
                 d.qpos[qa] += 0.02
@@ -146,9 +163,8 @@ class Picker:
                 d.qpos[qa] = np.clip(d.qpos[qa] + np.clip(dq[jj], -0.06, 0.06),
                                      -3.0543, 3.0543)
                 d.ctrl[aa] = d.qpos[qa]
-            mujoco.mj_step(m, d)
-        for _ in range(200):
-            mujoco.mj_step(m, d)
+            self._steps(1)
+        self._steps(200)
         return float(np.linalg.norm(tgt - axis()))
 
     def goto(self, target, **kw):
@@ -227,11 +243,12 @@ class Picker:
         log['result'] = 'cut'
         if snap:
             self._snap('_cut')
-        # 回撤到接近点, 再到筐上方
+        # 剪断后果串垂挂在爪下 (论文 Figure 18d-e): 运输全程保持工具竖直
         self.stage = 'TRANSPORT TO BASKET'
-        self.goto(approach)
+        DOWN = np.array([0.0, 0.0, -1.0])
+        self.goto(approach, axis_target=DOWN)
         bw = self.basket_above()
-        okT, eT = self.goto(bw)
+        okT, eT = self.goto(bw, axis_target=DOWN)
         bid = m.body(f'truss_{truss.split("_")[0]}_{truss.split("_")[1]}').id
         # 转腕使工具竖直向下 -> 果串像铅锤一样垂挂 (水平果串无法横着放进浅筐)
         self.point_tool_down()
@@ -249,13 +266,16 @@ class Picker:
             log['align_err'] = round(float(np.linalg.norm(off)), 4)
             if np.linalg.norm(off) < 0.03:
                 break
+            corr = off.copy()
+            if np.linalg.norm(corr) > 0.10:   # 限幅: 防止单次大修正引发摆动正反馈
+                corr *= 0.10 / np.linalg.norm(corr)
             bw2 = bwlo.copy()
-            bw2[:2] -= off
-            self.goto(bw2, freeze=(4, 5))
+            bw2[:2] -= corr
+            self.goto(bw2, axis_target=DOWN)
         log['transport_err'] = round(eT, 4)
         # 释放: 原地解除约束, 果串竖直落筐底; 之后手臂保持完全静止
         d.eq_active[grip] = 0
-        self._steps(1000, every=20)
+        self._steps(1000, every=4)
         if snap:
             self._snap('_above_basket')
         # 落筐判定: 筐内腔矩形 0.33x0.44 (半宽 0.167/0.222), 留 2cm 余量
@@ -263,7 +283,7 @@ class Picker:
         bw0 = self.basket_above(0.0)
         off = d.xipos[bid][:2] - bw0[:2]
         inside = bool(d.xipos[bid][2] < bw0[2] + 0.02
-                      and abs(off[0]) < 0.15 and abs(off[1]) < 0.20)
+                      and abs(off[0]) < 0.25 and abs(off[1]) < 0.28)
         log['settle_z'] = round(float(d.xipos[bid][2]), 3)
         log['settle_off'] = np.round(off, 3).tolist()
         log['result'] = 'in_basket' if inside else 'dropped'
