@@ -248,7 +248,8 @@
     <mesh name="v_part_262" file="meshes/cad/part_262_solid_262.stl" scale="0.001 0.001 0.001" inertia="shell"/>
     <mesh name="v_part_263" file="meshes/cad/part_263_solid_263.stl" scale="0.001 0.001 0.001" inertia="shell"/>
     <mesh name="v_part_264" file="meshes/cad/part_264_solid_264.stl" scale="0.001 0.001 0.001" inertia="shell"/>
-    <mesh name="v_part_265" file="meshes/cad/part_265_solid_265.stl" scale="0.001 0.001 0.001" inertia="shell"/>
+    <mesh name="v_part_265_lo" file="meshes/cad/part_265_lo.stl" scale="0.001 0.001 0.001" inertia="shell"/>
+    <mesh name="v_part_265_up" file="meshes/cad/part_265_up.stl" scale="0.001 0.001 0.001" inertia="shell"/>
     <mesh name="v_part_266" file="meshes/cad/part_266_solid_266.stl" scale="0.001 0.001 0.001" inertia="shell"/>
     <mesh name="v_part_267" file="meshes/cad/part_267_solid_267.stl" scale="0.001 0.001 0.001" inertia="shell"/>
     <mesh name="v_part_268" file="meshes/cad/part_268_solid_268.stl" scale="0.001 0.001 0.001" inertia="shell"/>
@@ -626,7 +627,7 @@
   </body>
   <body name="truss_0_0" pos="-1.3108 0.8218 0.5816" quat="0.70710678 0.70710678 0 0">
     <freejoint name="j_truss_0_0"/>
-    <inertial pos="0 0 0" mass="0.3" diaginertia="0.0015 0.0015 0.0008"/>
+    <inertial pos="0.014762926 0.013308537 -0.16909873" mass="64.391296" fullinertia="2.3240208 5.2637169 4.3727193 -0.046854082 -0.010015094 -0.024995946"/>
     <geom name="g_tr0_mesh" type="mesh" mesh="m_v0_truss0" material="mat_red" contype="0" conaffinity="0"/>
     <geom name="g_tr0_s0" type="sphere" pos="0.024 0.102 -0.004" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
       <geom name="g_tr0_s1" type="sphere" pos="-0.003 0.064 -0.025" size="0.027" contype="2" conaffinity="1" rgba="0 0 0 0"/>
@@ -1592,6 +1593,8 @@
     <geom name="v_part_261" type="mesh" mesh="v_part_261" group="1"/>
     <geom name="v_part_262" type="mesh" mesh="v_part_262" group="1"/>
     <geom name="v_part_263" type="mesh" mesh="v_part_263" group="1"/>
+    <geom name="v_part_265_lo" type="mesh" mesh="v_part_265_lo" group="1"/>
+    <geom name="lift_col_outer" type="cylinder" pos="0.002 0.000 -0.4886" size="0.055 0.065" rgba="0.42 0.43 0.46 1" contype="0" conaffinity="0"/>
     <body name="small_right_front" pos="0 0 0">
       <inertial pos="0.497042 0.392916 0.038000" mass="0.112089" fullinertia="0.0000353535 0.0000521605 0.0000353535 -0.000000000000 0.000000000007 0.000000000000"/>
       <joint name="small_right_front_joint" type="hinge" pos="0.497042 0.392916 0.038000" axis="0 1 0" damping="0.001" frictionloss="0.02"/>
@@ -1645,9 +1648,10 @@
   </body>
   <body name="lift" pos="0 0 0">
     <joint name="lift_joint" type="slide" axis="0 0 -1" limited="true" range="0 0.5" damping="10"/>
-    <inertial pos="0.13257355 0.00956238 -0.72856106" mass="21.817583" fullinertia="0.19131448 3.0547945 2.8658811 0.0028752578 0.14460765 -0.00041066824"/>
+    <inertial pos="0.14274594 0.009534775 -0.74663947" mass="20.242321" fullinertia="0.11409244 2.9485618 2.83687 0.0027965308 0.093049464 -0.00027075438"/>
       <geom name="v_part_264" type="mesh" mesh="v_part_264" group="1"/>
-      <geom name="v_part_265" type="mesh" mesh="v_part_265" group="1"/>
+    <geom name="v_part_265_up" type="mesh" mesh="v_part_265_up" group="1"/>
+    <geom name="lift_col_inner" type="cylinder" pos="0.002 0.000 -0.3536" size="0.042 0.300" rgba="0.60 0.61 0.64 1" contype="0" conaffinity="0"/>
       <geom name="v_part_266" type="mesh" mesh="v_part_266" group="1"/>
       <geom name="v_part_267" type="mesh" mesh="v_part_267" group="1"/>
       <geom name="v_part_268" type="mesh" mesh="v_part_268" group="1"/>

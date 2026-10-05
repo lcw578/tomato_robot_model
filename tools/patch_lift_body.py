@@ -42,10 +42,11 @@ for g in range(m.ngeom):
     if not name.startswith('v_part_'):
         continue
     lo, hi = world_aabb(g)
-    if lo[2] >= 0.73 or name == 'v_part_265':
+    if lo[2] >= 0.73:
         moved_parts.append(name[2:])
 moved_parts.sort()
 print(f'移入 lift 的零件 {len(moved_parts)} 个: {moved_parts}')
+moved_parts.append('part_265_up')   # 风琴罩上半段 (下半段留底盘, 见第 2 节)
 
 # 轨道钢管 part_110/149 (906mm 长, Ø40, 沿 x, 驱动轮正下方): 从机器人移出,
 # 由环境场景接管 (拉长平铺 + 圆柱碰撞, 见 tools/build_environment.py)
@@ -58,13 +59,24 @@ for g in range(m.ngeom):
         continue
     name = mujoco.mj_id2name(m, mujoco.mjtObj.mjOBJ_GEOM, g)
     if name.startswith('v_part_') and name[2:] not in moved_parts \
-            and name[2:] not in TRACK_PARTS:
+            and name[2:] not in TRACK_PARTS and name[2:] != 'part_265':
         stay_parts.append(name[2:])
+stay_parts.append('part_265_lo')            # 风琴罩下半段留在底盘
 print(f'留在 chassis 的零件 {len(stay_parts)} 个')
 
 # ---------------------------------------------------------------- 2. 惯性合成
 # 与 phase_c_build.py 同法: 质量 = 标定塑料密度 x parts.json 体积, 质点置于 bbox 中心
 tg = {p['part_id']: p for p in json.load(open(f'{TOMATO_DIR}/parts.json'))['parts']}
+# 风琴罩 265 两段化: 下半段留底盘、上半段随台; 升起时中缝由合成伸缩立柱填补
+# (CAD 的 418 件里层间只有风琴罩, 没有立柱/剪叉 —— 机构尚未设计, 见 split_bellows)
+b265 = tg['part_265']['bbox']
+vol265 = tg['part_265']['volume_estimate']
+tg['part_265_lo'] = {'volume_estimate': vol265 / 2,
+                     'bbox': {'min': [b265['min'][0], b265['min'][1], -564],
+                              'max': [b265['max'][0], b265['max'][1], -428]}}
+tg['part_265_up'] = {'volume_estimate': vol265 / 2,
+                     'bbox': {'min': [b265['min'][0], b265['min'][1], -699],
+                              'max': [b265['max'][0], b265['max'][1], -564]}}
 um = json.load(open(f'{TOMATO_DIR}/user_model.json'))
 ra = next(l for l in um['links'] if l['name'] == 'robot_arm')
 RHO = ra['mass'] / sum(tg[p]['volume_estimate'] for p in ra['part_ids'])   # kg/mm^3
@@ -109,6 +121,12 @@ for ln in lines:
         moved_lines.append(ln); continue
     if mm and ('part_' + mm.group(1)) in TRACK_PARTS:
         continue                      # 轨道件直接丢弃 (环境场景重建)
+    if mm and mm.group(1) == '265':
+        continue                      # 265 两段化: 由 3b 显式插入 lo/up 两 geom
+    if '<mesh name="v_part_265" ' in ln:
+        out.append('    <mesh name="v_part_265_lo" file="meshes/cad/part_265_lo.stl" scale="0.001 0.001 0.001" inertia="shell"/>')
+        out.append('    <mesh name="v_part_265_up" file="meshes/cad/part_265_up.stl" scale="0.001 0.001 0.001" inertia="shell"/>')
+        continue
     if '<mesh name="v_part_110" ' in ln or '<mesh name="v_part_149" ' in ln:
         continue                      # 对应 mesh 资产声明一并移除
     if 'name="cam_scene_' in ln:
@@ -161,9 +179,23 @@ lift_block = (['  <body name="lift" pos="0 0 0">',
               + indent(moved_lines, '  ')
               + indent(cam_lines, '  ')
               + [site]
+              + ['    <geom name="v_part_265_up" type="mesh" mesh="v_part_265_up" group="1"/>',
+                 '    <geom name="lift_col_inner" type="cylinder" pos="0.002 0.000 -0.3536" '
+                 'size="0.042 0.300" rgba="0.60 0.61 0.64 1" contype="0" conaffinity="0"/>']
               + crate_col
               + indent(arm_lines, '  ')
               + ['  </body>'])
+# 3c'. 风琴罩下半段 + 伸缩立柱外管 归底盘 (插在下板 263 之后)
+for i, ln in enumerate(lines):
+    if '<geom name="v_part_263"' in ln:
+        lines[i + 1:i + 1] = [
+            '    <geom name="v_part_265_lo" type="mesh" mesh="v_part_265_lo" group="1"/>',
+            '    <geom name="lift_col_outer" type="cylinder" pos="0.002 0.000 -0.4886" '
+            'size="0.055 0.065" rgba="0.42 0.43 0.46 1" contype="0" conaffinity="0"/>']
+        break
+else:
+    sys.exit('未找到 v_part_263 行')
+
 # 插入点 = machine 的闭合 </body> 之前 (lift 必须是 machine 的子 body, 保持翻转坐标系)
 for i, ln in enumerate(lines):
     if ln == '  </body>' and lines[i + 1].strip() == '</worldbody>':
