@@ -19,7 +19,7 @@ ARM = ['shoulder_joint', 'upperArm_joint', 'foreArm_joint',
        'wrist1_joint', 'wrist2_joint', 'wrist3_joint']
 GEAR_HOME, GEAR_CLOSED = -0.474, 0.463
 LIFT_KP_STEP = 400          # 升降到位所需步数
-LAMBDA = 0.05               # DLS 阻尼
+LAMBDA = 0.08               # DLS 阻尼
 TOL = 0.006                 # IK 成功阈值 (m)
 
 
@@ -96,7 +96,7 @@ class Picker:
             err = [target - p]
             if tgt_ax is not None:
                 ax = R[:, 2]
-                err.append(1.5 * (tgt_ax - ax))
+                err.append(1.0 * (tgt_ax - ax))
             err = np.concatenate(err)
             if np.linalg.norm(err[:3]) < tol and (tgt_ax is None or
                     np.linalg.norm(err[3:]) < 0.05):
@@ -120,7 +120,7 @@ class Picker:
                 keep = list(range(6))
             lam = LAMBDA * np.eye(J.shape[0])
             dq = J.T @ np.linalg.solve(J @ J.T + lam, err)
-            dq = np.clip(dq, -0.08, 0.08)
+            dq = np.clip(dq, -0.02, 0.02)
             for ki, i in enumerate(keep):
                 d.qpos[self.qadr[i]] += dq[ki]
                 d.ctrl[self.aadr[i]] = d.qpos[self.qadr[i]]
@@ -246,16 +246,17 @@ class Picker:
         # 剪断后果串垂挂在爪下 (论文 Figure 18d-e): 运输全程保持工具竖直
         self.stage = 'TRANSPORT TO BASKET'
         DOWN = np.array([0.0, 0.0, -1.0])
+        UP = np.array([0.0, 0.0, 1.0])
         self.goto(approach, axis_target=DOWN)
         bw = self.basket_above()
-        okT, eT = self.goto(bw, axis_target=DOWN)
+        okT, eT = self.goto(bw, iters=400, axis_target=DOWN)
         bid = m.body(f'truss_{truss.split("_")[0]}_{truss.split("_")[1]}').id
         # 转腕使工具竖直向下 -> 果串像铅锤一样垂挂 (水平果串无法横着放进浅筐)
         self.point_tool_down()
         mouth_z = bw[2] - 0.22
         bwlo = bw.copy()
         bwlo[2] = mouth_z + 0.09      # 果串(长~0.25)下端贴筐底, 全部位于内腔
-        self.goto(bwlo, iters=250, freeze=(4, 5))
+        self.goto(bwlo, iters=250, axis_target=DOWN)
         self.stage = 'RELEASE'
         # 原地慢开爪; 在最终释放位姿上迭代对准 (此后到释放前无任何运动)
         self.gear(GEAR_HOME, steps=400)
