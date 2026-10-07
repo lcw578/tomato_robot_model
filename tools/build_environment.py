@@ -215,7 +215,7 @@ for p, vname in enumerate(VARIANTS):
     mid, half = (a_a + a_b) / 2, np.linalg.norm(a_b - a_a) / 2
     q = quat_z_to(a_b - a_a)
     g_lines.append(f'      <geom name="g_{vname}_stem" type="cylinder" pos="{mid[0]:.3f} {mid[1]:.3f} {mid[2]:.3f}" '
-                   f'quat="{q}" size="0.02 {half:.3f}" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>')
+                   f'quat="{q}" size="0.014 {half:.3f}" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>'  # 开关: 碰撞里程碑时改 4/1)
     top = a_b if a_b[1] > a_a[1] else a_a            # OBJ 系里 "上" 是 +y
     if top[1] < 2.35:                                # 藤顶低于吊线设计高才补吊蔓线
         g_lines.append(f'      <geom name="g_{vname}_line" type="cylinder" pos="{top[0]:.3f} '
@@ -262,7 +262,7 @@ for p, vname in enumerate(VARIANTS):
         body_lines.append(f'    <geom name="g_{vname}_stub_{t["k"]}" type="capsule" '
                           f'fromto="{aa[0]:.3f} {aa[1]:.3f} {aa[2]:.3f} '
                           f'{ab2[0]:.3f} {ab2[1]:.3f} {ab2[2]:.3f}" size="0.004" '
-                          f'rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>')
+                          f'rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>'  # 开关: 碰撞里程碑时改 4/1)
         welds.append(f'  <weld name="hold_{p}_{t["k"]}" body1="plant_{p}" body2="truss_{p}_{t["k"]}" '
                      f'active="true" solref="0.005 1"/>')
         welds.append(f'  <weld name="grip_{p}_{t["k"]}" body1="base_link" body2="truss_{p}_{t["k"]}" '

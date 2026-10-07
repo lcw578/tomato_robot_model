@@ -49,6 +49,16 @@ class Picker:
         self.tcp_off = np.array([0.0, 0.0, 0.10])
         self.home_ctrl = np.array([-0.474, 0, 0, -1.59, -0.0611, 1.5, -1.59, -1.65, 3.05, 0.0])
         self.trusses = self._enumerate_trusses()
+        # 碰撞规划: 臂几何集 (含夹爪/相机) 与禁碰集 (植株主茎)
+        import re as _re
+        self.arm_geoms, self.forbid_geoms = set(), set()
+        for g in range(m.ngeom):
+            nm = mujoco.mj_id2name(m, mujoco.mjtObj.mjOBJ_GEOM, g) or ''
+            if _re.match(r'a_|base_link_mesh|gear_link_mesh|(left|right)_finger_link_mesh'
+                         r'|cam_part|ad_part', nm):
+                self.arm_geoms.add(g)
+            elif _re.match(r'g_v\d+_stem', nm):
+                self.forbid_geoms.add(g)
 
     def _enumerate_trusses(self):
         m = self.m
@@ -91,9 +101,10 @@ class Picker:
             self._steps(LIFT_KP_STEP)
 
     def solve_ik(self, target, iters=300, axis_target=None):
-        """离线数值 IK: 在 scratch 上迭代 (不步进物理), 允许多种子重启.
-        返回关节目标向量; 无解返回 None. —— 规划与执行分离 (大范围换构型
-        由本函数的全局搜索承担, 与 VR_teleoperation 的 move_group 语义一致)."""
+        """离线数值 IK: 在 scratch 上迭代 (不步进物理), 多种子重启.
+        axis_target 给定 -> 两阶段 (先纯旋转对齐工具轴, 再位置+姿态联合) ——
+        沿果柄的抓取位姿使主茎落在指尖之外 (物理正确, 论文式 ±30° 朝向的精确化)。
+        返回关节目标; 无解返回 None."""
         m = self.m
         dofs = [m.jnt_dofadr[m.joint(n).id] for n in ARM]
         qadr = self.qadr
@@ -101,50 +112,137 @@ class Picker:
         tgt_ax = np.array(axis_target, dtype=float) if axis_target is not None else None
         base_q = self.d.qpos[qadr].copy()
         best_q, best_e = None, float('inf')
-        for seed in range(4):
-            q = base_q.copy()
-            if seed > 0:
-                rng = np.random.default_rng(seed * 7 + 1)
-                q = q_rest + rng.uniform(-0.6, 0.6, 6)   # 求解内部: 瞬移无副作用
-            for it in range(iters):
-                self._fk.qpos[:] = self.d.qpos
-                self._fk.qpos[qadr] = q
-                mujoco.mj_forward(m, self._fk)
-                R = self._fk.xmat[self.tcp].reshape(3, 3)
-                off = R @ self.tcp_off
-                p = self._fk.xpos[self.tcp] + off
+
+        def fk(q):
+            self._fk.qpos[:] = self.d.qpos
+            self._fk.qpos[qadr] = q
+            mujoco.mj_forward(m, self._fk)
+            R = self._fk.xmat[self.tcp].reshape(3, 3)
+            return R, self._fk.xpos[self.tcp] + R @ self.tcp_off
+
+        def jac():
+            jp = np.zeros((3, m.nv))
+            jr = np.zeros((3, m.nv))
+            mujoco.mj_jacBody(m, self._fk, jp, jr, self.tcp)
+            off = self._fk.xmat[self.tcp].reshape(3, 3) @ self.tcp_off
+            Jv = jp[:, dofs] + np.cross(jr[:, dofs].T, off).T
+            return Jv, jr[:, dofs]
+
+        def step(q, J, err, lam, clip):
+            dq = J.T @ np.linalg.solve(J @ J.T + lam * np.eye(J.shape[0]), err)
+            return np.clip(q + np.clip(dq, -clip, clip),
+                           -(3.0543 - JOINT_MARGIN), 3.0543 - JOINT_MARGIN)
+
+        for seed in range(5):
+            q = base_q.copy() if seed == 0 else \
+                q_rest + np.random.default_rng(seed * 7 + 1).uniform(-0.6, 0.6, 6)
+            if tgt_ax is not None:
+                # Phase A: 纯旋转对齐 (150 迭代, 大步)
+                for _ in range(150):
+                    R, _p = fk(q)
+                    ax = R[:, 2]
+                    e_ang = float(np.arccos(np.clip(tgt_ax @ ax, -1, 1)))
+                    if e_ang < 0.04:
+                        break
+                    axis = np.cross(ax, tgt_ax)
+                    na = np.linalg.norm(axis)
+                    if na < 1e-9:
+                        axis = np.cross(ax, [1.0, 0, 0])
+                        axis /= max(np.linalg.norm(axis), 1e-9)
+                    else:
+                        axis /= na
+                    _Jv, Jr = jac()
+                    q = step(q, Jr, AXIS_W * axis * min(e_ang, 1.0), 5e-3, 0.05)
+            # Phase B: 位置 + 姿态 (或纯位置)
+            for _ in range(iters):
+                R, p = fk(q)
                 err = [target - p]
+                rot = False
                 if tgt_ax is not None:
                     ax = R[:, 2]
-                    e_ang = float(np.linalg.norm(tgt_ax - ax))
-                    if e_ang <= ROT_ERR_HOLD:
-                        err.append(AXIS_W * (tgt_ax - ax))
+                    e_ang = float(np.arccos(np.clip(tgt_ax @ ax, -1, 1)))
+                    if e_ang > 1e-6:
+                        axis = np.cross(ax, tgt_ax)
+                        na = np.linalg.norm(axis)
+                        if na > 1e-9:
+                            err.append(AXIS_W * (axis / na) * min(e_ang, 1.0))
+                            rot = True
+                else:
+                    e_ang = 0.0
                 err = np.concatenate(err)
                 e_pos = float(np.linalg.norm(err[:3]))
-                e_ok = e_pos < TOL and (tgt_ax is None or
-                        float(np.linalg.norm(err[3:])) < 0.06)
                 if e_pos < best_e:
                     best_e, best_q = e_pos, q.copy()
-                if e_ok:
+                if e_pos < TOL and e_ang < 0.06:
                     return q.copy()
-                jacp = np.zeros((3, m.nv))
-                jacr = np.zeros((3, m.nv))
-                mujoco.mj_jacBody(m, self._fk, jacp, jacr, self.tcp)
-                Jv = jacp[:, dofs] + np.cross(jacr[:, dofs].T, off).T
-                if tgt_ax is None:
-                    J = Jv
-                else:
-                    ax = R[:, 2]
-                    sk = np.array([[0, -ax[2], ax[1]],
-                                   [ax[2], 0, -ax[0]],
-                                   [-ax[1], ax[0], 0]])
-                    J = np.vstack([Jv, -sk @ jacr[:, dofs]])
-                dq = J.T @ np.linalg.solve(J @ J.T + 1e-4 * np.eye(J.shape[0]), err)
-                dq = np.clip(dq, -0.15, 0.15)          # 离线求解: 大步长
-                q = np.clip(q + dq, -(3.0543 - JOINT_MARGIN), 3.0543 - JOINT_MARGIN)
-        if best_e > 0.05:      # 解算失败: 拒绝 (不走向垃圾配置)
+                Jv, Jr = jac()
+                J = np.vstack([Jv, Jr]) if rot else Jv
+                q = step(q, J, err, 5e-3, 0.05)
+            if tgt_ax is not None and best_e < 0.05:
+                return best_q          # 轴对齐解: 位置残差 <5cm 即接受 (沿轴偏移无害)
+        if best_e > 0.05:
             return None
         return best_q
+
+    # ---------- 碰撞检测与规划 (关节空间 RRT, 直线优先) ----------
+    def collision_free(self, q, pen=0.003):
+        """禁碰集与臂的穿透超过 pen 视为碰撞 (轻触允许: 真机也轻触植株)。"""
+        fd = self._fk
+        fd.qpos[:] = self.d.qpos
+        fd.qpos[self.qadr] = q
+        mujoco.mj_forward(self.m, fd)
+        for c in range(fd.ncon):
+            if fd.contact[c].dist > -pen:
+                continue
+            g1, g2 = fd.contact[c].geom1, fd.contact[c].geom2
+            if (g1 in self.arm_geoms and g2 in self.forbid_geoms) or \
+               (g2 in self.arm_geoms and g1 in self.forbid_geoms):
+                return False
+        return True
+
+    def _seg_free(self, qa, qb, n=8, pen=0.003):
+        for t in np.linspace(0, 1, n + 1):
+            if not self.collision_free(qa * (1 - t) + qb * t, pen=pen):
+                return False
+        return True
+
+    def plan_path(self, q_goal, max_iter=2500, step=0.15):
+        """返回通往 q_goal 的无碰航点列表 (关节空间); 直线无碰则直达。"""
+        q0 = self.cmd.copy()
+        if self._seg_free(q0, q_goal):
+            return [q_goal]
+        rng = np.random.default_rng(0)
+        nodes = [q0]
+        parent = [-1]
+        bounds = 2.9
+        for i in range(max_iter):
+            if i % 4 == 3:
+                q_rand = q_goal + rng.normal(0, 0.25, 6)         # 偏置目标
+            else:
+                q_rand = rng.uniform(-bounds, bounds, 6)
+            arr = np.array(nodes)
+            d = np.linalg.norm(arr - q_rand, axis=1)
+            j = int(np.argmin(d))
+            q_near = nodes[j]
+            v = q_rand - q_near
+            L = np.linalg.norm(v)
+            if L < 1e-9:
+                continue
+            q_new = q_near + v / L * min(step, L)
+            q_new = np.clip(q_new, -(3.0543 - JOINT_MARGIN), 3.0543 - JOINT_MARGIN)
+            if not self._seg_free(q_near, q_new, n=4):
+                continue
+            nodes.append(q_new); parent.append(j)
+            # 目标连接段放宽到 12mm: 剪切位姿本就贴近茎秆 (真机轻触); 路径段仍 3mm
+            if np.linalg.norm(q_new - q_goal) < 0.35 and \
+                    self._seg_free(q_new, q_goal, n=8, pen=0.032):
+                nodes.append(q_goal); parent.append(len(nodes) - 2)
+                path = []
+                k = len(nodes) - 1
+                while k != -1:
+                    path.append(nodes[k]); k = parent[k]
+                return path[::-1]
+        return None          # 规划失败 (被植株完全挡住)
 
     def tcp_pos(self):
         R = self.d.xmat[self.tcp].reshape(3, 3)
@@ -183,19 +281,12 @@ class Picker:
         self._steps(200)
         return float(np.linalg.norm(tgt - axis()))
 
-    def goto(self, target, iters=300, axis_target=None, speed=0.8):
-        """规划-执行分离: 先离线解算关节目标, 再沿关节空间插值匀速走 cmd.
-        积分语义保持 (cmd 永不跳变), 物理由位置伺服跟踪."""
-        target = np.asarray(target, dtype=float)
-        if self.cmd is None:
-            self.cmd = self.d.qpos[self.qadr].copy()   # 命令重锚到实测
-        q_t = self.solve_ik(target, iters=iters, axis_target=axis_target)
-        if q_t is None:
-            return False, float('inf')
-        dq_all = q_t - self.cmd
-        n = int(np.ceil(np.max(np.abs(dq_all) / (VMAX * self.m.opt.timestep * speed))) + 1)
-        for i in range(n):
-            remain = q_t - self.cmd
+    def _walk_to(self, q_target, speed=0.8):
+        """关节空间匀速插值走 cmd (积分语义, 伺服跟踪)。"""
+        while True:
+            remain = q_target - self.cmd
+            if np.max(np.abs(remain)) < 1e-3:
+                break
             step = np.clip(remain, -VMAX * self.m.opt.timestep * speed,
                            VMAX * self.m.opt.timestep * speed)
             self.cmd = np.clip(self.cmd + step,
@@ -205,6 +296,20 @@ class Picker:
             mujoco.mj_step(self.m, self.d)
             if self.tick:
                 self.tick()
+
+    def goto(self, target, iters=300, axis_target=None, speed=0.8):
+        """规划-执行: 离线解算 -> RRT 无碰规划 (直线优先) -> 沿航点关节空间插值。"""
+        target = np.asarray(target, dtype=float)
+        if self.cmd is None:
+            self.cmd = self.d.qpos[self.qadr].copy()   # 命令重锚到实测
+        q_t = self.solve_ik(target, iters=iters, axis_target=axis_target)
+        if q_t is None:
+            return False, float('inf')
+        path = self.plan_path(q_t)
+        if path is None:
+            return False, float('inf')                 # 被植株挡住, 诚实失败
+        for wp in path:
+            self._walk_to(wp, speed=speed)
         mujoco.mj_forward(self.m, self.d)
         e = float(np.linalg.norm(self.tcp_pos() - target))
         return e < 0.05, e
@@ -240,6 +345,8 @@ class Picker:
         to_robot = cut - base
         to_robot[2] = 0
         to_robot /= max(np.linalg.norm(to_robot), 1e-6)      # 朝机器人基座 (走道, 开放空间)
+        dvec = cut - d.xipos[tr_body]
+        dvec /= max(np.linalg.norm(dvec), 1e-9)              # 沿果柄 (指向主茎)
         approach = cut - to_robot * 0.10
 
         if cut[2] < 0.9:     # 低于论文作业带 (1.1-1.5m), 且低于台面板投影 -> 几何不可达
@@ -253,9 +360,7 @@ class Picker:
         log = dict(truss=truss, lift=round(lift, 3), cut=np.round(cut, 3).tolist())
         self.stage = 'LIFT & APPROACH'
         okC, eC = self.goto(approach, iters=600)
-        # 先到剪切点正上方 25cm (果簇顶上方净空), 再垂直下降+微进到剪切点前 2cm
-        self.goto(cut + np.array([0, 0, 0.25]), iters=600)
-        okB, eB = self.goto(cut + to_robot * 0.02, iters=600)   # 停在剪切点前 2cm (判据容差内)
+        okB, eB = self.goto(cut + to_robot * 0.02, iters=800)   # 停在剪切点前 2cm
         log['approach_err'] = round(eC, 4)
         log['reach_err'] = round(eB, 4)
         # B 点成败由任务判据决定 (果柄是否落入剪切区), 而非毫米级 TCP 误差 ——

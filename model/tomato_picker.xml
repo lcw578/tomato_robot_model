@@ -482,7 +482,7 @@
       <geom name="g_v0_vine" type="mesh" mesh="m_v0_vine" material="mat_vine" contype="0" conaffinity="0"/>
       <geom name="g_v0_leaf" type="mesh" mesh="m_v0_leaf" material="mat_leaf" contype="0" conaffinity="0"/>
       <geom name="g_v0_blossom" type="mesh" mesh="m_v0_blossom" material="mat_blossom" contype="0" conaffinity="0"/>
-      <geom name="g_v0_stem" type="cylinder" pos="1.063 1.223 0.149" quat="0.59837 0.50564 -0.62151 0.00000" size="0.02 0.914" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
+      <geom name="g_v0_stem" type="cylinder" pos="1.063 1.223 0.149" quat="0.59837 0.50564 -0.62151 0.00000" size="0.014 0.914" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
       <geom name="g_v0_line" type="cylinder" pos="1.743 2.088 0.409" size="0.002 0.312" quat="0.70711 -0.70711 0.00000 0.00000" rgba="0.25 0.25 0.25 1" contype="0" conaffinity="0"/>
     <site name="cut_p0_t0" pos="0.4412 0.6649 -0.0737" size="0.01" rgba="1 0 1 0.25"/>
     <site name="attach_p0_t0" pos="0.4206 0.7007 -0.0959" size="0.008" rgba="0 1 1 0.25"/>
@@ -501,7 +501,7 @@
       <geom name="g_v1_vine" type="mesh" mesh="m_v1_vine" material="mat_vine" contype="0" conaffinity="0"/>
       <geom name="g_v1_leaf" type="mesh" mesh="m_v1_leaf" material="mat_leaf" contype="0" conaffinity="0"/>
       <geom name="g_v1_blossom" type="mesh" mesh="m_v1_blossom" material="mat_blossom" contype="0" conaffinity="0"/>
-      <geom name="g_v1_stem" type="cylinder" pos="0.855 1.421 -0.012" quat="0.70734 0.50480 -0.49482 0.00000" size="0.02 1.046" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
+      <geom name="g_v1_stem" type="cylinder" pos="0.855 1.421 -0.012" quat="0.70734 0.50480 -0.49482 0.00000" size="0.014 1.046" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
       <geom name="g_v1_line" type="cylinder" pos="1.588 2.284 -0.013" size="0.002 0.116" quat="0.70711 -0.70711 0.00000 0.00000" rgba="0.25 0.25 0.25 1" contype="0" conaffinity="0"/>
     <site name="cut_p1_t0" pos="0.2124 0.6797 -0.0164" size="0.01" rgba="1 0 1 0.25"/>
     <site name="attach_p1_t0" pos="0.1698 0.7215 -0.0112" size="0.008" rgba="0 1 1 0.25"/>
@@ -520,7 +520,7 @@
       <geom name="g_v2_vine" type="mesh" mesh="m_v2_vine" material="mat_vine" contype="0" conaffinity="0"/>
       <geom name="g_v2_leaf" type="mesh" mesh="m_v2_leaf" material="mat_leaf" contype="0" conaffinity="0"/>
       <geom name="g_v2_blossom" type="mesh" mesh="m_v2_blossom" material="mat_blossom" contype="0" conaffinity="0"/>
-      <geom name="g_v2_stem" type="cylinder" pos="1.077 1.366 0.031" quat="0.65703 0.48837 -0.57429 0.00000" size="0.02 0.983" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
+      <geom name="g_v2_stem" type="cylinder" pos="1.077 1.366 0.031" quat="0.65703 0.48837 -0.57429 0.00000" size="0.014 0.983" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
       <geom name="g_v2_line" type="cylinder" pos="1.819 2.198 0.165" size="0.002 0.202" quat="0.70711 -0.70711 0.00000 0.00000" rgba="0.25 0.25 0.25 1" contype="0" conaffinity="0"/>
     <site name="cut_p2_t0" pos="0.4145 0.7370 -0.0654" size="0.01" rgba="1 0 1 0.25"/>
     <site name="attach_p2_t0" pos="0.3852 0.7776 -0.0940" size="0.008" rgba="0 1 1 0.25"/>
@@ -539,7 +539,7 @@
       <geom name="g_v3_vine" type="mesh" mesh="m_v3_vine" material="mat_vine" contype="0" conaffinity="0"/>
       <geom name="g_v3_leaf" type="mesh" mesh="m_v3_leaf" material="mat_leaf" contype="0" conaffinity="0"/>
       <geom name="g_v3_blossom" type="mesh" mesh="m_v3_blossom" material="mat_blossom" contype="0" conaffinity="0"/>
-      <geom name="g_v3_stem" type="cylinder" pos="0.954 1.315 -0.020" quat="0.70886 0.45757 -0.53679 0.00000" size="0.02 0.972" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
+      <geom name="g_v3_stem" type="cylinder" pos="0.954 1.315 -0.020" quat="0.70886 0.45757 -0.53679 0.00000" size="0.014 0.972" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
       <geom name="g_v3_line" type="cylinder" pos="1.694 2.173 -0.025" size="0.002 0.227" quat="0.70711 -0.70711 0.00000 0.00000" rgba="0.25 0.25 0.25 1" contype="0" conaffinity="0"/>
     <site name="cut_p3_t0" pos="0.3074 0.6800 -0.0101" size="0.01" rgba="1 0 1 0.25"/>
     <site name="attach_p3_t0" pos="0.2660 0.7285 -0.0154" size="0.008" rgba="0 1 1 0.25"/>
@@ -558,7 +558,7 @@
       <geom name="g_v4_vine" type="mesh" mesh="m_v4_vine" material="mat_vine" contype="0" conaffinity="0"/>
       <geom name="g_v4_leaf" type="mesh" mesh="m_v4_leaf" material="mat_leaf" contype="0" conaffinity="0"/>
       <geom name="g_v4_blossom" type="mesh" mesh="m_v4_blossom" material="mat_blossom" contype="0" conaffinity="0"/>
-      <geom name="g_v4_stem" type="cylinder" pos="1.122 1.372 -0.128" quat="0.76870 0.48956 -0.41163 0.00000" size="0.02 1.086" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
+      <geom name="g_v4_stem" type="cylinder" pos="1.122 1.372 -0.128" quat="0.76870 0.48956 -0.41163 0.00000" size="0.014 1.086" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
       <geom name="g_v4_line" type="cylinder" pos="1.810 2.295 -0.326" size="0.002 0.105" quat="0.70711 -0.70711 0.00000 0.00000" rgba="0.25 0.25 0.25 1" contype="0" conaffinity="0"/>
     <site name="cut_p4_t0" pos="0.5008 0.5859 0.0338" size="0.01" rgba="1 0 1 0.25"/>
     <site name="attach_p4_t0" pos="0.4805 0.6084 0.0564" size="0.008" rgba="0 1 1 0.25"/>
@@ -577,7 +577,7 @@
       <geom name="g_v5_vine" type="mesh" mesh="m_v5_vine" material="mat_vine" contype="0" conaffinity="0"/>
       <geom name="g_v5_leaf" type="mesh" mesh="m_v5_leaf" material="mat_leaf" contype="0" conaffinity="0"/>
       <geom name="g_v5_blossom" type="mesh" mesh="m_v5_blossom" material="mat_blossom" contype="0" conaffinity="0"/>
-      <geom name="g_v5_stem" type="cylinder" pos="0.918 1.531 0.063" quat="0.66851 0.64661 -0.36741 0.00000" size="0.02 1.041" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
+      <geom name="g_v5_stem" type="cylinder" pos="0.918 1.531 0.063" quat="0.66851 0.64661 -0.36741 0.00000" size="0.014 1.041" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
     <site name="cut_p5_t0" pos="0.4671 0.6908 -0.0199" size="0.01" rgba="1 0 1 0.25"/>
     <site name="attach_p5_t0" pos="0.4477 0.7042 -0.0385" size="0.008" rgba="0 1 1 0.25"/>
     <geom name="g_v5_stub_0" type="capsule" fromto="0.438 0.711 -0.048 0.470 0.689 -0.017" size="0.004" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
@@ -595,7 +595,7 @@
       <geom name="g_v6_vine" type="mesh" mesh="m_v6_vine" material="mat_vine" contype="0" conaffinity="0"/>
       <geom name="g_v6_leaf" type="mesh" mesh="m_v6_leaf" material="mat_leaf" contype="0" conaffinity="0"/>
       <geom name="g_v6_blossom" type="mesh" mesh="m_v6_blossom" material="mat_blossom" contype="0" conaffinity="0"/>
-      <geom name="g_v6_stem" type="cylinder" pos="0.961 1.186 0.019" quat="0.67892 0.44360 -0.58505 0.00000" size="0.02 0.884" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
+      <geom name="g_v6_stem" type="cylinder" pos="0.961 1.186 0.019" quat="0.67892 0.44360 -0.58505 0.00000" size="0.014 0.884" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
       <geom name="g_v6_line" type="cylinder" pos="1.663 2.059 0.088" size="0.002 0.341" quat="0.70711 -0.70711 0.00000 0.00000" rgba="0.25 0.25 0.25 1" contype="0" conaffinity="0"/>
     <site name="cut_p6_t0" pos="0.3397 0.6327 -0.0359" size="0.01" rgba="1 0 1 0.25"/>
     <site name="attach_p6_t0" pos="0.3006 0.6856 -0.0457" size="0.008" rgba="0 1 1 0.25"/>
@@ -614,7 +614,7 @@
       <geom name="g_v7_vine" type="mesh" mesh="m_v7_vine" material="mat_vine" contype="0" conaffinity="0"/>
       <geom name="g_v7_leaf" type="mesh" mesh="m_v7_leaf" material="mat_leaf" contype="0" conaffinity="0"/>
       <geom name="g_v7_blossom" type="mesh" mesh="m_v7_blossom" material="mat_blossom" contype="0" conaffinity="0"/>
-      <geom name="g_v7_stem" type="cylinder" pos="0.775 1.476 -0.163" quat="0.77796 0.54333 -0.31556 0.00000" size="0.02 1.062" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
+      <geom name="g_v7_stem" type="cylinder" pos="0.775 1.476 -0.163" quat="0.77796 0.54333 -0.31556 0.00000" size="0.014 1.062" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
     <site name="cut_p7_t0" pos="0.3057 0.6303 0.0214" size="0.01" rgba="1 0 1 0.25"/>
     <site name="attach_p7_t0" pos="0.2921 0.6439 0.0444" size="0.008" rgba="0 1 1 0.25"/>
     <geom name="g_v7_stub_0" type="capsule" fromto="0.285 0.651 0.056 0.308 0.628 0.018" size="0.004" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
@@ -632,7 +632,7 @@
       <geom name="g_v8_vine" type="mesh" mesh="m_v8_vine" material="mat_vine" contype="0" conaffinity="0"/>
       <geom name="g_v8_leaf" type="mesh" mesh="m_v8_leaf" material="mat_leaf" contype="0" conaffinity="0"/>
       <geom name="g_v8_blossom" type="mesh" mesh="m_v8_blossom" material="mat_blossom" contype="0" conaffinity="0"/>
-      <geom name="g_v8_stem" type="cylinder" pos="1.022 1.383 0.147" quat="0.61217 0.60695 -0.50681 0.00000" size="0.02 0.971" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
+      <geom name="g_v8_stem" type="cylinder" pos="1.022 1.383 0.147" quat="0.61217 0.60695 -0.50681 0.00000" size="0.014 0.971" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
       <geom name="g_v8_line" type="cylinder" pos="1.624 2.252 0.390" size="0.002 0.148" quat="0.70711 -0.70711 0.00000 0.00000" rgba="0.25 0.25 0.25 1" contype="0" conaffinity="0"/>
     <site name="cut_p8_t0" pos="0.4752 0.6936 -0.0563" size="0.01" rgba="1 0 1 0.25"/>
     <site name="attach_p8_t0" pos="0.4619 0.7125 -0.0794" size="0.008" rgba="0 1 1 0.25"/>
@@ -651,7 +651,7 @@
       <geom name="g_v9_vine" type="mesh" mesh="m_v9_vine" material="mat_vine" contype="0" conaffinity="0"/>
       <geom name="g_v9_leaf" type="mesh" mesh="m_v9_leaf" material="mat_leaf" contype="0" conaffinity="0"/>
       <geom name="g_v9_blossom" type="mesh" mesh="m_v9_blossom" material="mat_blossom" contype="0" conaffinity="0"/>
-      <geom name="g_v9_stem" type="cylinder" pos="0.841 1.520 0.075" quat="0.66263 0.66654 -0.34153 0.00000" size="0.02 1.109" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
+      <geom name="g_v9_stem" type="cylinder" pos="0.841 1.520 0.075" quat="0.66263 0.66654 -0.34153 0.00000" size="0.014 1.109" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
     <site name="cut_p9_t0" pos="0.3943 0.6059 -0.0267" size="0.01" rgba="1 0 1 0.25"/>
     <site name="attach_p9_t0" pos="0.3788 0.6171 -0.0498" size="0.008" rgba="0 1 1 0.25"/>
     <geom name="g_v9_stub_0" type="capsule" fromto="0.371 0.623 -0.061 0.397 0.604 -0.023" size="0.004" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>
