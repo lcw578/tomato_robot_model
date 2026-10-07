@@ -225,8 +225,31 @@ class Picker:
             self.stage = 'UNREACHABLE'
             return log
         self.stage = 'CLOSE & CUT'
+        # 剪切判据 (确定性几何): 果柄线段 (attach->果簇) 与夹爪剪切区盒相交
+        # 盒 (gear 系): 轴向 [0.01, 0.115] (齿轮回转面到指端), 径向距工具轴 <= 0.026
+        # (= 张开口 52mm 的一半 —— 果柄能落入张开的夹爪内部, 闭合即剪到)
+        R_g = d.xmat[self.tcp].reshape(3, 3)
+        p_g = d.xpos[self.tcp]                            # gear 原点 (世界)
+        att = d.site_xpos[m.site(f'attach_p{truss.split("_")[0]}_t{truss.split("_")[1]}').id]
+        seg_w = np.array([att, d.xipos[tr_body]])        # 果柄线段 (世界)
+        seg_g = (R_g.T @ (seg_w - p_g).T).T              # 变换到 gear 系
+        hit = False
+        for tt in np.linspace(0, 1, 25):
+            q = seg_g[0] * (1 - tt) + seg_g[1] * tt
+            if 0.01 <= q[2] <= 0.115 and np.hypot(q[0], q[1]) <= 0.026:
+                hit = True
+                break
+        log['shear_hit'] = bool(hit)
+        if not hit:
+            # 空剪: 果柄未落入剪切区, 果串留在植株上
+            self.stage = 'SHEAR MISS'
+            self.gear(GEAR_CLOSED, steps=200)
+            self.gear(GEAR_HOME, steps=200)
+            log['result'] = 'shear_miss'
+            return log
         # 闭爪 + weld 切换: 先把"当前相对位姿"写进 grip weld 再激活 (默认 relpose
-        # 是编译零位下的, 直接激活会把果串猛拽走)
+        # 是编译零位下的, 直接激活会把果串猛拽走); torquescale=0 = 点抓
+        # (只约束锚点平移, 果串在重力下绕剪切点自由垂挂摆动 —— 与真机一致)
         hold, grip = self.eq_ids(truss)
         base_id = m.body('base_link').id
         R1 = d.xmat[base_id].reshape(3, 3)
@@ -237,26 +260,26 @@ class Picker:
         mujoco.mju_mat2Quat(q_rel, R_rel.reshape(9))
         m.eq_data[grip][3:6] = p_rel
         m.eq_data[grip][6:10] = q_rel
+        m.eq_data[grip][10] = 0.0            # 点抓: 旋转约束归零
         d.eq_active[grip] = 1
         d.eq_active[hold] = 0
         self.gear(GEAR_CLOSED)
         log['result'] = 'cut'
         if snap:
             self._snap('_cut')
-        # 剪断后果串垂挂在爪下 (论文 Figure 18d-e): 运输全程保持工具竖直
+        # 剪断后果串垂挂在爪下 (论文 Figure 18d-e): 运输全程保持工具竖直向上
         self.stage = 'TRANSPORT TO BASKET'
         DOWN = np.array([0.0, 0.0, -1.0])
         UP = np.array([0.0, 0.0, 1.0])
-        self.goto(approach, axis_target=DOWN)
+        wp_back = cut - nrm * 0.12 + np.array([0, 0, 0.03])   # 沿法线退出冠层
+        self.goto(wp_back, iters=400, axis_target=UP)
         bw = self.basket_above()
-        okT, eT = self.goto(bw, iters=400, axis_target=DOWN)
+        okT, eT = self.goto(bw, iters=400, axis_target=UP)
         bid = m.body(f'truss_{truss.split("_")[0]}_{truss.split("_")[1]}').id
-        # 转腕使工具竖直向下 -> 果串像铅锤一样垂挂 (水平果串无法横着放进浅筐)
-        self.point_tool_down()
         mouth_z = bw[2] - 0.22
         bwlo = bw.copy()
-        bwlo[2] = mouth_z + 0.09      # 果串(长~0.25)下端贴筐底, 全部位于内腔
-        self.goto(bwlo, iters=250, axis_target=DOWN)
+        bwlo[2] = mouth_z + 0.09      # 垂挂果串(长~0.25)下端贴筐底, 全部位于内腔
+        self.goto(bwlo, iters=250, axis_target=UP)
         self.stage = 'RELEASE'
         # 原地慢开爪; 在最终释放位姿上迭代对准 (此后到释放前无任何运动)
         self.gear(GEAR_HOME, steps=400)
@@ -272,7 +295,7 @@ class Picker:
                 corr *= 0.10 / np.linalg.norm(corr)
             bw2 = bwlo.copy()
             bw2[:2] -= corr
-            self.goto(bw2, axis_target=DOWN)
+            self.goto(bw2, axis_target=UP)
         log['transport_err'] = round(eT, 4)
         # 释放: 原地解除约束, 果串竖直落筐底; 之后手臂保持完全静止
         d.eq_active[grip] = 0

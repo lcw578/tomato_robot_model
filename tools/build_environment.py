@@ -15,14 +15,18 @@
 用法: python3 tools/build_environment.py [--flat-colors]
   --flat-colors: 材质不带纹理 (UV 异常时的退路)
 """
-import json, os, re, shutil, subprocess, sys
+import json, os, re, shutil, struct, subprocess, sys
 import numpy as np
+
+sys.path.insert(0, '/data/robot_assembly/tools')
+from geomlib import load_stl
 
 XML = '/data/robot_assembly/model/tomato_picker.xml'
 OUT_DIR = '/data/robot_assembly/meshes/env'
 TEX_DIR = f'{OUT_DIR}/tex'
 PLANT_DIR = f'{OUT_DIR}/plants'
 FARM = '/home/lcw/aoc_tomato_farm'
+CAD_MESH = '/data/robot_model_urdf/local_mukr9r1p_iz75v8_urdf_stl/meshes'
 TEX_SRC = f'{FARM}/asset_extract/out'
 
 VARIANTS = [f'v{i}' for i in range(10)]          # 10 株 = 每侧 5 株
@@ -161,21 +165,22 @@ def prep_variant(vname):
         t = trusses[k]
         sel = tr_of_face == ki
         faces = [f for f, s2 in zip(flist, sel) if s2]
-        # 顶点减质心: 网格必须以 body 原点为中心, 否则 MuJoCo 的"按授权位置补偿"
-        # 会把渲染/碰撞放到双倍偏移处 (果梗错位的根源)
-        emit_obj(f'{PLANT_DIR}/{vname}_truss{k}.obj', vs - t['centroid'], vts, faces)
-        ctr = t['centroid']
         ab = axis_b - axis_a
+        ctr = t['centroid']
         tt = np.clip(np.dot(ctr - axis_a, ab) / np.dot(ab, ab), 0, 1)
         attach = axis_a + tt * ab
         dirc = ctr - attach
         dist = max(np.linalg.norm(dirc), 1e-9)
         dirc /= dist
-        cut = attach + dirc * max(dist * 0.30, 0.03)   # 果柄内 1/3 处 (论文式剪切点, 避开冠层深处)
+        cut = attach + dirc * max(dist * 0.30, 0.03)   # 果柄内 1/3 处 (论文式剪切点)
+        # 果串 body 原点 = 剪切点 (torquescale=0 点抓的枢轴): 网格/球均相对剪切点,
+        # 否则 MuJoCo 的"按授权位置补偿"会把渲染/碰撞放到双倍偏移处
+        emit_obj(f'{PLANT_DIR}/{vname}_truss{k}.obj', vs - cut, vts, faces)
         # 碰撞: 每颗果实一个真尺寸球 (按 marker), 直径小于指间距, 不会被指笼关住
-        spheres = [(rel, FRUIT_R * 1.9) for rel in (t['markers'] - ctr)]
-        out['trusses'].append(dict(k=k, pos=ctr, mesh=f'{vname}_truss{k}', rip=t['rip'],
-                                   spheres=spheres, cut=cut, attach=attach, dirc=dirc))
+        spheres = [(rel, FRUIT_R * 1.9) for rel in (t['markers'] - cut)]
+        out['trusses'].append(dict(k=k, pos=cut, mesh=f'{vname}_truss{k}', rip=t['rip'],
+                                   spheres=spheres, cut=cut, attach=attach, dirc=dirc,
+                                   ctr_rel=ctr - cut))
     return out
 
 # ---------------------------------------------------------------- 材质声明
@@ -222,8 +227,8 @@ for p, vname in enumerate(VARIANTS):
             f'<geom name="g_tr{truss_idx}_s{s}" type="sphere" pos="{o[0]:.3f} {o[1]:.3f} {o[2]:.3f}" '
             f'size="{r:.3f}" contype="2" conaffinity="1" rgba="0 0 0 0"/>'
             for s, (o, r) in enumerate(t['spheres']))
-        ped_a = t['cut'] - t['pos']             # 柄梢(剪切点): 剪断后果串带走外段
-        ped_b = np.zeros(3)                     # 到果簇中心
+        ped_a = np.zeros(3)                     # 柄根 = 剪切点 (body 原点)
+        ped_b = t['ctr_rel']                    # 柄梢: 果簇质心方向
         if np.linalg.norm(ped_a - ped_b) < 0.02:   # 极短果柄: 保证胶囊最小长度
             ped_a = -t['dirc'] * 0.02
         assets.append(f'    <mesh name="m_{t["mesh"]}" file="meshes/env/plants/{t["mesh"]}.obj"/>')
@@ -232,8 +237,9 @@ for p, vname in enumerate(VARIANTS):
         truss_bodies.append(
             f'  <body name="truss_{p}_{t["k"]}" pos="{px + tx:.4f} {py - tz:.4f} {ty:.4f}" '
             f'quat="0.70710678 0.70710678 0 0">\n'
-            f'    <freejoint name="j_truss_{p}_{t["k"]}"/>\n'
-            f'    <inertial pos="0 0 0" mass="{TRUSS_MASS}" diaginertia="0.0015 0.0015 0.0008"/>\n'
+            f'    <joint name="j_truss_{p}_{t["k"]}" type="free" damping="0.02"/>\n'
+            f'    <inertial pos="{t["ctr_rel"][0]:.4f} {t["ctr_rel"][1]:.4f} {t["ctr_rel"][2]:.4f}" '
+            f'mass="{TRUSS_MASS}" diaginertia="0.0015 0.0015 0.0008"/>\n'
             f'    <geom name="g_tr{truss_idx}_mesh" type="mesh" mesh="m_{t["mesh"]}" '
             f'material="mat_{t["rip"]}" '
             f'contype="0" conaffinity="0"/>\n'
@@ -246,6 +252,9 @@ for p, vname in enumerate(VARIANTS):
         cut = t['cut']
         body_lines.append(f'    <site name="cut_p{p}_t{t["k"]}" pos="{cut[0]:.4f} {cut[1]:.4f} '
                           f'{cut[2]:.4f}" size="0.01" rgba="1 0 1 0.25"/>')
+        att = t['attach']
+        body_lines.append(f'    <site name="attach_p{p}_t{t["k"]}" pos="{att[0]:.4f} {att[1]:.4f} '
+                          f'{att[2]:.4f}" size="0.008" rgba="0 1 1 0.25"/>')
         aa = t['attach'] - t['dirc'] * 0.015
         ab2 = t['cut'] + t['dirc'] * 0.005
         body_lines.append(f'    <geom name="g_{vname}_stub_{t["k"]}" type="capsule" '
@@ -264,8 +273,22 @@ for p, vname in enumerate(VARIANTS):
 
 # ---------------------------------------------------------------- 轨道
 for nm, pid in PIPE_STL:
-    shutil.copy(f'/data/robot_model_urdf/local_mukr9r1p_iz75v8_urdf_stl/meshes/{pid}_solid_{pid[5:]}.stl',
-                f'{OUT_DIR}/{nm}.stl')
+    # 预居中: 顶点减去顶点质心 -> 编译后 mesh_pos≈0, geom pos 即为管子中心
+    # (V 系授权偏移若不消除, 平铺会整体埋入地下 0.4m 且 y 镜像)
+    v, faces = load_stl(f'{CAD_MESH}/{pid}_solid_{pid[5:]}.stl')
+    ctr = v[np.unique(faces.ravel())].mean(0)
+    vc = v - ctr
+    tris = vc[faces]
+    with open(f'{OUT_DIR}/{nm}.stl', 'wb') as fh:
+        fh.write(b'\0' * 80)
+        fh.write(struct.pack('<I', len(tris)))
+        for tri in tris:
+            n = np.cross(tri[1] - tri[0], tri[2] - tri[0])
+            nn = n / np.linalg.norm(n) if np.linalg.norm(n) > 0 else np.zeros(3)
+            fh.write(struct.pack('<3f', *nn.astype(np.float32)))
+            for pnt in tri:
+                fh.write(struct.pack('<3f', *pnt.astype(np.float32)))
+            fh.write(struct.pack('<H', 0))
     assets.append(f'    <mesh name="m_{nm}" file="meshes/env/{nm}.stl" scale="0.001 0.001 0.001"/>')
 pipe_lines = []
 pipe_lines.append('  <geom name="g_catch_plane" type="plane" pos="0 0 -0.5" size="12 12 0.1" '
@@ -299,9 +322,16 @@ src = inject(src, 'EQ', '  </equality>', '\n'.join(welds))
 def extend_keys(text):
     def fix(m):
         head, q, ctrl = m.group(1), m.group(2).split(), m.group(3).split()
+        # 展平: 每串 = pos(3) + quat 字符串再拆 4 个 token (共 7)
+        tvals = []
+        for vals in truss_qpos:
+            tvals += [vals[0], vals[1], vals[2]] + vals[3].split()
         if len(q) == 20:
             # 环境 WORLD 块注入在 machine 之前: 果串 freejoint 的 qpos 排在最前 280 位
-            q = [v for vals in truss_qpos for v in vals] + q
+            q = tvals + q
+        elif len(q) == 20 + len(tvals):
+            # 已扩写过 (幂等重跑): 原位更新果串段 (几何变了必须刷新)
+            q[:len(tvals)] = tvals
         return f'{head}qpos="{" ".join(q)}" ctrl="{" ".join(ctrl)}"/>'
     return re.sub(r'(<key name="(?:home|lift_high)" )qpos="([^"]*)" ctrl="([^"]*)"/>', fix, text)
 
