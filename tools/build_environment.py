@@ -100,6 +100,41 @@ def quat_z_to(d):
     return '%.5f %.5f %.5f %.5f' % (float(w), float(ax[0]) * float(h),
                                     float(ax[1]) * float(h), float(ax[2]) * float(h))
 
+
+
+def fit_cane(vname, px, py, theta_deg, R=0.06):
+    """拟合真实藤轴: 过基点假设线 + 管内点无中心 SVD 精修 (build_vine 的藤为
+    从基点出发的直圆柱, theta 来自 params.json; 见 model_notes 2026-10-01)。
+    返回 (base, dir, z_top) 世界系; 失败返回 None。"""
+    vs = []
+    for ln in open(f'{PLANT_DIR}/{vname}_vine.obj'):
+        if ln.startswith('v '):
+            vs.append([float(x) for x in ln.split()[1:4]])
+    if len(vs) < 100:
+        return None
+    V = np.array(vs)
+    W = np.stack([V[:, 0], -V[:, 2], V[:, 1]], axis=1)   # OBJ->世界: (x, -z, y)
+    W[:, 0] += px
+    W[:, 1] += py
+    base = np.array([px, py, 0.0])
+    th = np.radians(theta_deg)
+    d_dir = np.array([np.sin(th), 0.0, np.cos(th)])
+    for _ in range(3):
+        t = (W - base) @ d_dir
+        perp = np.linalg.norm(W - base - np.outer(t, d_dir), axis=1)
+        inl = (perp < R) & (t > 0.05)
+        if inl.sum() < 100:
+            return None
+        _, _, vt = np.linalg.svd(W[inl] - base, full_matrices=False)
+        d_dir = vt[0]
+        if d_dir[2] < 0:
+            d_dir = -d_dir
+    t = (W - base) @ d_dir
+    perp = np.linalg.norm(W - base - np.outer(t, d_dir), axis=1)
+    inl = (perp < R) & (t > 0.05)
+    z_top = float(W[inl][:, 2].max())
+    return base, d_dir, z_top
+
 # ---------------------------------------------------------------- 单株处理
 def prep_variant(vname):
     vdir = f'{FARM}/asset_extract/out/variants/{vname}'
@@ -202,26 +237,38 @@ assets += mat_block('mat_blossom', 'blo1', '0.95 0.85 0.30 1')
 
 # ---------------------------------------------------------------- 植株/果串
 plant_bodies, truss_bodies, welds, truss_qpos = [], [], [], []
+world_extra = []   # 世界级: 藤胶囊 + 吊蔓线
 truss_idx = 0
 for p, vname in enumerate(VARIANTS):
     px, py = X_POS[p % 5], ROW_Y[p // 5]
     out = prep_variant(vname)
+    # 真实藤轴拟合 -> 世界级碰撞胶囊 (r=0.022, 透明) + 吊蔓线
+    import json as _json2
+    _pr = _json2.load(open(f'{FARM}/asset_extract/out/variants/{vname}/params.json'))
+    fit = fit_cane(vname, px, py, _pr['theta_deg'])
+    if fit is not None:
+        base, dirv, z_top = fit
+        top_pt = base + dirv * (z_top / dirv[2])
+        world_extra.append(
+            f'  <geom name="g_v{p}_stem" type="capsule" '
+            f'fromto="{base[0]:.4f} {base[1]:.4f} 0 {top_pt[0]:.4f} {top_pt[1]:.4f} {top_pt[2]:.4f}" '
+            f'size="0.022" rgba="0 0 0 0" contype="4" conaffinity="1"/>')
+        if z_top < 2.35:
+            world_extra.append(
+                f'  <geom name="g_v{p}_line" type="cylinder" '
+                f'pos="{top_pt[0]:.3f} {top_pt[1]:.3f} {(z_top + 2.4) / 2:.3f}" '
+                f'size="0.002 {(2.4 - z_top) / 2:.3f}" rgba="0.25 0.25 0.25 1" '
+                f'contype="0" conaffinity="0"/>')
+        print(f'  {vname}: 藤轴拟合 theta_fit={np.degrees(np.arccos(dirv[2])):.1f}°(参数{_pr["theta_deg"]:.1f}°) z_top={z_top:.2f}')
+    else:
+        print(f'  {vname}: 藤轴拟合失败! (无碰撞胶囊)')
     g_lines = []
     for mesh, mat in out['geoms']:
         assets.append(f'    <mesh name="m_{mesh}" file="meshes/env/plants/{mesh}.obj"/>')
         g_lines.append(f'      <geom name="g_{mesh}" type="mesh" mesh="m_{mesh}" '
                        f'material="mat_{mat}" contype="0" conaffinity="0"/>')
     a_a, a_b = out['axis']
-    mid, half = (a_a + a_b) / 2, np.linalg.norm(a_b - a_a) / 2
-    q = quat_z_to(a_b - a_a)
-    g_lines.append(f'      <geom name="g_{vname}_stem" type="cylinder" pos="{mid[0]:.3f} {mid[1]:.3f} {mid[2]:.3f}" '
-                   f'quat="{q}" size="0.014 {half:.3f}" rgba="0.36 0.25 0.12 1" contype="4" conaffinity="1"/>')
-    top = a_b if a_b[1] > a_a[1] else a_a            # OBJ 系里 "上" 是 +y
-    if top[1] < 2.35:                                # 藤顶低于吊线设计高才补吊蔓线
-        g_lines.append(f'      <geom name="g_{vname}_line" type="cylinder" pos="{top[0]:.3f} '
-                       f'{top[1] + (2.4 - top[1]) / 2:.3f} {top[2]:.3f}" size="0.002 {(2.4 - top[1]) / 2:.3f}" '
-                       f'quat="{quat_z_to([0, 1, 0])}" rgba="0.25 0.25 0.25 1" contype="0" conaffinity="0"/>')
-    print(f'  {vname}: 藤顶 OBJ y={top[1]:.2f} (世界高≈{top[1]:.2f}m)')
+    # 主茎碰撞胶囊与世界系吊蔓线: 移到主循环按"真实藤轴"拟合生成 (见 fit_cane)
     # 植株 body: quat 把 OBJ 系 (Y-up) 转到世界系 (Z-up), world = R@obj, R(x,y,z)=(x,-z,y)
     body_lines = [f'  <body name="plant_{p}" pos="{px} {py} 0" quat="0.70710678 0.70710678 0 0">'] + g_lines
     for t in out['trusses']:
@@ -319,7 +366,7 @@ def inject(text, tag, anchor, payload):
 
 src = inject(src, 'ASSET', '  </asset>', '\n'.join(assets))
 src = inject(src, 'WORLD', '  <body name="machine"',
-             '\n'.join(pipe_lines + plant_bodies + truss_bodies))
+             '\n'.join(pipe_lines + plant_bodies + truss_bodies + world_extra))
 src = inject(src, 'EQ', '  </equality>', '\n'.join(welds))
 
 def extend_keys(text):

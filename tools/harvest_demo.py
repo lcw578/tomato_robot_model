@@ -420,11 +420,17 @@ class Picker:
 
         log = dict(truss=truss, lift=round(lift, 3), cut=np.round(cut, 3).tolist())
         self.stage = 'LIFT & APPROACH'
+        # approach = 开放空间路点 (纯位置, 轴对齐在此非必要且易无解);
+        # B = 抓取位姿 (轴对齐: 果柄沿工具轴, 主茎落在指尖之外)
+        okC, eC = self.goto(approach, iters=600)
         if axis_grasp:
-            okC, eC = self.goto(approach, iters=600, axis_target=dvec)
             okB, eB = self.goto(cut - dvec * 0.015, iters=800, axis_target=dvec)
+            if not okB:
+                # 轴对齐对该株几何无解 (可达性约束) -> 回退纯位置, 记录标注
+                print('  [harvest] 轴对齐抓取无解, 回退纯位置 B', flush=True)
+                okB, eB = self.goto(cut - dvec * 0.015, iters=800)
+                log['axis_grasp'] = False
         else:
-            okC, eC = self.goto(approach, iters=600)
             okB, eB = self.goto(cut + to_robot * 0.02, iters=800)   # 停在剪切点前 2cm
         log['approach_err'] = round(eC, 4)
         log['reach_err'] = round(eB, 4)
