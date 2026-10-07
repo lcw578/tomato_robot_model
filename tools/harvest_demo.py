@@ -44,10 +44,14 @@ class Picker:
         self.gear_a = m.actuator('gear_servo').id
         self.lift_a = m.actuator('lift_servo').id
         self.lift_j = m.joint('lift_joint').id
+        self.machine_a = m.actuator('machine_servo').id
+        self.machine_q = m.jnt_qposadr[m.joint('machine_slide').id]
+        self.wheel_l = m.actuator('act_left_servo').id
+        self.wheel_r = m.actuator('act_right_servo').id
         self.tcp = m.body('gear_link').id
         # TCP = 指尖中点: 沿工具轴 (gear 系 +z, 即腕部相机光轴方向) 偏 0.10m
         self.tcp_off = np.array([0.0, 0.0, 0.10])
-        self.home_ctrl = np.array([-0.474, 0, 0, -1.59, -0.0611, 1.5, -1.59, -1.65, 3.05, 0.0])
+        self.home_ctrl = np.array([-0.474, 0, 0, -1.59, -0.0611, 1.5, -1.59, -1.65, 3.05, 0.0, 0.0])
         self.trusses = self._enumerate_trusses()
         # 碰撞规划: 臂几何集 (含夹爪/相机) 与禁碰集 (植株主茎)
         import re as _re
@@ -81,9 +85,12 @@ class Picker:
 
     def reset(self, lift=0.0):
         m, d = self.m, self.d
+        x_keep = float(d.qpos[self.machine_q])     # 保留底盘当前位置 (关键帧复位会拉回 x=0)
         mujoco.mj_resetDataKeyframe(m, d, 0)
+        d.qpos[self.machine_q] = x_keep
         d.ctrl[:] = self.home_ctrl
         d.ctrl[self.lift_a] = lift
+        d.ctrl[self.machine_a] = x_keep
         self.cmd = None                            # 复位后命令重锚到实测 (断流重锚语义)
         mujoco.mj_forward(m, d)
 
@@ -154,7 +161,7 @@ class Picker:
                     _Jv, Jr = jac()
                     q = step(q, Jr, AXIS_W * axis * min(e_ang, 1.0), 5e-3, 0.05)
             # Phase B: 位置 + 姿态 (或纯位置)
-            for _ in range(iters):
+            for _ in range(iters * 2 if tgt_ax is not None else iters):
                 R, p = fk(q)
                 err = [target - p]
                 rot = False
@@ -178,8 +185,8 @@ class Picker:
                 Jv, Jr = jac()
                 J = np.vstack([Jv, Jr]) if rot else Jv
                 q = step(q, J, err, 5e-3, 0.05)
-            if tgt_ax is not None and best_e < 0.05:
-                return best_q          # 轴对齐解: 位置残差 <5cm 即接受 (沿轴偏移无害)
+            if tgt_ax is not None and best_e < 0.02:
+                return best_q          # 轴对齐解: 位置残差 <2cm 接受 (判据容差 26mm 内)
         if best_e > 0.05:
             return None
         return best_q
@@ -201,28 +208,34 @@ class Picker:
         return True
 
     def _seg_free(self, qa, qb, n=8, pen=0.003):
-        for t in np.linspace(0, 1, n + 1):
+        # 排除 t=0 端点: 抓取位姿允许轻微贴碰, 路径应从该状态可退出
+        for t in np.linspace(0, 1, n + 1)[1:]:
             if not self.collision_free(qa * (1 - t) + qb * t, pen=pen):
                 return False
         return True
 
-    def plan_path(self, q_goal, max_iter=2500, step=0.15):
+    def plan_path(self, q_goal, max_iter=6000, step=0.15, time_budget=8.0):
         """返回通往 q_goal 的无碰航点列表 (关节空间); 直线无碰则直达。"""
         q0 = self.cmd.copy()
         if self._seg_free(q0, q_goal):
             return [q_goal]
+        import time as _time
+        _t0 = _time.time()
         rng = np.random.default_rng(0)
-        nodes = [q0]
+        cap = max_iter + 4
+        nodes = np.zeros((cap, 6))                   # 预分配 (原 list+每轮 np.array 为 O(n^2) 拷贝)
+        nodes[0] = q0
+        n_nodes = 1
         parent = [-1]
         bounds = 2.9
         for i in range(max_iter):
-            if i % 4 == 3:
-                q_rand = q_goal + rng.normal(0, 0.25, 6)         # 偏置目标
+            if (i & 63) == 0 and _time.time() - _t0 > time_budget:
+                break
+            if i % 2 == 1:
+                q_rand = q_goal + rng.normal(0, 0.25, 6)         # 50% 目标偏置
             else:
                 q_rand = rng.uniform(-bounds, bounds, 6)
-            arr = np.array(nodes)
-            d = np.linalg.norm(arr - q_rand, axis=1)
-            j = int(np.argmin(d))
+            j = int(np.argmin(np.linalg.norm(nodes[:n_nodes] - q_rand, axis=1)))
             q_near = nodes[j]
             v = q_rand - q_near
             L = np.linalg.norm(v)
@@ -230,18 +243,24 @@ class Picker:
                 continue
             q_new = q_near + v / L * min(step, L)
             q_new = np.clip(q_new, -(3.0543 - JOINT_MARGIN), 3.0543 - JOINT_MARGIN)
-            if not self._seg_free(q_near, q_new, n=4):
+            if not self._seg_free(q_near, q_new, n=3):
                 continue
-            nodes.append(q_new); parent.append(j)
+            nodes[n_nodes] = q_new; parent.append(j); n_nodes += 1
             # 目标连接段放宽到 12mm: 剪切位姿本就贴近茎秆 (真机轻触); 路径段仍 3mm
-            if np.linalg.norm(q_new - q_goal) < 0.35 and \
+            if np.linalg.norm(q_new - q_goal) < 0.6 and \
                     self._seg_free(q_new, q_goal, n=8, pen=0.032):
-                nodes.append(q_goal); parent.append(len(nodes) - 2)
+                nodes[n_nodes] = q_goal; parent.append(n_nodes - 1); n_nodes += 1
                 path = []
-                k = len(nodes) - 1
+                k = n_nodes - 1
                 while k != -1:
-                    path.append(nodes[k]); k = parent[k]
-                return path[::-1]
+                    path.append(nodes[k].copy()); k = parent[k]
+                path = path[::-1]
+                self._last_path = path
+                return path
+        arr = np.array(nodes)
+        dmin = float(np.min(np.linalg.norm(arr - q_goal, axis=1)))
+        print('  [plan] RRT %d 迭代未连通: 节点=%d  离目标最近=%.3f  直线碰撞=%s' % (
+            max_iter, len(nodes), dmin, not self._seg_free(q0, q_goal)))
         return None          # 规划失败 (被植株完全挡住)
 
     def tcp_pos(self):
@@ -283,8 +302,16 @@ class Picker:
 
     def _walk_to(self, q_target, speed=0.8):
         """关节空间匀速插值走 cmd (积分语义, 伺服跟踪)。"""
+        guard = 0
         while True:
+            guard += 1
+            if guard > 60000:      # 看门狗: 防死循环 (NaN 目标等)
+                print('  [walk] 看门狗中止 tgt=%s' % np.round(q_target, 2), flush=True)
+                break
             remain = q_target - self.cmd
+            if not np.all(np.isfinite(remain)):
+                print('  [walk] 目标非法(NaN/inf), 中止', flush=True)
+                break
             if np.max(np.abs(remain)) < 1e-3:
                 break
             step = np.clip(remain, -VMAX * self.m.opt.timestep * speed,
@@ -297,17 +324,51 @@ class Picker:
             if self.tick:
                 self.tick()
 
+    def goto_reverse(self, speed=0.8):
+        """沿上一条规划路径反向退回 (抓取位姿常在自己植株茎秆的包围袋里, 原路是唯一通道)。"""
+        path = getattr(self, '_last_path', None)
+        if not path:
+            return False
+        for wp in path[::-1]:
+            self._walk_to(wp, speed=speed)
+        self._last_path = None
+        return True
+
     def goto(self, target, iters=300, axis_target=None, speed=0.8):
         """规划-执行: 离线解算 -> RRT 无碰规划 (直线优先) -> 沿航点关节空间插值。"""
         target = np.asarray(target, dtype=float)
         if self.cmd is None:
             self.cmd = self.d.qpos[self.qadr].copy()   # 命令重锚到实测
-        q_t = self.solve_ik(target, iters=iters, axis_target=axis_target)
+        # 轴对齐模式: 目标补偿迭代 —— 按测量残差修正解算目标 (消系统性局部偏差)
+        if axis_target is not None:
+            tgt = target.copy()
+            q_best, e_best = None, 1e9
+            for _round in range(6):
+                q = self.solve_ik(tgt, iters=iters, axis_target=axis_target)
+                if q is None:
+                    break
+                self._fk.qpos[:] = self.d.qpos
+                self._fk.qpos[self.qadr] = q
+                mujoco.mj_forward(self.m, self._fk)
+                R = self._fk.xmat[self.tcp].reshape(3, 3)
+                p = self._fk.xpos[self.tcp] + R @ self.tcp_off
+                e_vec = target - p
+                if np.linalg.norm(e_vec) < e_best:
+                    e_best, q_best = float(np.linalg.norm(e_vec)), q.copy()
+                if e_best < 0.008:
+                    break
+                tgt = tgt + e_vec              # 补偿: 下轮目标加上残差
+            q_t = q_best
+        else:
+            q_t = self.solve_ik(target, iters=iters)
         if q_t is None:
+            print('  [goto] 求解失败 target=%s axis=%s' % (np.round(target, 3), axis_target is not None))
             return False, float('inf')
         path = self.plan_path(q_t)
         if path is None:
+            print('  [goto] 规划失败 (被植株挡住)')
             return False, float('inf')                 # 被植株挡住, 诚实失败
+        print('  [goto] wp=%d' % len(path), flush=True)
         for wp in path:
             self._walk_to(wp, speed=speed)
         mujoco.mj_forward(self.m, self.d)
@@ -327,7 +388,7 @@ class Picker:
         grip = self.m.equality(f'grip_{truss}').id
         return hold, grip
 
-    def harvest(self, truss, snap=None):
+    def harvest(self, truss, snap=None, axis_grasp=False):
         """对一串果执行完整采集. truss 形如 '7_1'."""
         m, d = self.m, self.d
         site = f'cut_p{truss.split("_")[0]}_t{truss.split("_")[1]}'
@@ -359,8 +420,12 @@ class Picker:
 
         log = dict(truss=truss, lift=round(lift, 3), cut=np.round(cut, 3).tolist())
         self.stage = 'LIFT & APPROACH'
-        okC, eC = self.goto(approach, iters=600)
-        okB, eB = self.goto(cut + to_robot * 0.02, iters=800)   # 停在剪切点前 2cm
+        if axis_grasp:
+            okC, eC = self.goto(approach, iters=600, axis_target=dvec)
+            okB, eB = self.goto(cut - dvec * 0.015, iters=800, axis_target=dvec)
+        else:
+            okC, eC = self.goto(approach, iters=600)
+            okB, eB = self.goto(cut + to_robot * 0.02, iters=800)   # 停在剪切点前 2cm
         log['approach_err'] = round(eC, 4)
         log['reach_err'] = round(eB, 4)
         # B 点成败由任务判据决定 (果柄是否落入剪切区), 而非毫米级 TCP 误差 ——
@@ -443,8 +508,7 @@ class Picker:
         self.stage = 'TRANSPORT TO BASKET'
         DOWN = np.array([0.0, 0.0, -1.0])
         UP = np.array([0.0, 0.0, 1.0])
-        wp_back = cut - nrm * 0.12 + np.array([0, 0, 0.03])   # 沿法线退出冠层
-        self.goto(wp_back, iters=400)
+        self.goto_reverse()   # 沿原规划路径倒回 (唯一通道)
         bw = self.basket_above()
         okT, eT = self.goto(bw, iters=800)
         bid = m.body(f'truss_{truss.split("_")[0]}_{truss.split("_")[1]}').id
@@ -485,6 +549,56 @@ class Picker:
         log['result'] = 'in_basket' if inside else 'dropped'
         return log
 
+    # ---------- 底盘移动 (轨道平移, 运动学语义) ----------
+    def drive_to(self, x, speed=0.12):
+        """沿轨道平移到站点 x (smoothstep 速度剖面, 驱动轮同步旋转做视觉)。"""
+        x0 = float(self.d.qpos[self.machine_q])
+        dist = x - x0
+        if abs(dist) < 1e-3:
+            return 0.0
+        dt = self.m.opt.timestep * 2
+        n = int(abs(dist) / (speed * dt)) + 1
+        r = 0.1                                  # 驱动轮半径 (视觉滚转)
+        sgn = 1.0 if dist > 0 else -1.0
+        for i in range(n):
+            t = (i + 1) / n
+            u = t * t * (3 - 2 * t)              # smoothstep
+            self.d.ctrl[self.machine_a] = x0 + dist * u
+            self.d.ctrl[self.wheel_l] = sgn * speed / r
+            self.d.ctrl[self.wheel_r] = sgn * speed / r
+            mujoco.mj_step(self.m, self.d)
+            mujoco.mj_step(self.m, self.d)
+            if self.tick:
+                self.tick()
+        self.d.ctrl[self.wheel_l] = 0.0
+        self.d.ctrl[self.wheel_r] = 0.0
+        mujoco.mj_forward(self.m, self.d)
+        return float(self.d.qpos[self.machine_q])
+
+    def pick_best_truss(self, z_lo=1.0, z_hi=1.55):
+        """真值选择: 成熟 + 高度带内 + 离所有主茎最远 (最好摘的一串)。"""
+        mujoco.mj_forward(self.m, self.d)
+        best = None
+        for t in self.trusses:
+            if not t['ripe']:
+                continue
+            cut = self.d.site_xpos[self.m.site(t['site']).id].copy()
+            if not (z_lo <= cut[2] <= z_hi):
+                continue
+            clear = 1e9
+            for gid in self.forbid_geoms:        # 主茎圆柱集
+                gp = self.d.geom_xpos[gid]
+                gm = self.d.geom_xmat[gid].reshape(3, 3)
+                axis = gm[:, 2]
+                half = self.m.geom_size[gid][1]
+                v = cut - gp
+                tt = float(np.clip(v @ axis, -half, half))
+                clear = min(clear, float(np.linalg.norm(v - tt * axis)))
+            score = (clear, -abs(cut[2] - 1.28))  # 离茎秆越远越好, 越靠近带中心越好
+            if best is None or (tuple(score) > tuple(best[0])):
+                best = (score, t['name'], cut, clear)
+        return best
+
     def basket_above(self, h=0.22):
         s = self.d.site_xpos[self.m.site('basket_site').id]
         return np.array([s[0], s[1], s[2] + h])
@@ -498,6 +612,26 @@ class Picker:
             r.close()
         except Exception:
             pass
+
+
+def run_chain(pk, z_lo=1.0, z_hi=1.55):
+    """链路验证: 真值挑最好摘的一串 -> 驶到最佳站点 -> 有碰撞环境下完成采摘。"""
+    best = pk.pick_best_truss(z_lo=z_lo, z_hi=z_hi)
+    if best is None:
+        print('无符合条件的成熟串')
+        return None
+    (clear, _), name, cut, c0 = best
+    station = float(np.clip(cut[0], -2.0, 2.0))
+    print('选定果串: %s  cut=%s  离主茎=%.3fm  站点 x=%.2f' % (
+        name, np.round(cut, 3).tolist(), clear, station))
+    pk.stage = 'DRIVE TO STATION'
+    x = pk.drive_to(station)
+    print('已到站 x=%.3f' % x)
+    log = pk.harvest(name, axis_grasp=True)
+    log['station'] = round(station, 3)
+    log['stem_clearance'] = round(c0, 3)
+    print(json.dumps(log, ensure_ascii=False, indent=1))
+    return log
 
 
 def reachability():
@@ -531,12 +665,16 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--target', default=None, help='果串名, 如 7_1; 默认挑最近成熟串')
     ap.add_argument('--reach', action='store_true')
+    ap.add_argument('--chain', action='store_true', help='链路验证: 驶到最佳站点摘一串')
     args = ap.parse_args()
     if args.reach:
         reachability()
         return
     pk = Picker()
     mujoco.mj_resetDataKeyframe(pk.m, pk.d, 0)
+    if args.chain:
+        run_chain(pk)
+        return
     mujoco.mj_forward(pk.m, pk.d)
     base = pk.d.xpos[pk.m.body('arm_base_mount').id]
     if args.target:

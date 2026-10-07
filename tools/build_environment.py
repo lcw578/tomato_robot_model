@@ -172,7 +172,7 @@ def prep_variant(vname):
         dirc = ctr - attach
         dist = max(np.linalg.norm(dirc), 1e-9)
         dirc /= dist
-        cut = attach + dirc * max(dist * 0.30, 0.03)   # 果柄内 1/3 处 (论文式剪切点)
+        cut = attach + dirc * max(dist * 0.55, 0.03)   # 果柄远段 ~铰链位 (论文 §4.5 最佳剪切位)
         # 果串 body 原点 = 剪切点 (torquescale=0 点抓的枢轴): 网格/球均相对剪切点,
         # 否则 MuJoCo 的"按授权位置补偿"会把渲染/碰撞放到双倍偏移处
         emit_obj(f'{PLANT_DIR}/{vname}_truss{k}.obj', vs - cut, vts, faces)
@@ -215,7 +215,7 @@ for p, vname in enumerate(VARIANTS):
     mid, half = (a_a + a_b) / 2, np.linalg.norm(a_b - a_a) / 2
     q = quat_z_to(a_b - a_a)
     g_lines.append(f'      <geom name="g_{vname}_stem" type="cylinder" pos="{mid[0]:.3f} {mid[1]:.3f} {mid[2]:.3f}" '
-                   f'quat="{q}" size="0.014 {half:.3f}" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>'  # 开关: 碰撞里程碑时改 4/1)
+                   f'quat="{q}" size="0.014 {half:.3f}" rgba="0.36 0.25 0.12 1" contype="4" conaffinity="1"/>')
     top = a_b if a_b[1] > a_a[1] else a_a            # OBJ 系里 "上" 是 +y
     if top[1] < 2.35:                                # 藤顶低于吊线设计高才补吊蔓线
         g_lines.append(f'      <geom name="g_{vname}_line" type="cylinder" pos="{top[0]:.3f} '
@@ -262,7 +262,7 @@ for p, vname in enumerate(VARIANTS):
         body_lines.append(f'    <geom name="g_{vname}_stub_{t["k"]}" type="capsule" '
                           f'fromto="{aa[0]:.3f} {aa[1]:.3f} {aa[2]:.3f} '
                           f'{ab2[0]:.3f} {ab2[1]:.3f} {ab2[2]:.3f}" size="0.004" '
-                          f'rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>'  # 开关: 碰撞里程碑时改 4/1)
+                          f'rgba="0.36 0.25 0.12 1" contype="4" conaffinity="1"/>')
         welds.append(f'  <weld name="hold_{p}_{t["k"]}" body1="plant_{p}" body2="truss_{p}_{t["k"]}" '
                      f'active="true" solref="0.005 1"/>')
         welds.append(f'  <weld name="grip_{p}_{t["k"]}" body1="base_link" body2="truss_{p}_{t["k"]}" '
@@ -328,10 +328,10 @@ def extend_keys(text):
         tvals = []
         for vals in truss_qpos:
             tvals += [vals[0], vals[1], vals[2]] + vals[3].split()
-        if len(q) == 20:
+        if len(q) == 21:
             # 环境 WORLD 块注入在 machine 之前: 果串 freejoint 的 qpos 排在最前 280 位
             q = tvals + q
-        elif len(q) == 20 + len(tvals):
+        elif len(q) == 21 + len(tvals):
             # 已扩写过 (幂等重跑): 原位更新果串段 (几何变了必须刷新)
             q[:len(tvals)] = tvals
         return f'{head}qpos="{" ".join(q)}" ctrl="{" ".join(ctrl)}"/>'

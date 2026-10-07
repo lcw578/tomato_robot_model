@@ -19,7 +19,7 @@ import mujoco
 import mujoco.viewer
 
 sys.path.insert(0, '/data/robot_assembly/tools')
-from harvest_demo import Picker, GEAR_HOME
+from harvest_demo import Picker, GEAR_HOME, run_chain
 
 
 def main():
@@ -29,6 +29,7 @@ def main():
     ap.add_argument('--no-follow', action='store_true')
     ap.add_argument('--follow', action='store_true', help='MP4 也用跟随视角 (默认固定机位)')
     ap.add_argument('--mp4', default=None, help='导出 MP4 (无显示器模式, 默认垄道端点固定机位)')
+    ap.add_argument('--chain', action='store_true', help='链路模式: 驶到最佳站点摘一串 (含底盘移动)')
     ap.add_argument('--azim', type=float, default=0.0)
     ap.add_argument('--elev', type=float, default=-14.0)
     ap.add_argument('--dist', type=float, default=4.2)
@@ -50,7 +51,10 @@ def main():
     print('目标果串:', target)
 
     if args.mp4:
-        W, H, FPS = 960, 540, 60
+        if args.chain:                 # 链路含行驶与长路径: 降分辨率+抽帧+提播放率
+            W, H, FPS, STRIDE = 640, 360, 90, 6
+        else:
+            W, H, FPS, STRIDE = 960, 540, 60, 1
         vw = cv2.VideoWriter(args.mp4, cv2.VideoWriter_fourcc(*'mp4v'), FPS, (W, H))
         r = mujoco.Renderer(pk.m, H, W)
         cam = mujoco.MjvCamera()
@@ -60,6 +64,9 @@ def main():
         cam.distance, cam.azimuth, cam.elevation = args.dist, args.azim, args.elev
 
         def tick():
+            tick.n += 1
+            if tick.n % STRIDE:
+                return
             if args.follow:                          # 跟随视角 (--follow)
                 lookat += 0.15 * (pk.tcp_pos() - lookat)
                 cam.lookat[:] = lookat
@@ -70,7 +77,7 @@ def main():
             vw.write(img)
         tick.n = 0
         pk.tick = tick
-        log = pk.harvest(target)
+        log = run_chain(pk) if args.chain else pk.harvest(target)
         r.close()
         vw.release()
         print('MP4 已保存:', args.mp4)
@@ -93,7 +100,7 @@ def main():
                 if late > 0:
                     time.sleep(min(late, 0.05))
         pk.tick = tick
-        log = pk.harvest(target)
+        log = run_chain(pk) if args.chain else pk.harvest(target)
         print('log:', log)
         print('流程结束, 查看器保持打开, Ctrl+C 退出')
         try:
