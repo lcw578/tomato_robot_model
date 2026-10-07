@@ -225,7 +225,7 @@ else:
 for i, ln in enumerate(lines):
     if '<position name="j6"' in ln:
         lines[i + 1:i + 1] = ['    <position name="lift_servo" joint="lift_joint" kp="20000" '
-                              'kv="600" ctrlrange="0 0.5" forcerange="-2500 2500"/>']
+                              'kv="1400" ctrlrange="0 0.5" forcerange="-2500 2500"/>']
         break
 else:
     sys.exit('未找到 j6 执行器行')

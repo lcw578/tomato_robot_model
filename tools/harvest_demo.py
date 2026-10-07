@@ -254,16 +254,43 @@ class Picker:
         base_id = m.body('base_link').id
         R1 = d.xmat[base_id].reshape(3, 3)
         R2 = d.xmat[tr_body].reshape(3, 3)
-        p_rel = R1.T @ (d.xpos[tr_body] - d.xpos[base_id])
-        R_rel = R1.T @ R2
-        q_rel = np.zeros(4)
-        mujoco.mju_mat2Quat(q_rel, R_rel.reshape(9))
-        m.eq_data[grip][3:6] = p_rel
-        m.eq_data[grip][6:10] = q_rel
-        m.eq_data[grip][10] = 0.0            # 点抓: 旋转约束归零
+        p_cur = R1.T @ (d.xpos[tr_body] - d.xpos[base_id])
+        q_cur = np.zeros(4)
+        mujoco.mju_mat2Quat(q_cur, (R1.T @ R2).reshape(9))
+        # 目标位姿: 果串铅垂垂挂于 TCP 正下方 (果柄竖直向下, 果簇在底)
+        L_out = float(np.linalg.norm(d.xipos[tr_body] - d.xpos[tr_body]))
+        v_w = (d.xipos[tr_body] - d.xpos[tr_body]) / max(L_out, 1e-9)   # 果串当前世界方向
+        ax_w = np.cross(v_w, np.array([0.0, 0.0, -1.0]))
+        sn = np.linalg.norm(ax_w)
+        ang = float(np.arccos(np.clip(v_w @ np.array([0.0, 0.0, -1.0]), -1, 1)))
+        q_d = np.zeros(4)
+        if sn > 1e-9:
+            mujoco.mju_axisAngle2Quat(q_d, ax_w / sn, ang)
+        else:
+            q_d[:] = [1, 0, 0, 0]
+        q_new = np.zeros(4)
+        mujoco.mju_mulQuat(q_new, q_d, q_cur)          # R2_new = R_delta @ R2
+        R2_new = np.zeros(9)
+        mujoco.mju_quat2Mat(R2_new, q_new)
+        p_new_w = self.tcp_pos()                        # 果串原点保持在 TCP (剪切点)
+        p_new = R1.T @ (p_new_w - d.xpos[base_id])
+        m.eq_data[grip][3:6] = p_cur                    # 从当前位姿起步
+        m.eq_data[grip][6:10] = q_cur
+        m.eq_data[grip][10] = 1.0
         d.eq_active[grip] = 1
         d.eq_active[hold] = 0
-        self.gear(GEAR_CLOSED)
+        # 闭爪 500 步内渐进插值 relpose -> 铅垂垂挂 (D2a: 视觉连续、确定性跟爪)
+        p_tcp0 = self.tcp_pos().copy()
+        for i in range(500):
+            t = (i + 1) / 500
+            m.eq_data[grip][3:6] = (1 - t) * p_cur + t * p_new
+            qi = q_cur * (1 - t) + q_new * t            # nlerp (同半球)
+            qi /= max(np.linalg.norm(qi), 1e-9)
+            m.eq_data[grip][6:10] = qi
+            d.ctrl[self.gear_a] = GEAR_CLOSED
+            mujoco.mj_step(m, d)
+            if self.tick and i % 2 == 0:
+                self.tick()
         log['result'] = 'cut'
         if snap:
             self._snap('_cut')
