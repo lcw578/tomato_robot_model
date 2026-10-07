@@ -79,6 +79,29 @@
   候选方案: a) 扩 gear 行程 4mm (碰基线红线); b) 剪切点再向挂点深移让果球
   远离指口; c) 果串柔性化。待用户决策。
 
+**最小集成: 移植 VR_teleoperation 控制栈 (2026-10-01 第四轮)**
+- 控制栈来源: /home/lcw/VR_teleoperation (BASELINE.md 全标定): 
+  - gravcomp="1.0" 臂6体+夹爪+升降体 (真机控制柜本做重力补偿) -> 静止保持 0 漂移 (此前 12 mrad)
+  - 位置执行器 kp=25000/2500 + dampratio="1.0" (MuJoCo 按惯量自动临界阻尼, 替代手调 kv)
+  - 关节 armature 厂商值 (1.5/1.2/0.05/0.01) + damping 0.1 + actuatorfrcrange 厂商
+    protect_max_torque (80/80/60/16/16/10), 与真机一致
+- 架构改规划-执行分离 (对应其 BASELINE "大范围换构型=规划器" 一栏):
+  - solve_ik = 离线数值 IK (scratch 上迭代, 不步进物理, 4 种子重启, 失败返回 None)
+  - goto = 解算 + 关节空间匀速插值 (cmd 积分语义, 伺服跟踪; 无瞬移, 天然平滑)
+  - tracker 保护: 条件数缩放 (50/200, 位置雅可比实为健康 sv>0.2 未触发)、
+    q_rest Tikhonov 偏置 (近目标衰减门控)、厂商速度限幅、关节边界裕度
+- 大规模碰撞解耦 (真实果实/茎秆柔性能让位; 官方网格设计性嵌套):
+  - 果球 contype=2 conaffinity=2 (不与臂碰, 仍与筐/接坠面碰)
+  - 主茎圆柱 contype=0 (纯视觉)
+  - 台面家具 (控制箱/传感器杆/相机 38 geom) contype=2 conaffinity=2
+  - 新增 exclude: foreArm<->wrist2 (隔两级不再受父子过滤, 官方肘壳嵌套),
+    lift<->upperArm (安装面嵌套), foreArm<->wrist3
+- 接近几何修正: approach = cut - to_robot*0.10 (朝机器人基座方向 = 走道开放空间;
+  此前 cut + nrm*0.08 实为朝藤蔓深入冠层, 注释与代码不符的遗留), 
+  剪切点正上方 25cm 高路点 -> 垂直下降 -> 停在剪切点前 2cm (判据容差 26mm 内)
+- 低于作业带 (cut_z<0.9m, 低于台面板投影=几何不可达) -> 诚实判 below_envelope
+- 实测 (判据 3/3 命中): 1_2 / 0_3 / 6_1 全部 in_basket; 2_0 (z=0.75) below_envelope
+
 **已知限制**
 - 剪切是 weld 切换状态机，没有真"剪断"动画/力学。
 - 地面仍无碰撞；掉出筐的果串由 z=−0.5 隐形接坠面（contype=2）兜住。

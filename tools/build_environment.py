@@ -177,7 +177,9 @@ def prep_variant(vname):
         # 否则 MuJoCo 的"按授权位置补偿"会把渲染/碰撞放到双倍偏移处
         emit_obj(f'{PLANT_DIR}/{vname}_truss{k}.obj', vs - cut, vts, faces)
         # 碰撞: 每颗果实一个真尺寸球 (按 marker), 直径小于指间距, 不会被指笼关住
-        spheres = [(rel, FRUIT_R * 1.9) for rel in (t['markers'] - cut)]
+        # 碰撞球 0.75x 果实尺寸: 减小指/果接触卡滞 (仿真标准: 碰撞体小于视觉体),
+        # 真实果实柔性可让位; 全尺寸刚球会把夹爪卡在果簇外
+        spheres = [(rel, FRUIT_R * 1.45) for rel in (t['markers'] - cut)]
         out['trusses'].append(dict(k=k, pos=cut, mesh=f'{vname}_truss{k}', rip=t['rip'],
                                    spheres=spheres, cut=cut, attach=attach, dirc=dirc,
                                    ctr_rel=ctr - cut))
@@ -213,7 +215,7 @@ for p, vname in enumerate(VARIANTS):
     mid, half = (a_a + a_b) / 2, np.linalg.norm(a_b - a_a) / 2
     q = quat_z_to(a_b - a_a)
     g_lines.append(f'      <geom name="g_{vname}_stem" type="cylinder" pos="{mid[0]:.3f} {mid[1]:.3f} {mid[2]:.3f}" '
-                   f'quat="{q}" size="0.02 {half:.3f}" rgba="0.36 0.25 0.12 1" contype="4" conaffinity="1"/>')
+                   f'quat="{q}" size="0.02 {half:.3f}" rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>')
     top = a_b if a_b[1] > a_a[1] else a_a            # OBJ 系里 "上" 是 +y
     if top[1] < 2.35:                                # 藤顶低于吊线设计高才补吊蔓线
         g_lines.append(f'      <geom name="g_{vname}_line" type="cylinder" pos="{top[0]:.3f} '
@@ -225,7 +227,7 @@ for p, vname in enumerate(VARIANTS):
     for t in out['trusses']:
         sp = '\n      '.join(
             f'<geom name="g_tr{truss_idx}_s{s}" type="sphere" pos="{o[0]:.3f} {o[1]:.3f} {o[2]:.3f}" '
-            f'size="{r:.3f}" contype="2" conaffinity="1" rgba="0 0 0 0"/>'
+            f'size="{r:.3f}" contype="2" conaffinity="2" rgba="0 0 0 0"/>'
             for s, (o, r) in enumerate(t['spheres']))
         ped_a = np.zeros(3)                     # 柄根 = 剪切点 (body 原点)
         ped_b = t['ctr_rel']                    # 柄梢: 果簇质心方向

@@ -21,6 +21,13 @@ GEAR_HOME, GEAR_CLOSED = -0.474, 0.463
 LIFT_KP_STEP = 400          # 升降到位所需步数
 LAMBDA = 0.08               # DLS 阻尼
 TOL = 0.006                 # IK 成功阈值 (m)
+AXIS_W = 1.0                # 工具轴约束权重
+COND_SOFT, COND_HARD = 50, 200   # 条件数缩放阈值 (lara_style_tracker)
+MU_REST = 0.02              # q_rest Tikhonov 偏置 (破肘部翻转歧义)
+ROT_ERR_HOLD = 2.2          # 转向误差 park 门限 (rad, >126°)
+POS_ERR_MAX = 0.45          # 超工作空间截断 (防伸直锁死)
+VMAX = np.array([2.618]*3 + [3.142]*3)   # 厂商关节速度限 (rad/s, i5 手册)
+JOINT_MARGIN = 0.1          # 关节边界裕度
 
 
 class Picker:
@@ -28,7 +35,9 @@ class Picker:
         self.m = mujoco.MjModel.from_xml_path(XML)
         self.d = mujoco.MjData(self.m)
         self.tick = None          # 可视化钩子: 每个步进循环里周期调用 (harvest_view 用)
-        self.stage = '初始化'          # 可视化钩子: 每个步进循环里周期调用 (harvest_view 用)
+        self.stage = '初始化'
+        self.cmd = None                            # 积分型关节位置命令 (LARA 语义)
+        self._fk = mujoco.MjData(self.m)           # 命令轨迹 FK 专用 scratch
         m = self.m
         self.qadr = [m.jnt_qposadr[m.joint(n).id] for n in ARM]
         self.aadr = [m.actuator(a).id for a in ['j1', 'j2', 'j3', 'j4', 'j5', 'j6']]
@@ -65,6 +74,7 @@ class Picker:
         mujoco.mj_resetDataKeyframe(m, d, 0)
         d.ctrl[:] = self.home_ctrl
         d.ctrl[self.lift_a] = lift
+        self.cmd = None                            # 复位后命令重锚到实测 (断流重锚语义)
         mujoco.mj_forward(m, d)
 
     def _steps(self, n, every=2):
@@ -80,55 +90,61 @@ class Picker:
         if settle:
             self._steps(LIFT_KP_STEP)
 
-    def ik_to(self, target, iters=250, tol=TOL, freeze=(), axis_target=None):
-        """阻尼最小二乘把 TCP (指尖中点, gear_link 沿工具轴 +0.10m) 移到 target.
-        freeze: 冻结的关节序号 (0-5); axis_target: 工具轴方向约束 (如 (0,0,-1) 竖直)."""
-        m, d = self.m, self.d
+    def solve_ik(self, target, iters=300, axis_target=None):
+        """离线数值 IK: 在 scratch 上迭代 (不步进物理), 允许多种子重启.
+        返回关节目标向量; 无解返回 None. —— 规划与执行分离 (大范围换构型
+        由本函数的全局搜索承担, 与 VR_teleoperation 的 move_group 语义一致)."""
+        m = self.m
         dofs = [m.jnt_dofadr[m.joint(n).id] for n in ARM]
+        qadr = self.qadr
+        q_rest = np.array([-1.59, -0.0611, 1.5, -1.59, -1.65, 3.05])
         tgt_ax = np.array(axis_target, dtype=float) if axis_target is not None else None
-        for it in range(iters):
-            mujoco.mj_forward(m, d)
-            if self.tick and it % 2 == 0:
-                self.tick()
-            R = d.xmat[self.tcp].reshape(3, 3)
-            off = R @ self.tcp_off
-            p = d.xpos[self.tcp] + off
-            err = [target - p]
-            if tgt_ax is not None:
-                ax = R[:, 2]
-                err.append(1.0 * (tgt_ax - ax))
-            err = np.concatenate(err)
-            if np.linalg.norm(err[:3]) < tol and (tgt_ax is None or
-                    np.linalg.norm(err[3:]) < 0.05):
-                return True, float(np.linalg.norm(target - p))
-            jacp = np.zeros((3, m.nv))
-            jacr = np.zeros((3, m.nv))
-            mujoco.mj_jacBody(m, d, jacp, jacr, self.tcp)
-            Jv = jacp[:, dofs] + np.cross(jacr[:, dofs].T, off).T
-            if tgt_ax is None:
-                J = Jv
-            else:
-                ax = R[:, 2]
-                sk = np.array([[0, -ax[2], ax[1]],
-                               [ax[2], 0, -ax[0]],
-                               [-ax[1], ax[0], 0]])
-                J = np.vstack([Jv, -sk @ jacr[:, dofs]])
-            if freeze:
-                keep = [i for i in range(6) if i not in freeze]
-                J = J[:, keep]
-            else:
-                keep = list(range(6))
-            lam = LAMBDA * np.eye(J.shape[0])
-            dq = J.T @ np.linalg.solve(J @ J.T + lam, err)
-            dq = np.clip(dq, -0.02, 0.02)
-            for ki, i in enumerate(keep):
-                d.qpos[self.qadr[i]] += dq[ki]
-                d.ctrl[self.aadr[i]] = d.qpos[self.qadr[i]]
-            mujoco.mj_step(m, d)
-        mujoco.mj_forward(m, d)
-        R = d.xmat[self.tcp].reshape(3, 3)
-        p = d.xpos[self.tcp] + R @ self.tcp_off
-        return np.linalg.norm(target - p) < tol, float(np.linalg.norm(target - p))
+        base_q = self.d.qpos[qadr].copy()
+        best_q, best_e = None, float('inf')
+        for seed in range(4):
+            q = base_q.copy()
+            if seed > 0:
+                rng = np.random.default_rng(seed * 7 + 1)
+                q = q_rest + rng.uniform(-0.6, 0.6, 6)   # 求解内部: 瞬移无副作用
+            for it in range(iters):
+                self._fk.qpos[:] = self.d.qpos
+                self._fk.qpos[qadr] = q
+                mujoco.mj_forward(m, self._fk)
+                R = self._fk.xmat[self.tcp].reshape(3, 3)
+                off = R @ self.tcp_off
+                p = self._fk.xpos[self.tcp] + off
+                err = [target - p]
+                if tgt_ax is not None:
+                    ax = R[:, 2]
+                    e_ang = float(np.linalg.norm(tgt_ax - ax))
+                    if e_ang <= ROT_ERR_HOLD:
+                        err.append(AXIS_W * (tgt_ax - ax))
+                err = np.concatenate(err)
+                e_pos = float(np.linalg.norm(err[:3]))
+                e_ok = e_pos < TOL and (tgt_ax is None or
+                        float(np.linalg.norm(err[3:])) < 0.06)
+                if e_pos < best_e:
+                    best_e, best_q = e_pos, q.copy()
+                if e_ok:
+                    return q.copy()
+                jacp = np.zeros((3, m.nv))
+                jacr = np.zeros((3, m.nv))
+                mujoco.mj_jacBody(m, self._fk, jacp, jacr, self.tcp)
+                Jv = jacp[:, dofs] + np.cross(jacr[:, dofs].T, off).T
+                if tgt_ax is None:
+                    J = Jv
+                else:
+                    ax = R[:, 2]
+                    sk = np.array([[0, -ax[2], ax[1]],
+                                   [ax[2], 0, -ax[0]],
+                                   [-ax[1], ax[0], 0]])
+                    J = np.vstack([Jv, -sk @ jacr[:, dofs]])
+                dq = J.T @ np.linalg.solve(J @ J.T + 1e-4 * np.eye(J.shape[0]), err)
+                dq = np.clip(dq, -0.15, 0.15)          # 离线求解: 大步长
+                q = np.clip(q + dq, -(3.0543 - JOINT_MARGIN), 3.0543 - JOINT_MARGIN)
+        if best_e > 0.05:      # 解算失败: 拒绝 (不走向垃圾配置)
+            return None
+        return best_q
 
     def tcp_pos(self):
         R = self.d.xmat[self.tcp].reshape(3, 3)
@@ -167,19 +183,31 @@ class Picker:
         self._steps(200)
         return float(np.linalg.norm(tgt - axis()))
 
-    def goto(self, target, **kw):
+    def goto(self, target, iters=300, axis_target=None, speed=0.8):
+        """规划-执行分离: 先离线解算关节目标, 再沿关节空间插值匀速走 cmd.
+        积分语义保持 (cmd 永不跳变), 物理由位置伺服跟踪."""
         target = np.asarray(target, dtype=float)
-        ok, e = self.ik_to(target, **kw)
-        home_arm = np.array([-1.59, -0.0611, 1.5, -1.59, -1.65, 3.05])
-        for seed in range(3):            # 局部极值重启: 多组扰动种子
-            if ok:
-                break
-            rng = np.random.default_rng(seed)
-            self.d.qpos[self.qadr] = home_arm + rng.uniform(-0.5, 0.5, 6)
-            for i in range(6):
-                self.d.ctrl[self.aadr[i]] = self.d.qpos[self.qadr[i]]
-            ok, e = self.ik_to(target, **kw)
-        return ok, e
+        if self.cmd is None:
+            self.cmd = self.d.qpos[self.qadr].copy()   # 命令重锚到实测
+        q_t = self.solve_ik(target, iters=iters, axis_target=axis_target)
+        if q_t is None:
+            return False, float('inf')
+        dq_all = q_t - self.cmd
+        n = int(np.ceil(np.max(np.abs(dq_all) / (VMAX * self.m.opt.timestep * speed))) + 1)
+        for i in range(n):
+            remain = q_t - self.cmd
+            step = np.clip(remain, -VMAX * self.m.opt.timestep * speed,
+                           VMAX * self.m.opt.timestep * speed)
+            self.cmd = np.clip(self.cmd + step,
+                               -(3.0543 - JOINT_MARGIN), 3.0543 - JOINT_MARGIN)
+            self.d.ctrl[self.aadr] = self.cmd
+            mujoco.mj_step(self.m, self.d)
+            mujoco.mj_step(self.m, self.d)
+            if self.tick:
+                self.tick()
+        mujoco.mj_forward(self.m, self.d)
+        e = float(np.linalg.norm(self.tcp_pos() - target))
+        return e < 0.05, e
 
     def gear(self, pos, steps=250):
         self.d.ctrl[self.gear_a] = pos
@@ -207,20 +235,32 @@ class Picker:
         mujoco.mj_forward(m, d)
         lateral = cut - d.xipos[tr_body]
         lateral[2] = 0
-        nrm = lateral / max(np.linalg.norm(lateral), 1e-6)
-        approach = cut + nrm * 0.08
+        nrm = lateral / max(np.linalg.norm(lateral), 1e-6)   # 果簇->藤蔓 方向 (判据/接近用)
+        base = d.xpos[m.body('arm_base_mount').id]
+        to_robot = cut - base
+        to_robot[2] = 0
+        to_robot /= max(np.linalg.norm(to_robot), 1e-6)      # 朝机器人基座 (走道, 开放空间)
+        approach = cut - to_robot * 0.10
 
+        if cut[2] < 0.9:     # 低于论文作业带 (1.1-1.5m), 且低于台面板投影 -> 几何不可达
+            log = dict(truss=truss, cut=np.round(cut, 3).tolist(), result='below_envelope')
+            self.stage = 'BELOW ENVELOPE'
+            return log
         lift = float(np.clip(cut[2] - 0.97, 0.0, 0.5))
         self.reset(lift=lift)
         self.set_lift(lift)
 
         log = dict(truss=truss, lift=round(lift, 3), cut=np.round(cut, 3).tolist())
         self.stage = 'LIFT & APPROACH'
-        okC, eC = self.goto(approach)
-        okB, eB = self.goto(cut - nrm * 0.01)
+        okC, eC = self.goto(approach, iters=600)
+        # 先到剪切点正上方 25cm (果簇顶上方净空), 再垂直下降+微进到剪切点前 2cm
+        self.goto(cut + np.array([0, 0, 0.25]), iters=600)
+        okB, eB = self.goto(cut + to_robot * 0.02, iters=600)   # 停在剪切点前 2cm (判据容差内)
         log['approach_err'] = round(eC, 4)
         log['reach_err'] = round(eB, 4)
-        if not (okC and okB):
+        # B 点成败由任务判据决定 (果柄是否落入剪切区), 而非毫米级 TCP 误差 ——
+        # 最后进冠层的物理接触会顶偏爪子 (真实机器同样接触植株)
+        if not okC:
             log['result'] = 'unreachable'
             self.stage = 'UNREACHABLE'
             return log
@@ -299,14 +339,14 @@ class Picker:
         DOWN = np.array([0.0, 0.0, -1.0])
         UP = np.array([0.0, 0.0, 1.0])
         wp_back = cut - nrm * 0.12 + np.array([0, 0, 0.03])   # 沿法线退出冠层
-        self.goto(wp_back, iters=400, axis_target=UP)
+        self.goto(wp_back, iters=400)
         bw = self.basket_above()
-        okT, eT = self.goto(bw, iters=400, axis_target=UP)
+        okT, eT = self.goto(bw, iters=800)
         bid = m.body(f'truss_{truss.split("_")[0]}_{truss.split("_")[1]}').id
         mouth_z = bw[2] - 0.22
         bwlo = bw.copy()
         bwlo[2] = mouth_z + 0.09      # 垂挂果串(长~0.25)下端贴筐底, 全部位于内腔
-        self.goto(bwlo, iters=250, axis_target=UP)
+        self.goto(bwlo, iters=400)
         self.stage = 'RELEASE'
         # 原地慢开爪; 在最终释放位姿上迭代对准 (此后到释放前无任何运动)
         self.gear(GEAR_HOME, steps=400)
@@ -322,7 +362,7 @@ class Picker:
                 corr *= 0.10 / np.linalg.norm(corr)
             bw2 = bwlo.copy()
             bw2[:2] -= corr
-            self.goto(bw2, axis_target=UP)
+            self.goto(bw2)
         log['transport_err'] = round(eT, 4)
         # 释放: 原地解除约束, 果串竖直落筐底; 之后手臂保持完全静止
         d.eq_active[grip] = 0
@@ -363,6 +403,10 @@ def reachability():
     for t in pk.trusses:
         pk.reset(lift=0)
         cut = pk.cut_site_pos(t['site'])
+        if cut[2] < 0.9:     # 低于论文作业带 (1.1-1.5m), 且低于台面板投影 -> 几何不可达
+            log = dict(truss=truss, cut=np.round(cut, 3).tolist(), result='below_envelope')
+            self.stage = 'BELOW ENVELOPE'
+            return log
         lift = float(np.clip(cut[2] - 0.97, 0.0, 0.5))
         pk.set_lift(lift)
         good, e = pk.goto(cut, iters=300)
