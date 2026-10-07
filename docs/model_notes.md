@@ -95,7 +95,10 @@
   - 主茎圆柱 contype=0 (纯视觉)
   - 台面家具 (控制箱/传感器杆/相机 38 geom) contype=2 conaffinity=2
   - 新增 exclude: foreArm<->wrist2 (隔两级不再受父子过滤, 官方肘壳嵌套),
-    lift<->upperArm (安装面嵌套), foreArm<->wrist3
+    lift<->upperArm (安装面嵌套), foreArm<->wrist3, arm_base_mount<->upperArm
+    (上臂扫过自身基座壳)
+  - 台面板 264 + 风琴罩 265 上下段也换 ct2/ca2 (臂基座法兰贴装/柔性布罩, 与臂解耦)
+  - 筐壁与前臂的接触保留 (刚体筐, 合理接触; 1_2 运行中蹭到但不阻断)
 - 接近几何修正: approach = cut - to_robot*0.10 (朝机器人基座方向 = 走道开放空间;
   此前 cut + nrm*0.08 实为朝藤蔓深入冠层, 注释与代码不符的遗留), 
   剪切点正上方 25cm 高路点 -> 垂直下降 -> 停在剪切点前 2cm (判据容差 26mm 内)

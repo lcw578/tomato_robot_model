@@ -118,6 +118,8 @@ out = []
 for ln in lines:
     mm = re.match(r'\s*<geom name="v_part_(\d+)" ', ln)
     if mm and ('part_' + mm.group(1)) in moved_parts:
+        if mm.group(1) == '264':            # 台面板: 臂基座法兰设计性贴装, 与臂解耦
+            ln = ln.replace(' group="1"/>', ' group="1" contype="2" conaffinity="2"/>')
         moved_lines.append(ln); continue
     if mm and ('part_' + mm.group(1)) in TRACK_PARTS:
         continue                      # 轨道件直接丢弃 (环境场景重建)
