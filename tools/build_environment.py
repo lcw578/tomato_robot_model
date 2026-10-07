@@ -303,7 +303,8 @@ for side, (nm, pyw) in enumerate(zip([p[0] for p in PIPE_STL], PIPE_Y)):
                           f'contype="0" conaffinity="0"/>')
     L = PIPE_LEN * PIPE_N
     pipe_lines.append(f'  <geom name="g_pipe_col_{side}" type="cylinder" pos="0 {pyw} -0.035" '
-                      f'size="0.02 {L / 2:.3f}" euler="0 90 0" rgba="0 0 0 0" contype="0" conaffinity="0"/>')
+                      f'size="0.02 {L / 2:.3f}" quat="0.707107 0 0.707107 0" '
+                      f'rgba="0 0 0 0" contype="0" conaffinity="0"/>')
 
 # ---------------------------------------------------------------- 注入
 src = open(XML).read()

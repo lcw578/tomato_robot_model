@@ -455,7 +455,7 @@
   <light name="top" directional="true" pos="0 0 3" dir="0 0 -1" diffuse="0.9 0.9 0.9" specular="0.3 0.3 0.3"/>
   <light name="side" directional="true" pos="2 -2 2" dir="-1 1 -0.8" diffuse="0.5 0.5 0.55" specular="0.1 0.1 0.1"/>
   <light name="back" directional="true" pos="-2 2 1.5" dir="1 -1 -0.5" diffuse="0.35 0.35 0.4"/>
-  <geom name="floor" type="plane" size="6 6 0.05" contype="0" conaffinity="0" rgba="0.22 0.24 0.27 1"/>
+  <geom name="floor" type="plane" size="6 6 0.05" pos="0 0 -0.003" contype="0" conaffinity="0" rgba="0.22 0.24 0.27 1"/>
 <!-- ENV-WORLD-BEGIN (tools/build_environment.py 生成, 勿手改) -->
   <geom name="g_catch_plane" type="plane" pos="0 0 -0.5" size="12 12 0.1" contype="2" conaffinity="2" rgba="0 0 0 0"/>
   <geom name="g_pipe_a_0" type="mesh" mesh="m_pipe_a" pos="-3.6240 0.323 -0.02" rgba="0.55 0.56 0.60 1" contype="0" conaffinity="0"/>
@@ -467,7 +467,7 @@
   <geom name="g_pipe_a_6" type="mesh" mesh="m_pipe_a" pos="1.8120 0.323 -0.02" rgba="0.55 0.56 0.60 1" contype="0" conaffinity="0"/>
   <geom name="g_pipe_a_7" type="mesh" mesh="m_pipe_a" pos="2.7180 0.323 -0.02" rgba="0.55 0.56 0.60 1" contype="0" conaffinity="0"/>
   <geom name="g_pipe_a_8" type="mesh" mesh="m_pipe_a" pos="3.6240 0.323 -0.02" rgba="0.55 0.56 0.60 1" contype="0" conaffinity="0"/>
-  <geom name="g_pipe_col_0" type="cylinder" pos="0 0.323 -0.035" size="0.02 4.077" euler="0 90 0" rgba="0 0 0 0" contype="0" conaffinity="0"/>
+  <geom name="g_pipe_col_0" type="cylinder" pos="0 0.323 -0.035" size="0.02 4.077" quat="0.707107 0 0.707107 0" rgba="0 0 0 0" contype="0" conaffinity="0"/>
   <geom name="g_pipe_b_0" type="mesh" mesh="m_pipe_b" pos="-3.6240 -0.342 -0.02" rgba="0.55 0.56 0.60 1" contype="0" conaffinity="0"/>
   <geom name="g_pipe_b_1" type="mesh" mesh="m_pipe_b" pos="-2.7180 -0.342 -0.02" rgba="0.55 0.56 0.60 1" contype="0" conaffinity="0"/>
   <geom name="g_pipe_b_2" type="mesh" mesh="m_pipe_b" pos="-1.8120 -0.342 -0.02" rgba="0.55 0.56 0.60 1" contype="0" conaffinity="0"/>
@@ -477,7 +477,7 @@
   <geom name="g_pipe_b_6" type="mesh" mesh="m_pipe_b" pos="1.8120 -0.342 -0.02" rgba="0.55 0.56 0.60 1" contype="0" conaffinity="0"/>
   <geom name="g_pipe_b_7" type="mesh" mesh="m_pipe_b" pos="2.7180 -0.342 -0.02" rgba="0.55 0.56 0.60 1" contype="0" conaffinity="0"/>
   <geom name="g_pipe_b_8" type="mesh" mesh="m_pipe_b" pos="3.6240 -0.342 -0.02" rgba="0.55 0.56 0.60 1" contype="0" conaffinity="0"/>
-  <geom name="g_pipe_col_1" type="cylinder" pos="0 -0.342 -0.035" size="0.02 4.077" euler="0 90 0" rgba="0 0 0 0" contype="0" conaffinity="0"/>
+  <geom name="g_pipe_col_1" type="cylinder" pos="0 -0.342 -0.035" size="0.02 4.077" quat="0.707107 0 0.707107 0" rgba="0 0 0 0" contype="0" conaffinity="0"/>
   <body name="plant_0" pos="-1.8 0.8 0" quat="0.70710678 0.70710678 0 0">
       <geom name="g_v0_vine" type="mesh" mesh="m_v0_vine" material="mat_vine" contype="0" conaffinity="0"/>
       <geom name="g_v0_leaf" type="mesh" mesh="m_v0_leaf" material="mat_leaf" contype="0" conaffinity="0"/>
