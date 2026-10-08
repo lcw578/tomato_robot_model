@@ -23,7 +23,7 @@ TITLES = {
 m = mujoco.MjModel.from_xml_path(XML)
 d = mujoco.MjData(m)
 mujoco.mj_resetDataKeyframe(m, d, 0)
-d.ctrl[:] = [-0.474, 0.0, 0.0, -1.59, -0.0611, 1.5, -1.59, -1.65, 3.05, 0.0, 0.0]  # 末位=lift
+d.ctrl[:] = [-0.474, 0.0, 0.0, -1.59, -0.0611, 1.5, -1.59, -1.65, 3.05, 0.0, 0.0]  # ctrl 11 维: 9=lift, 10=machine
 mujoco.mj_forward(m, d)
 
 renderers = {c: mujoco.Renderer(m, h, w) for c, (h, w) in CAMS.items()}
