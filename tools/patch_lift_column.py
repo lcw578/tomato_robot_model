@@ -25,9 +25,9 @@ SPLIT_Z = -564.1          # V 系切面 = 世界 0.6305
 
 # 伸缩立柱 (machine 系坐标): 内管挂 lift、足够长, 全行程 [0,0.5]m 下端始终插在外管内
 COL_OUTER = '    <geom name="lift_col_outer" type="cylinder" pos="0.002 0.000 -0.4886" ' \
-            'size="0.055 0.065" rgba="0.42 0.43 0.46 1" contype="0" conaffinity="0"/>'
+            'size="0.055 0.065" rgba="0.42 0.43 0.46 1"/>'
 COL_INNER = '    <geom name="lift_col_inner" type="cylinder" pos="0.002 0.000 -0.3536" ' \
-            'size="0.042 0.300" rgba="0.60 0.61 0.64 1" contype="0" conaffinity="0"/>'
+            'size="0.042 0.300" rgba="0.60 0.61 0.64 1"/>'
 
 src = open(XML).read()
 if 'lift_col_inner' in src:

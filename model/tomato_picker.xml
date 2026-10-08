@@ -1637,8 +1637,8 @@
     <geom name="v_part_261" type="mesh" mesh="v_part_261" group="1"/>
     <geom name="v_part_262" type="mesh" mesh="v_part_262" group="1"/>
     <geom name="v_part_263" type="mesh" mesh="v_part_263" group="1"/>
-    <geom name="v_part_265_lo" type="mesh" mesh="v_part_265_lo" group="1" contype="2" conaffinity="2"/>
-    <geom name="lift_col_outer" type="cylinder" pos="0.002 0.000 -0.4886" size="0.055 0.065" rgba="0.42 0.43 0.46 1" contype="0" conaffinity="0"/>
+    <geom name="v_part_265_lo" type="mesh" mesh="v_part_265_lo" group="1"/>
+    <geom name="lift_col_outer" type="cylinder" pos="0.002 0.000 -0.4886" size="0.055 0.065" rgba="0.42 0.43 0.46 1" />
     <body name="small_right_front" pos="0 0 0">
       <inertial pos="0.497042 0.392916 0.038000" mass="0.112089" fullinertia="0.0000353535 0.0000521605 0.0000353535 -0.000000000000 0.000000000007 0.000000000000"/>
       <joint name="small_right_front_joint" type="hinge" pos="0.497042 0.392916 0.038000" axis="0 1 0" damping="0.001" frictionloss="0.02"/>
@@ -1693,48 +1693,48 @@
   <body name="lift" gravcomp="1.0" pos="0 0 0">
     <joint name="lift_joint" type="slide" axis="0 0 -1" limited="true" range="0 0.5" damping="10"/>
     <inertial pos="0.14274594 0.009534775 -0.74663947" mass="20.242321" fullinertia="0.11409244 2.9485618 2.83687 0.0027965308 0.093049464 -0.00027075438"/>
-      <geom name="v_part_264" type="mesh" mesh="v_part_264" group="1" contype="2" conaffinity="2"/>
-    <geom name="v_part_265_up" type="mesh" mesh="v_part_265_up" group="1" contype="2" conaffinity="2"/>
-    <geom name="lift_col_inner" type="cylinder" pos="0.002 0.000 -0.3536" size="0.042 0.300" rgba="0.60 0.61 0.64 1" contype="0" conaffinity="0"/>
-      <geom name="v_part_266" type="mesh" mesh="v_part_266" group="1" contype="2" conaffinity="2"/>
-      <geom name="v_part_267" type="mesh" mesh="v_part_267" group="1" contype="2" conaffinity="2"/>
-      <geom name="v_part_268" type="mesh" mesh="v_part_268" group="1" contype="2" conaffinity="2"/>
-      <geom name="v_part_270" type="mesh" mesh="v_part_270" group="1" contype="2" conaffinity="2"/>
-      <geom name="v_part_272" type="mesh" mesh="v_part_272" group="1" contype="2" conaffinity="2"/>
-      <geom name="v_part_273" type="mesh" mesh="v_part_273" group="1" contype="2" conaffinity="2"/>
-      <geom name="v_part_274" type="mesh" mesh="v_part_274" group="1" contype="2" conaffinity="2"/>
-      <geom name="v_part_275" type="mesh" mesh="v_part_275" group="1" contype="2" conaffinity="2"/>
-      <geom name="v_part_277" type="mesh" mesh="v_part_277" group="1" contype="2" conaffinity="2"/>
-      <geom name="v_part_278" type="mesh" mesh="v_part_278" group="1" contype="2" conaffinity="2"/>
-      <geom name="v_part_279" type="mesh" mesh="v_part_279" group="1" contype="2" conaffinity="2"/>
-      <geom name="v_part_280" type="mesh" mesh="v_part_280" group="1" contype="2" conaffinity="2"/>
-      <geom name="v_part_281" type="mesh" mesh="v_part_281" group="1" contype="2" conaffinity="2"/>
-      <geom name="v_part_282" type="mesh" mesh="v_part_282" group="1" contype="2" conaffinity="2"/>
-      <geom name="v_part_283" type="mesh" mesh="v_part_283" group="1" contype="2" conaffinity="2"/>
-      <geom name="v_part_284" type="mesh" mesh="v_part_284" group="1" contype="2" conaffinity="2"/>
-      <geom name="v_part_286" type="mesh" mesh="v_part_286" group="1" contype="2" conaffinity="2"/>
-      <geom name="v_part_287" type="mesh" mesh="v_part_287" group="1" contype="2" conaffinity="2"/>
-      <geom name="v_part_289" type="mesh" mesh="v_part_289" group="1" contype="2" conaffinity="2"/>
-      <geom name="v_part_290" type="mesh" mesh="v_part_290" group="1" contype="2" conaffinity="2"/>
-      <geom name="v_part_291" type="mesh" mesh="v_part_291" group="1" contype="2" conaffinity="2"/>
-      <geom name="v_part_293" type="mesh" mesh="v_part_293" group="1" contype="2" conaffinity="2"/>
-      <geom name="v_part_308" type="mesh" mesh="v_part_308" group="1" contype="2" conaffinity="2"/>
-      <geom name="v_part_309" type="mesh" mesh="v_part_309" group="1" contype="2" conaffinity="2"/>
-      <geom name="v_part_310" type="mesh" mesh="v_part_310" group="1" contype="2" conaffinity="2"/>
-      <geom name="v_part_311" type="mesh" mesh="v_part_311" group="1" contype="2" conaffinity="2"/>
-      <geom name="v_part_312" type="mesh" mesh="v_part_312" group="1" contype="2" conaffinity="2"/>
-      <geom name="v_part_313" type="mesh" mesh="v_part_313" group="1" contype="2" conaffinity="2"/>
-      <geom name="v_part_314" type="mesh" mesh="v_part_314" group="1" contype="2" conaffinity="2"/>
-      <geom name="v_part_315" type="mesh" mesh="v_part_315" group="1" contype="2" conaffinity="2"/>
-      <geom name="v_part_317" type="mesh" mesh="v_part_317" group="1" contype="2" conaffinity="2"/>
-      <geom name="v_part_320" type="mesh" mesh="v_part_320" group="1" contype="2" conaffinity="2"/>
-      <geom name="v_part_322" type="mesh" mesh="v_part_322" group="1" contype="2" conaffinity="2"/>
-      <geom name="v_part_325" type="mesh" mesh="v_part_325" group="1" contype="2" conaffinity="2"/>
-      <geom name="v_part_326" type="mesh" mesh="v_part_326" group="1" contype="2" conaffinity="2"/>
-      <geom name="v_part_327" type="mesh" mesh="v_part_327" group="1" contype="2" conaffinity="2"/>
-      <geom name="v_part_328" type="mesh" mesh="v_part_328" group="1" contype="2" conaffinity="2"/>
-      <geom name="v_part_329" type="mesh" mesh="v_part_329" group="1" contype="2" conaffinity="2"/>
-      <geom name="v_part_330" type="mesh" mesh="v_part_330" group="1"/>
+      <geom name="v_part_264" type="mesh" mesh="v_part_264" group="1"/>
+    <geom name="v_part_265_up" type="mesh" mesh="v_part_265_up" group="1"/>
+    <geom name="lift_col_inner" type="cylinder" pos="0.002 0.000 -0.3536" size="0.042 0.300" rgba="0.60 0.61 0.64 1" />
+      <geom name="v_part_266" type="mesh" mesh="v_part_266" group="1"/>
+      <geom name="v_part_267" type="mesh" mesh="v_part_267" group="1"/>
+      <geom name="v_part_268" type="mesh" mesh="v_part_268" group="1"/>
+      <geom name="v_part_270" type="mesh" mesh="v_part_270" group="1"/>
+      <geom name="v_part_272" type="mesh" mesh="v_part_272" group="1"/>
+      <geom name="v_part_273" type="mesh" mesh="v_part_273" group="1"/>
+      <geom name="v_part_274" type="mesh" mesh="v_part_274" group="1"/>
+      <geom name="v_part_275" type="mesh" mesh="v_part_275" group="1"/>
+      <geom name="v_part_277" type="mesh" mesh="v_part_277" group="1"/>
+      <geom name="v_part_278" type="mesh" mesh="v_part_278" group="1"/>
+      <geom name="v_part_279" type="mesh" mesh="v_part_279" group="1"/>
+      <geom name="v_part_280" type="mesh" mesh="v_part_280" group="1"/>
+      <geom name="v_part_281" type="mesh" mesh="v_part_281" group="1"/>
+      <geom name="v_part_282" type="mesh" mesh="v_part_282" group="1"/>
+      <geom name="v_part_283" type="mesh" mesh="v_part_283" group="1"/>
+      <geom name="v_part_284" type="mesh" mesh="v_part_284" group="1"/>
+      <geom name="v_part_286" type="mesh" mesh="v_part_286" group="1"/>
+      <geom name="v_part_287" type="mesh" mesh="v_part_287" group="1"/>
+      <geom name="v_part_289" type="mesh" mesh="v_part_289" group="1"/>
+      <geom name="v_part_290" type="mesh" mesh="v_part_290" group="1"/>
+      <geom name="v_part_291" type="mesh" mesh="v_part_291" group="1"/>
+      <geom name="v_part_293" type="mesh" mesh="v_part_293" group="1"/>
+      <geom name="v_part_308" type="mesh" mesh="v_part_308" group="1"/>
+      <geom name="v_part_309" type="mesh" mesh="v_part_309" group="1"/>
+      <geom name="v_part_310" type="mesh" mesh="v_part_310" group="1"/>
+      <geom name="v_part_311" type="mesh" mesh="v_part_311" group="1"/>
+      <geom name="v_part_312" type="mesh" mesh="v_part_312" group="1"/>
+      <geom name="v_part_313" type="mesh" mesh="v_part_313" group="1"/>
+      <geom name="v_part_314" type="mesh" mesh="v_part_314" group="1"/>
+      <geom name="v_part_315" type="mesh" mesh="v_part_315" group="1"/>
+      <geom name="v_part_317" type="mesh" mesh="v_part_317" group="1"/>
+      <geom name="v_part_320" type="mesh" mesh="v_part_320" group="1"/>
+      <geom name="v_part_322" type="mesh" mesh="v_part_322" group="1"/>
+      <geom name="v_part_325" type="mesh" mesh="v_part_325" group="1"/>
+      <geom name="v_part_326" type="mesh" mesh="v_part_326" group="1"/>
+      <geom name="v_part_327" type="mesh" mesh="v_part_327" group="1"/>
+      <geom name="v_part_328" type="mesh" mesh="v_part_328" group="1"/>
+      <geom name="v_part_329" type="mesh" mesh="v_part_329" group="1"/>
+      <geom name="v_part_330" type="mesh" mesh="v_part_330" group="1" contype="0" conaffinity="0"/>
       <camera name="cam_scene_yp_l515" pos="0.360341 -0.036530 -1.149732" quat="-0.699354 0.699354 -0.104424 0.104424" fovy="43.4"/>
       <camera name="cam_scene_yn_d435i" pos="0.360341 0.056365 -1.149732" quat="0.104424 -0.104424 0.699354 -0.699354" fovy="42.6"/>
     <site name="basket_site" pos="-0.533 0.010 -0.880" type="cylinder" size="0.14 0.02" rgba="0.2 0.9 0.2 0.25"/>

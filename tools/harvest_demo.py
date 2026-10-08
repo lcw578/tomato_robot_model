@@ -63,6 +63,10 @@ class Picker:
                 self.arm_geoms.add(g)
             elif _re.match(r'g_v\d+_stem', nm):
                 self.forbid_geoms.add(g)
+            else:
+                bn = mujoco.mj_id2name(m, mujoco.mjtObj.mjOBJ_BODY, m.geom_bodyid[g]) or ''
+                if bn in ('chassis', 'lift'):        # 车体自身也参与规划避碰
+                    self.forbid_geoms.add(g)
 
     def _enumerate_trusses(self):
         m = self.m
@@ -214,7 +218,7 @@ class Picker:
                 return False
         return True
 
-    def plan_path(self, q_goal, max_iter=6000, step=0.15, time_budget=8.0):
+    def plan_path(self, q_goal, max_iter=15000, step=0.15, time_budget=20.0):
         """返回通往 q_goal 的无碰航点列表 (关节空间); 直线无碰则直达。"""
         q0 = self.cmd.copy()
         if self._seg_free(q0, q_goal):
@@ -414,11 +418,42 @@ class Picker:
             log = dict(truss=truss, cut=np.round(cut, 3).tolist(), result='below_envelope')
             self.stage = 'BELOW ENVELOPE'
             return log
-        lift = float(np.clip(cut[2] - 0.97, 0.0, 0.5))
+        # 抬升预检 (能低不升): 0 -> 0.25 -> 0.5, 解算全通过且臂未接近全伸
+        # (基座->目标距离 <= 0.90m) 才接受; 无一通过则用最大抬升兜底
+        self.stage = 'LIFT PRECHECK'
+        base0 = d.xpos[m.body('arm_base_mount').id].copy()
+        lift, best = 0.5, None
+        for L in (0.0, 0.25, 0.5):
+            self.reset(lift=L)
+            self.set_lift(L)
+            self.cmd = None
+            q_c = self.solve_ik(approach, iters=600)
+            q_b = self.solve_ik(cut - dvec * 0.015, iters=800, axis_target=dvec)
+            if q_b is None:
+                q_b = self.solve_ik(cut - dvec * 0.015, iters=800)
+            e_b = float('inf')
+            if q_b is not None:
+                self._fk.qpos[:] = d.qpos
+                self._fk.qpos[self.qadr] = q_b
+                mujoco.mj_forward(m, self._fk)
+                R = self._fk.xmat[self.tcp].reshape(3, 3)
+                pp = self._fk.xpos[self.tcp] + R @ self.tcp_off
+                e_b = float(np.linalg.norm(pp - (cut - dvec * 0.015)))
+            ok = (q_c is not None) and (q_b is not None) and (e_b <= 0.005)
+            print('  [lift] 尝试 %.2f: 解算=%s B残差=%.4f -> %s' % (
+                L, 'OK' if (q_c is not None and q_b is not None) else '失败', e_b,
+                '采纳' if ok else '不满足'), flush=True)
+            if best is None and q_c is not None and q_b is not None:
+                best = L
+            if ok:
+                lift = L
+                break
+        else:
+            lift = best if best is not None else 0.5
+        log = dict(truss=truss, lift=round(lift, 3), cut=np.round(cut, 3).tolist())
         self.reset(lift=lift)
         self.set_lift(lift)
 
-        log = dict(truss=truss, lift=round(lift, 3), cut=np.round(cut, 3).tolist())
         self.stage = 'LIFT & APPROACH'
         # approach = 开放空间路点 (纯位置, 轴对齐在此非必要且易无解);
         # B = 抓取位姿 (轴对齐: 果柄沿工具轴, 主茎落在指尖之外)
@@ -520,7 +555,7 @@ class Picker:
         bid = m.body(f'truss_{truss.split("_")[0]}_{truss.split("_")[1]}').id
         mouth_z = bw[2] - 0.22
         bwlo = bw.copy()
-        bwlo[2] = mouth_z + 0.09      # 垂挂果串(长~0.25)下端贴筐底, 全部位于内腔
+        bwlo[2] = mouth_z + 0.11   # 释放深度: 指尖离筐底留 ~2cm (实测 1mm 浅擦 -> 抬升 2cm)      # 垂挂果串(长~0.25)下端贴筐底, 全部位于内腔
         self.goto(bwlo, iters=400)
         self.stage = 'RELEASE'
         # 原地慢开爪; 在最终释放位姿上迭代对准 (此后到释放前无任何运动)
