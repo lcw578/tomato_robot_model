@@ -123,6 +123,7 @@ class Picker:
         tgt_ax = np.array(axis_target, dtype=float) if axis_target is not None else None
         base_q = self.d.qpos[qadr].copy()
         best_q, best_e = None, float('inf')
+        best_col_q = None                          # 备选: 收敛但带碰的解
 
         def fk(q):
             self._fk.qpos[:] = self.d.qpos
@@ -144,7 +145,7 @@ class Picker:
             return np.clip(q + np.clip(dq, -clip, clip),
                            -(3.0543 - JOINT_MARGIN), 3.0543 - JOINT_MARGIN)
 
-        for seed in range(5):
+        for seed in range(10):
             q = base_q.copy() if seed == 0 else \
                 q_rest + np.random.default_rng(seed * 7 + 1).uniform(-0.6, 0.6, 6)
             if tgt_ax is not None:
@@ -185,12 +186,19 @@ class Picker:
                 if e_pos < best_e:
                     best_e, best_q = e_pos, q.copy()
                 if e_pos < TOL and e_ang < 0.06:
-                    return q.copy()
+                    if self.collision_free(q):     # 解算须避开植株/车体: 优先无碰解
+                        return q.copy()
+                    if best_col_q is None:
+                        best_col_q = q.copy()      # 记录带碰解, 换下一颗种子
+                    break
                 Jv, Jr = jac()
                 J = np.vstack([Jv, Jr]) if rot else Jv
                 q = step(q, J, err, 5e-3, 0.05)
             if tgt_ax is not None and best_e < 0.02:
-                return best_q          # 轴对齐解: 位置残差 <2cm 接受 (判据容差 26mm 内)
+                # 轴对齐解: 位置残差 <2cm 接受 (判据容差 26mm 内); 无无碰解时回退带碰
+                return best_col_q if best_col_q is not None else best_q
+        if best_col_q is not None:
+            return best_col_q
         if best_e > 0.05:
             return None
         return best_q
@@ -219,52 +227,69 @@ class Picker:
         return True
 
     def plan_path(self, q_goal, max_iter=15000, step=0.15, time_budget=20.0):
-        """返回通往 q_goal 的无碰航点列表 (关节空间); 直线无碰则直达。"""
+        """RRT-Connect (双向树): 从当前 cmd 与目标各长一棵, 窄走廊两头对穿。
+        路径段检查 8 点 (薄壁不可漏检); 目标连接段容差 32mm。"""
         q0 = self.cmd.copy()
         if self._seg_free(q0, q_goal):
+            self._last_path = [q_goal]
             return [q_goal]
         import time as _time
         _t0 = _time.time()
         rng = np.random.default_rng(0)
-        cap = max_iter + 4
-        nodes = np.zeros((cap, 6))                   # 预分配 (原 list+每轮 np.array 为 O(n^2) 拷贝)
-        nodes[0] = q0
-        n_nodes = 1
-        parent = [-1]
         bounds = 2.9
+
+        def nearest(arr, n, q):
+            return int(np.argmin(np.linalg.norm(arr[:n] - q, axis=1)))
+
+        def step_from(qa, qb, s_):
+            v = qb - qa
+            L = np.linalg.norm(v)
+            if L < 1e-9:
+                return qa.copy()
+            return np.clip(qa + v / L * min(s_, L),
+                           -(3.0543 - JOINT_MARGIN), 3.0543 - JOINT_MARGIN)
+
+        cap = max_iter + 8
+        nodesA = np.zeros((cap, 6)); nodesA[0] = q0; nA = 1; parA = [-1]
+        nodesB = np.zeros((cap, 6)); nodesB[0] = q_goal; nB = 1; parB = [-1]
+
+        def path_from(nodes, par, k, reverse=False):
+            out = []
+            while k != -1:
+                out.append(nodes[k].copy()); k = par[k]
+            if reverse:
+                out = out[::-1]
+            return out
+
         for i in range(max_iter):
             if (i & 63) == 0 and _time.time() - _t0 > time_budget:
                 break
+            # A 树扩展 (目标偏置 50%)
             if i % 2 == 1:
-                q_rand = q_goal + rng.normal(0, 0.25, 6)         # 50% 目标偏置
+                q_rand = q_goal + rng.normal(0, 0.25, 6)
             else:
                 q_rand = rng.uniform(-bounds, bounds, 6)
-            j = int(np.argmin(np.linalg.norm(nodes[:n_nodes] - q_rand, axis=1)))
-            q_near = nodes[j]
-            v = q_rand - q_near
-            L = np.linalg.norm(v)
-            if L < 1e-9:
+            ia = nearest(nodesA, nA, q_rand)
+            q_a = step_from(nodesA[ia], q_rand, step)
+            if not self._seg_free(nodesA[ia], q_a, n=8):
                 continue
-            q_new = q_near + v / L * min(step, L)
-            q_new = np.clip(q_new, -(3.0543 - JOINT_MARGIN), 3.0543 - JOINT_MARGIN)
-            if not self._seg_free(q_near, q_new, n=3):
-                continue
-            nodes[n_nodes] = q_new; parent.append(j); n_nodes += 1
-            # 目标连接段放宽到 12mm: 剪切位姿本就贴近茎秆 (真机轻触); 路径段仍 3mm
-            if np.linalg.norm(q_new - q_goal) < 0.6 and \
-                    self._seg_free(q_new, q_goal, n=8, pen=0.032):
-                nodes[n_nodes] = q_goal; parent.append(n_nodes - 1); n_nodes += 1
-                path = []
-                k = n_nodes - 1
-                while k != -1:
-                    path.append(nodes[k].copy()); k = parent[k]
-                path = path[::-1]
-                self._last_path = path
-                return path
-        arr = np.array(nodes)
-        dmin = float(np.min(np.linalg.norm(arr - q_goal, axis=1)))
-        print('  [plan] RRT %d 迭代未连通: 节点=%d  离目标最近=%.3f  直线碰撞=%s' % (
-            max_iter, len(nodes), dmin, not self._seg_free(q0, q_goal)))
+            nodesA[nA] = q_a; parA.append(ia); nA += 1
+            # B 树朝 A 新点贪心连接
+            ib = nearest(nodesB, nB, q_a)
+            while True:
+                q_b = step_from(nodesB[ib], q_a, step)
+                if not self._seg_free(nodesB[ib], q_b, n=8, pen=0.032):
+                    break
+                nodesB[nB] = q_b; parB.append(ib); nB += 1
+                if np.linalg.norm(q_b - q_a) < 1e-6 or \
+                        self._seg_free(q_b, q_a, n=8, pen=0.032):
+                    # 连通: 路径 = A 根->q_a + q_b->B 根(反序)
+                    path = path_from(nodesA, parA, nA - 1) + \
+                           path_from(nodesB, parB, nB - 1, reverse=True)[1:]
+                    self._last_path = path
+                    return path
+                ib = nB - 1
+        print('  [plan] RRT-Connect %d 迭代未连通 (A=%d B=%d 节点)' % (max_iter, nA, nB), flush=True)
         return None          # 规划失败 (被植株完全挡住)
 
     def tcp_pos(self):
@@ -551,7 +576,18 @@ class Picker:
         UP = np.array([0.0, 0.0, 1.0])
         self.goto_reverse()   # 沿原规划路径倒回 (唯一通道)
         bw = self.basket_above()
+        # 高空绕行路点: 先到筐上方 30cm (从上方越过筐口), 再降落到筐口上方 —— 把
+        # 一次性大跨度的规划拆成两个小问题 (车体真实碰撞后直连规划易失败)
+        bw_hi = bw.copy()
+        bw_hi[2] += 0.30
+        self.goto(bw_hi, iters=800)
         okT, eT = self.goto(bw, iters=800)
+        if not okT:      # 30cm 直降规划失败 -> 5cm 小步下降 (每段关节直线几乎必通)
+            import numpy as _np
+            print('  [transport] 直降失败, 改小步下降', flush=True)
+            for zz in _np.linspace(bw_hi[2], bw[2], 7)[1:]:
+                self.goto(_np.array([bw[0], bw[1], zz]), iters=600)
+            okT, eT = self.goto(bw, iters=600)
         bid = m.body(f'truss_{truss.split("_")[0]}_{truss.split("_")[1]}').id
         mouth_z = bw[2] - 0.22
         bwlo = bw.copy()

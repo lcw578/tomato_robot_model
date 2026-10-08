@@ -1738,11 +1738,11 @@
       <camera name="cam_scene_yp_l515" pos="0.360341 -0.036530 -1.149732" quat="-0.699354 0.699354 -0.104424 0.104424" fovy="43.4"/>
       <camera name="cam_scene_yn_d435i" pos="0.360341 0.056365 -1.149732" quat="0.104424 -0.104424 0.699354 -0.699354" fovy="42.6"/>
     <site name="basket_site" pos="-0.533 0.010 -0.880" type="cylinder" size="0.14 0.02" rgba="0.2 0.9 0.2 0.25"/>
-    <geom name="crate_col_0" type="box" pos="-0.533 0.01 -0.7106210000000001" size="0.17 0.225 0.006" group="3" rgba="0 0 0 0" conaffinity="2" solref="0.04 1"/>
-    <geom name="crate_col_1" type="box" pos="-0.703 0.01 -0.779621" size="0.006 0.225 0.075" group="3" rgba="0 0 0 0" conaffinity="2" solref="0.04 1"/>
-    <geom name="crate_col_2" type="box" pos="-0.363 0.01 -0.779621" size="0.006 0.225 0.075" group="3" rgba="0 0 0 0" conaffinity="2" solref="0.04 1"/>
-    <geom name="crate_col_3" type="box" pos="-0.533 0.235 -0.779621" size="0.17 0.006 0.075" group="3" rgba="0 0 0 0" conaffinity="2" solref="0.04 1"/>
-    <geom name="crate_col_4" type="box" pos="-0.533 -0.215 -0.779621" size="0.17 0.006 0.075" group="3" rgba="0 0 0 0" conaffinity="2" solref="0.04 1"/>
+    <geom name="crate_col_0" type="box" pos="-0.533 0.01 -0.7106210000000001" size="0.17 0.225 0.015" group="3" rgba="0 0 0 0" conaffinity="2" solref="0.04 1"/>
+    <geom name="crate_col_1" type="box" pos="-0.703 0.01 -0.779621" size="0.02 0.225 0.075" group="3" rgba="0 0 0 0" conaffinity="2" solref="0.04 1"/>
+    <geom name="crate_col_2" type="box" pos="-0.363 0.01 -0.779621" size="0.02 0.225 0.075" group="3" rgba="0 0 0 0" conaffinity="2" solref="0.04 1"/>
+    <geom name="crate_col_3" type="box" pos="-0.533 0.235 -0.779621" size="0.17 0.02 0.075" group="3" rgba="0 0 0 0" conaffinity="2" solref="0.04 1"/>
+    <geom name="crate_col_4" type="box" pos="-0.533 -0.215 -0.779621" size="0.17 0.02 0.075" group="3" rgba="0 0 0 0" conaffinity="2" solref="0.04 1"/>
     <body name="arm_base_mount" pos="0.002 0.004 -0.704" quat="0 1 0 0">
       <inertial pos="0 0 0.025" mass="0.9" diaginertia="0.002 0.002 0.002"/>
       <geom name="a_base_link" type="mesh" mesh="a_base_link" group="1"/>
@@ -1962,7 +1962,6 @@
     <exclude body1="base_link" body2="wrist2_Link"/>
     <exclude body1="base_link" body2="wrist3_Link"/>
     <exclude body1="foreArm_Link" body2="wrist2_Link"/>   <!-- 官方网格肘部嵌套 (隔两级, 默认不过滤) -->
-    <exclude body1="lift" body2="upperArm_Link"/>          <!-- 臂安装面与升降台板嵌套 -->
     <exclude body1="foreArm_Link" body2="wrist3_Link"/>
     <exclude body1="arm_base_mount" body2="upperArm_Link"/>   <!-- 上臂扫过自身基座壳 (设计嵌套) -->
     <exclude body1="chassis" body2="lift"/>
