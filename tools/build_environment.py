@@ -7,7 +7,10 @@
      - 果串: 用 markers.json 的 FRUIT 标记 (truss_id + ripeness) 把果面三角形聚类成串
      - 两段式物理: truss body (freejoint, 果面视觉 + 2 球碰撞 + 人工果柄)
        <weld> 挂在植株上 (active) + <weld> 挂在夹爪 base_link (active=false, 供剪切后搬运)
-     - cut_point_{p}_{k} site = 果柄剪切点 (感知定位真值 + 采摘目标)
+     - cut_p{p}_t{k} site = 果柄剪切点 (感知定位真值 + 采摘目标)。
+       规则 v2 (2026-10-12): 以"簇顶挂结点"为锚 (真实果柄从簇顶接出), 沿其主茎
+       投影方向停在果簇网格之外 (到果面净距 >=1cm, 离主茎表面 >=2cm); 顶果贴茎
+       的串退回旧 55% 规则 (资产受限例外, 见 model_notes)
      - 主茎碰撞圆柱 + 吊蔓线 (纯视觉)
   2. 轨道: CAD 原件 part_110/149 (906mm Ø40 沿 x) 平铺拉长, 圆柱碰撞
   3. 关键帧 home/lift_high 的 qpos 扩写 (追加果串 freejoint 状态)
@@ -33,6 +36,9 @@ VARIANTS = [f'v{i}' for i in range(10)]          # 10 株 = 每侧 5 株
 X_POS = [-1.8, -0.9, 0.0, 0.9, 1.8]              # 株距 0.9 m
 ROW_Y = [0.8, -0.8]                              # 行距 1.6 m
 FRUIT_R = 0.014
+STEM_R = 0.022                   # 主茎碰撞胶囊半径 (藤轴拟合)
+CUT_FRUIT_CLEAR = 0.010          # 剪切停点到果面网格净距目标 (扫描)
+CUT_STEM_CLEAR = 0.020           # 剪切停点离主茎表面下限 (硬约束)
 TRUSS_MASS = 0.30                                # 串重 (论文 250~500g 取中)
 PIPE_STL = [('pipe_a', 'part_110'), ('pipe_b', 'part_149')]
 PIPE_Y = [0.323, -0.342]                         # 驱动轮接地点世界 y
@@ -135,8 +141,55 @@ def fit_cane(vname, px, py, theta_deg, R=0.06):
     z_top = float(W[inl][:, 2].max())
     return base, d_dir, z_top
 
+
+def pick_cut(markers, faces, vs, cane, px, py, cut_legacy):
+    """剪切点 v2 (2026-10-12, 用户语义): 锚定"簇顶挂结点" —— 真实果柄从簇顶接出。
+    沿"最顶端果实 -> 真实藤轴"方向, 从 5mm 起扫描, 取首个到果面网格净距 >=
+    CUT_FRUIT_CLEAR 的停点; 上界 = 离藤轴表面 CUT_STEM_CLEAR (扫描全程不达标则取
+    区间内净距最大点)。顶果贴茎 (无可行段) 或藤轴拟合失败 -> 退回旧 55% 规则。
+    参数均在 OBJ 系 (脚注: 世界系 = (px+ox, py-oz, oy)); cane 为世界系 (base,dir,z_top)。
+    返回 (cut, mode, clearance): mode ∈ {top, top_best, legacy55}。"""
+    if cane is None:
+        return cut_legacy, 'legacy55', float('nan')
+    m_top = markers[np.argmax(markers[:, 1])]            # obj 系 y = 世界竖直向上
+    base, dirv, z_top = cane
+    top_w = base + dirv * (z_top / dirv[2])              # 世界系藤顶
+    a_o = np.array([base[0] - px, base[2], py - base[1]])   # 藤基 -> obj
+    b_o = np.array([top_w[0] - px, top_w[2], py - top_w[1]])
+    ab = b_o - a_o
+    tproj = np.clip(np.dot(m_top - a_o, ab) / np.dot(ab, ab), 0, 1)
+    att_top = a_o + tproj * ab                           # 簇顶在藤轴上的投影
+    vec = att_top - m_top
+    L = np.linalg.norm(vec)
+    upper = L - STEM_R - CUT_STEM_CLEAR
+    if upper >= 0.005:
+        u = vec / L
+        V = vs[face_verts_idx(faces)].reshape(-1, 3)     # 该串果面顶点 (压平!)
+        if os.environ.get('CUTDBG'):
+            print('  [cutdbg] m_top=%s u=%s L=%.3f upper=%.3f |V|=%s len(vs)=%d len(faces)=%d' %
+                  (np.round(m_top, 3), np.round(u, 3), L, upper, V.shape, len(vs), len(faces)))
+        best = None
+        for it, tv in enumerate(np.arange(0.005, upper + 1e-9, 0.005)):
+            p = m_top + u * tv
+            c = float(np.linalg.norm(V - p, axis=1).min())
+            if os.environ.get('CUTDBG') and it == 0:
+                j = int(np.argmin(np.linalg.norm(V - p, axis=1)))
+                print('     t=0.005 p=%s 最近顶点 idx=%d pos=%s d=%.4f' %
+                      (np.round(p, 3), j, np.round(V[j], 3), c))
+                print('     V bbox min=%s max=%s' % (np.round(V.min(0), 3), np.round(V.max(0), 3)))
+            if os.environ.get('CUTDBG') and (it % 20 == 0 or c >= CUT_FRUIT_CLEAR):
+                print('     t=%.3f c=%.4f' % (tv, c))
+            if c >= CUT_FRUIT_CLEAR:
+                return p, 'top', c
+            if best is None or c > best[1]:
+                best = (p, c)
+        if best is not None and best[1] >= 0.0:
+            return best[0], 'top_best', best[1]
+    return cut_legacy, 'legacy55', float('nan')          # 顶果贴茎 (资产受限)
+
+
 # ---------------------------------------------------------------- 单株处理
-def prep_variant(vname):
+def prep_variant(vname, px, py):
     vdir = f'{FARM}/asset_extract/out/variants/{vname}'
     os.makedirs('/tmp/mjobj', exist_ok=True)
     obj = f'/tmp/mjobj/{vname}.obj'
@@ -196,6 +249,12 @@ def prep_variant(vname):
             continue
         emit_obj(f'{PLANT_DIR}/{vname}_{mname}.obj', vs, vts, mats[mname])
         out['geoms'].append((f'{vname}_{mname}', mname))
+    # 真实藤轴 (世界系; 上面 vine obj 已落盘): 剪切点 v2 规则用它做"离主茎"约束
+    _pr = json.load(open(f'{vdir}/params.json'))
+    cane = fit_cane(vname, px, py, _pr['theta_deg'])
+    if cane is None:
+        print(f'  {vname}: 藤轴拟合失败, 剪切点退回 55% 规则')
+    out['cane'] = cane
     for ki, k in enumerate(sorted(trusses)):
         t = trusses[k]
         sel = tr_of_face == ki
@@ -207,7 +266,13 @@ def prep_variant(vname):
         dirc = ctr - attach
         dist = max(np.linalg.norm(dirc), 1e-9)
         dirc /= dist
-        cut = attach + dirc * max(dist * 0.55, 0.03)   # 果柄远段 ~铰链位 (论文 §4.5 最佳剪切位)
+        cut_legacy = attach + dirc * max(dist * 0.55, 0.03)   # 旧规则: 55% (贴茎例外族兜底)
+        cut, cut_mode, cut_clear = pick_cut(t['markers'], faces, vs, cane,
+                                            px, py, cut_legacy)   # v2: 簇顶锚点
+        if os.environ.get('CUTDBG'):
+            print('  [cutdbg] %s_t%d: mode=%s clear=%s' % (
+                vname, k, cut_mode,
+                'nan' if cut_clear != cut_clear else '%.4f' % cut_clear))
         # 果串 body 原点 = 剪切点 (torquescale=0 点抓的枢轴): 网格/球均相对剪切点,
         # 否则 MuJoCo 的"按授权位置补偿"会把渲染/碰撞放到双倍偏移处
         emit_obj(f'{PLANT_DIR}/{vname}_truss{k}.obj', vs - cut, vts, faces)
@@ -217,7 +282,8 @@ def prep_variant(vname):
         spheres = [(rel, FRUIT_R * 1.45) for rel in (t['markers'] - cut)]
         out['trusses'].append(dict(k=k, pos=cut, mesh=f'{vname}_truss{k}', rip=t['rip'],
                                    spheres=spheres, cut=cut, attach=attach, dirc=dirc,
-                                   ctr_rel=ctr - cut))
+                                   ctr_rel=ctr - cut, cut_mode=cut_mode,
+                                   cut_clear=cut_clear))
     return out
 
 # ---------------------------------------------------------------- 材质声明
@@ -237,22 +303,24 @@ assets += mat_block('mat_blossom', 'blo1', '0.95 0.85 0.30 1')
 
 # ---------------------------------------------------------------- 植株/果串
 plant_bodies, truss_bodies, welds, truss_qpos = [], [], [], []
+cut_log = []                      # (串名, 规则模式, 到果面净距)
 world_extra = []   # 世界级: 藤胶囊 + 吊蔓线
 truss_idx = 0
 for p, vname in enumerate(VARIANTS):
     px, py = X_POS[p % 5], ROW_Y[p // 5]
-    out = prep_variant(vname)
-    # 真实藤轴拟合 -> 世界级碰撞胶囊 (r=0.022, 透明) + 吊蔓线
+    out = prep_variant(vname, px, py)
+    cut_log += [(f'{p}_{t["k"]}', t['cut_mode'], t['cut_clear']) for t in out['trusses']]
+    # 真实藤轴 (prep_variant 内已拟合) -> 世界级碰撞胶囊 (r=0.022, 透明) + 吊蔓线
     import json as _json2
     _pr = _json2.load(open(f'{FARM}/asset_extract/out/variants/{vname}/params.json'))
-    fit = fit_cane(vname, px, py, _pr['theta_deg'])
+    fit = out['cane']
     if fit is not None:
         base, dirv, z_top = fit
         top_pt = base + dirv * (z_top / dirv[2])
         world_extra.append(
             f'  <geom name="g_v{p}_stem" type="capsule" '
             f'fromto="{base[0]:.4f} {base[1]:.4f} 0 {top_pt[0]:.4f} {top_pt[1]:.4f} {top_pt[2]:.4f}" '
-            f'size="0.022" rgba="0 0 0 0" contype="4" conaffinity="1"/>')
+            f'size="{STEM_R}" rgba="0 0 0 0" contype="4" conaffinity="1"/>')
         if z_top < 2.35:
             world_extra.append(
                 f'  <geom name="g_v{p}_line" type="cylinder" '
@@ -388,3 +456,9 @@ def extend_keys(text):
 src = extend_keys(src)
 open(XML, 'w').write(src)
 print(f'环境已注入: {truss_idx} 果串 / {len(VARIANTS)} 株 / 轨道 {PIPE_N * 2} 段')
+from collections import Counter
+cnt = Counter(mode for _, mode, _ in cut_log)
+print('剪切点规则: %s' % ', '.join(f'{k}x{v}' for k, v in sorted(cnt.items())))
+lg = [nm for nm, mode, _ in cut_log if mode == 'legacy55']
+if lg:
+    print('  贴茎例外 (退回55%%): %d 串: %s' % (len(lg), ', '.join(lg)))

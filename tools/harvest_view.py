@@ -4,7 +4,9 @@
        python3 tools/harvest_view.py                 # MuJoCo 查看器 + 跟随视角实时看
        python3 tools/harvest_view.py --target 7_1    # 指定果串
        python3 tools/harvest_view.py --speed 0.5     # 0.5 倍速慢放
-     鼠标可自由旋转缩放, 相机 lookat 自动跟随夹爪 (--no-follow 关闭跟随)。
+       python3 tools/harvest_view.py --chain --cams  # 链路演示 + 三路 RealSense 相机窗口同屏
+     鼠标可自由旋转缩放, 相机 lookat 自动跟随夹爪 (--no-follow 关闭跟随);
+     --cams 另开三台相机实时窗口 (ESC 退出演示), 分辨率/刷新率用 --cam-scale/--cam-fps 调。
 
   2. MP4 导出 (无显示器也能跑):
        python3 tools/harvest_view.py --mp4 docs/harvest.mp4
@@ -21,6 +23,18 @@ import mujoco.viewer
 sys.path.insert(0, '/data/robot_assembly/tools')
 from harvest_demo import Picker, GEAR_HOME, run_chain
 
+# --cams 三路相机: 名 -> 原生 (竖直, 水平) 分辨率 (与 live_monitor.py 同源)
+CAMS = {
+    'cam_scene_yp_l515': (540, 960),
+    'cam_scene_yn_d435i': (480, 640),
+    'cam_wrist_d405': (720, 1280),
+}
+CAM_TITLES = {
+    'cam_scene_yp_l515': 'L515 (+y side)',
+    'cam_scene_yn_d435i': 'D435i (-y side)',
+    'cam_wrist_d405': 'D405 (wrist, down)',
+}
+
 
 def main():
     ap = argparse.ArgumentParser()
@@ -30,6 +44,10 @@ def main():
     ap.add_argument('--follow', action='store_true', help='MP4 也用跟随视角 (默认固定机位)')
     ap.add_argument('--mp4', default=None, help='导出 MP4 (无显示器模式, 默认垄道端点固定机位)')
     ap.add_argument('--chain', action='store_true', help='链路模式: 驶到最佳站点摘一串 (含底盘移动)')
+    ap.add_argument('--cams', action='store_true', help='另开三路 RealSense 相机实时窗口 (仅实时模式, ESC 退出)')
+    ap.add_argument('--cam-scale', type=float, default=0.5, help='相机窗口渲染缩放 (1.0=原生分辨率)')
+    ap.add_argument('--cam-fps', type=float, default=10.0, help='相机窗口刷新率上限 (Hz)')
+    ap.add_argument('--sync-every', type=int, default=2, help='查看器同步间隔 (步; 调大可加快实时模式)')
     ap.add_argument('--azim', type=float, default=0.0)
     ap.add_argument('--elev', type=float, default=-14.0)
     ap.add_argument('--dist', type=float, default=4.2)
@@ -51,6 +69,8 @@ def main():
     print('目标果串:', target)
 
     if args.mp4:
+        if args.cams:
+            print('--cams 仅用于实时模式, 已忽略')
         if args.chain:                 # 链路含行驶与长路径: 降分辨率+抽帧+提播放率
             W, H, FPS, STRIDE = 640, 360, 90, 6
         else:
@@ -77,7 +97,7 @@ def main():
             vw.write(img)
         tick.n = 0
         pk.tick = tick
-        log = run_chain(pk) if args.chain else pk.harvest(target)
+        log = run_chain(pk, target=args.target) if args.chain else pk.harvest(target)
         r.close()
         vw.release()
         print('MP4 已保存:', args.mp4)
@@ -85,31 +105,75 @@ def main():
         return
 
     # 实时查看器模式
-    with mujoco.viewer.launch_passive(pk.m, pk.d) as v:
-        t0 = time.time()
-        lookat = pk.tcp_pos().copy()
+    # 相机 Renderer 必须在 launch_passive 之前创建 (GL 上下文顺序, 同 live_monitor.py)
+    renderers = {}
+    if args.cams:
+        for c, (h, w) in CAMS.items():
+            renderers[c] = mujoco.Renderer(
+                pk.m, max(1, int(h * args.cam_scale)), max(1, int(w * args.cam_scale)))
 
-        def tick():
-            nonlocal lookat
-            if not args.no_follow:
-                lookat += 0.15 * (pk.tcp_pos() - lookat)
-                v.cam.lookat[:] = lookat
-            v.sync()
-            if args.speed > 0:                       # 实时回放节流
-                late = pk.d.time / args.speed - (time.time() - t0)
-                if late > 0:
-                    time.sleep(min(late, 0.05))
-        pk.tick = tick
-        log = run_chain(pk) if args.chain else pk.harvest(target)
-        print('log:', log)
-        print('流程结束, 查看器保持打开, Ctrl+C 退出')
-        try:
-            while v.is_running():
-                v.sync()
-                time.sleep(0.03)
-        except KeyboardInterrupt:
-            pass
+    try:
+        with mujoco.viewer.launch_passive(pk.m, pk.d) as v:
+            t0 = time.time()
+            lookat = pk.tcp_pos().copy()
+            last_cam = [0.0]
+
+            def show_cams():
+                for c, r in renderers.items():
+                    r.update_scene(pk.d, camera=c)
+                    cv2.imshow(CAM_TITLES[c],
+                               cv2.cvtColor(r.render(), cv2.COLOR_RGB2BGR))
+                if cv2.waitKey(1) & 0xFF == 27:         # ESC: 退出演示
+                    raise KeyboardInterrupt
+
+            def maybe_show_cams():
+                if not renderers:
+                    return
+                now = time.time()
+                if now - last_cam[0] >= 1.0 / args.cam_fps:
+                    last_cam[0] = now
+                    show_cams()
+
+            def tick():
+                nonlocal lookat
+                tick.n += 1
+                if not args.no_follow:
+                    lookat += 0.15 * (pk.tcp_pos() - lookat)
+                    v.cam.lookat[:] = lookat
+                if tick.n % args.sync_every == 0:
+                    v.sync()
+                maybe_show_cams()
+                if args.speed > 0:                       # 实时回放节流
+                    late = pk.d.time / args.speed - (time.time() - t0)
+                    if late > 0:
+                        time.sleep(min(late, 0.05))
+            tick.n = 0
+            pk.tick = tick
+            aborted = False
+            try:
+                log = run_chain(pk, target=args.target) if args.chain else pk.harvest(target)
+                print('log:', log)
+            except KeyboardInterrupt:
+                aborted = True
+                print('提前退出演示 (ESC / Ctrl+C)')
+            if not aborted:
+                print('流程结束, 查看器保持打开, Ctrl+C 退出')
+                try:
+                    while v.is_running():
+                        v.sync()
+                        maybe_show_cams()
+                        time.sleep(0.03)
+                except KeyboardInterrupt:
+                    pass
+    finally:
+        for r in renderers.values():
+            r.close()
+        if renderers:
+            cv2.destroyAllWindows()
 
 
 if __name__ == '__main__':
-    main()
+    try:
+        main()
+    except KeyboardInterrupt:   # 兜底: 二次 SIGINT 竞态 (GUI 后端下偶发) 不外漏 traceback
+        print('\n已中断退出')

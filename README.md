@@ -62,7 +62,9 @@ robot_assembly/
     贴合），参与碰撞：机械臂规划器的禁碰集 = 主茎 + 车体全部几何。
   - 40 条果串 = 两段式物理：`truss_p_k` 顶层 body（freejoint + 12 颗真尺寸果球碰撞）
     经 `hold_` weld 挂在植株（active），`grip_` weld 挂在夹爪 base_link（inactive，剪切后启用）。
-    `cut_p{p}_t{t}` site = 果柄 55% 处剪切点（论文 §4.5 的"送刀口深处"；感知真值 + 采摘目标）。
+    `cut_p{p}_t{t}` site = 果柄剪切点（感知真值 + 采摘目标）。规则 v2：锚定"簇顶挂结点"，
+    停在果簇网格之外（到果面净距 ≥1 cm）且离主茎表面 ≥2 cm，即果柄外段；顶果贴茎、
+    无干净果柄段的串退回旧 55% 规则（资产受限例外，15/40，见 model_notes）。
   - 轨道：CAD 原件 part_110/149（Ø40 钢管）平铺拉长；碰撞圆柱已改纯视觉
     （曾因轮-轨持续穿透产生病态接触力污染求解器，表现为果串弹飞/全片抖动）。
   - 收集筐 `basket_site`（筐为凹腔，碰撞用 5 个隐形盒近似）。
@@ -82,21 +84,25 @@ robot_assembly/
 python3 tools/harvest_demo.py                  # 自动挑最近成熟串: 接近→剪切→搬运→筐上释放→进筐判定
 python3 tools/harvest_demo.py --target 6_1     # 指定果串
 python3 tools/harvest_demo.py --chain          # 链路: 真值选最好摘的串 → 驶到站点 → 采摘进筐
+python3 tools/harvest_demo.py --chain --target 9_1   # 链路 + 指定目标 (驶到其站点; 前排目标动作更直接)
 python3 tools/harvest_demo.py --reach          # 全部果串 IK 可达性抽检
 ```
 
 - **剪切** = weld 状态机（`hold_` 断开、`grip_` 按当前相对位姿激活），物理上没有真"剪断"；
-  成败由确定性几何判据给出：果柄线段 ∩ 剪切区盒（gear 系轴向 0.01–0.115 m、径向 ≤26 mm）
-  命中 → 剪切成功，不命中 → 空剪 + `shear_miss`。
+  成败由确定性几何判据给出：果柄线段（挂点 → 剪切点）∩ 剪切区盒
+  （gear 系轴向 0.01–0.115 m、径向 ≤26 mm）命中 → 剪切成功，不命中 → 空剪 + `shear_miss`。
 - **运动**：两阶段碰撞感知 IK（多种子，收敛后查碰撞）+ RRT-Connect 关节空间规划（直线优先）；
   抬升预检"能低不升"（0 → 0.25 → 0.5 逐档试解，全通过才升）。
-- **当前状态**：链路全程 lift=0.00、in_basket，臂对主茎/筐/台面/风琴罩的穿透 >3 mm 采样 = 0；
-  单串 demo 中 1_2 / 0_3 / 6_1 in_basket。
+- **当前状态**：链路 `--chain`（真值选最佳串）全程 lift=0.00、in_basket，臂对主茎/筐/台面/风琴罩的
+  穿透 >3 mm 采样 = 0；单串 `--target` 视目标而定（低处果串需升到 lift=0.5，个别目标偶发
+  `unreachable`，结果有 run-to-run 波动）。
 
 **可视化**：
 ```bash
 python3 tools/harvest_view.py                    # 实时查看器, 相机跟随夹爪, --speed 0.5 慢放
 python3 tools/harvest_view.py --chain            # 链路模式 (含底盘行驶)
+python3 tools/harvest_view.py --chain --cams     # 链路 + 三路 RealSense 相机窗口同屏 (ESC 退出)
+python3 tools/harvest_view.py --chain --target 9_1 --cams   # 指定目标链路 (演示推荐: 前排, 无跨车回转)
 python3 tools/harvest_view.py --mp4 docs/x.mp4   # 无显示器导出 MP4 (带阶段标签)
 ```
 效果样例：[`docs/harvest_demo.mp4`](docs/harvest_demo.mp4)（单串 20 s）、

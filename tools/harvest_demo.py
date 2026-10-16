@@ -434,9 +434,9 @@ class Picker:
         base = d.xpos[m.body('arm_base_mount').id]
         to_robot = cut - base
         to_robot[2] = 0
-        to_robot /= max(np.linalg.norm(to_robot), 1e-6)      # 朝机器人基座 (走道, 开放空间)
+        to_robot /= max(np.linalg.norm(to_robot), 1e-6)      # 基座 -> 目标 (从走道伸向果串)
         dvec = cut - d.xipos[tr_body]
-        dvec /= max(np.linalg.norm(dvec), 1e-9)              # 沿果柄 (指向主茎)
+        dvec /= max(np.linalg.norm(dvec), 1e-9)              # 沿果柄 (指向主茎; 仅记录)
         approach = cut - to_robot * 0.10
 
         if cut[2] < 0.9:     # 低于论文作业带 (1.1-1.5m), 且低于台面板投影 -> 几何不可达
@@ -453,9 +453,13 @@ class Picker:
             self.set_lift(L)
             self.cmd = None
             q_c = self.solve_ik(approach, iters=600)
-            q_b = self.solve_ik(cut - dvec * 0.015, iters=800, axis_target=dvec)
+            # B = 横剪抓取: 工具轴水平指向走道侧 (to_robot), TCP 停在剪切点 ——
+            # 腕部留在开放空间, 刀口从侧面横切竖直果柄 (送刀口深处=TCP 距齿轮 0.10)。
+            # 旧式轴对齐沿 dvec: 切点上移到簇顶后 dvec 变竖直朝上, 整只手会被
+            # 兜进果堆 (穿模 5.1cm) 且迫使臂绕下方入位, 见 model_notes 2026-10-12
+            q_b = self.solve_ik(cut, iters=800, axis_target=to_robot)
             if q_b is None:
-                q_b = self.solve_ik(cut - dvec * 0.015, iters=800)
+                q_b = self.solve_ik(cut, iters=800)
             e_b = float('inf')
             if q_b is not None:
                 self._fk.qpos[:] = d.qpos
@@ -463,7 +467,7 @@ class Picker:
                 mujoco.mj_forward(m, self._fk)
                 R = self._fk.xmat[self.tcp].reshape(3, 3)
                 pp = self._fk.xpos[self.tcp] + R @ self.tcp_off
-                e_b = float(np.linalg.norm(pp - (cut - dvec * 0.015)))
+                e_b = float(np.linalg.norm(pp - cut))
             ok = (q_c is not None) and (q_b is not None) and (e_b <= 0.005)
             print('  [lift] 尝试 %.2f: 解算=%s B残差=%.4f -> %s' % (
                 L, 'OK' if (q_c is not None and q_b is not None) else '失败', e_b,
@@ -480,18 +484,18 @@ class Picker:
         self.set_lift(lift)
 
         self.stage = 'LIFT & APPROACH'
-        # approach = 开放空间路点 (纯位置, 轴对齐在此非必要且易无解);
-        # B = 抓取位姿 (轴对齐: 果柄沿工具轴, 主茎落在指尖之外)
+        # approach = 开放空间路点 (纯位置); B = 横剪抓取位姿 (工具轴水平指向走道侧,
+        # TCP 停在剪切点 —— 与 approach 位姿同族, 过渡小, 腕部不进口果堆)
         okC, eC = self.goto(approach, iters=600)
         if axis_grasp:
-            okB, eB = self.goto(cut - dvec * 0.015, iters=800, axis_target=dvec)
+            okB, eB = self.goto(cut, iters=800, axis_target=to_robot)
             if not okB:
                 # 轴对齐对该株几何无解 (可达性约束) -> 回退纯位置, 记录标注
                 print('  [harvest] 轴对齐抓取无解, 回退纯位置 B', flush=True)
-                okB, eB = self.goto(cut - dvec * 0.015, iters=800)
+                okB, eB = self.goto(cut, iters=800)
                 log['axis_grasp'] = False
         else:
-            okB, eB = self.goto(cut + to_robot * 0.02, iters=800)   # 停在剪切点前 2cm
+            okB, eB = self.goto(cut, iters=800)
         log['approach_err'] = round(eC, 4)
         log['reach_err'] = round(eB, 4)
         # B 点成败由任务判据决定 (果柄是否落入剪切区), 而非毫米级 TCP 误差 ——
@@ -501,13 +505,13 @@ class Picker:
             self.stage = 'UNREACHABLE'
             return log
         self.stage = 'CLOSE & CUT'
-        # 剪切判据 (确定性几何): 果柄线段 (attach->果簇) 与夹爪剪切区盒相交
+        # 剪切判据 (确定性几何): 果柄线段 (attach->cut, 即要剪的那段) 与夹爪剪切区盒相交
         # 盒 (gear 系): 轴向 [0.01, 0.115] (齿轮回转面到指端), 径向距工具轴 <= 0.026
         # (= 张开口 52mm 的一半 —— 果柄能落入张开的夹爪内部, 闭合即剪到)
         R_g = d.xmat[self.tcp].reshape(3, 3)
         p_g = d.xpos[self.tcp]                            # gear 原点 (世界)
         att = d.site_xpos[m.site(f'attach_p{truss.split("_")[0]}_t{truss.split("_")[1]}').id]
-        seg_w = np.array([att, d.xipos[tr_body]])        # 果柄线段 (世界)
+        seg_w = np.array([att, cut])                     # 果柄线段 = attach -> 剪切点 (世界)
         seg_g = (R_g.T @ (seg_w - p_g).T).T              # 变换到 gear 系
         hit = False
         for tt in np.linspace(0, 1, 25):
@@ -548,7 +552,10 @@ class Picker:
         mujoco.mju_mulQuat(q_new, q_d, q_cur)          # R2_new = R_delta @ R2
         R2_new = np.zeros(9)
         mujoco.mju_quat2Mat(R2_new, q_new)
-        p_new_w = self.tcp_pos()                        # 果串原点保持在 TCP (剪切点)
+        # 果串原点从 TCP 沿世界竖直方向再下移 HANG_DROP —— 让整串(含顶部果实)
+        # 落到指板之下, 消除搬运期"果球穿指板"的残余视觉穿插 (2026-10-12)
+        HANG_DROP = 0.05
+        p_new_w = self.tcp_pos() + np.array([0.0, 0.0, -HANG_DROP])   # 垂挂于爪下
         p_new = R1.T @ (p_new_w - d.xpos[base_id])
         m.eq_data[grip][3:6] = p_cur                    # 从当前位姿起步
         m.eq_data[grip][6:10] = q_cur
@@ -591,7 +598,7 @@ class Picker:
         bid = m.body(f'truss_{truss.split("_")[0]}_{truss.split("_")[1]}').id
         mouth_z = bw[2] - 0.22
         bwlo = bw.copy()
-        bwlo[2] = mouth_z + 0.11   # 释放深度: 指尖离筐底留 ~2cm (实测 1mm 浅擦 -> 抬升 2cm)      # 垂挂果串(长~0.25)下端贴筐底, 全部位于内腔
+        bwlo[2] = mouth_z + 0.11 + HANG_DROP   # 释放深度: 指尖离筐底留 ~2cm (实测 1mm 浅擦 -> 抬升 2cm); +悬挂下移量补偿
         self.goto(bwlo, iters=400)
         self.stage = 'RELEASE'
         # 原地慢开爪; 在最终释放位姿上迭代对准 (此后到释放前无任何运动)
@@ -691,16 +698,34 @@ class Picker:
             pass
 
 
-def run_chain(pk, z_lo=1.0, z_hi=1.55):
-    """链路验证: 真值挑最好摘的一串 -> 驶到最佳站点 -> 有碰撞环境下完成采摘。"""
-    best = pk.pick_best_truss(z_lo=z_lo, z_hi=z_hi)
-    if best is None:
-        print('无符合条件的成熟串')
-        return None
-    (clear, _), name, cut, c0 = best
+def run_chain(pk, z_lo=1.0, z_hi=1.55, target=None):
+    """链路验证: 真值挑最好摘的一串 -> 驶到最佳站点 -> 有碰撞环境下完成采摘。
+    target 指定时跳过选串 (用于演示特定目标, 仍会驶到其站点)。"""
+    if target:
+        pk.reset()
+        cut = pk.cut_site_pos(f'cut_p{target.split("_")[0]}_t{target.split("_")[1]}')
+        name = target
+        c0 = 1e9                              # 指定目标的净空 (日志用)
+        for gid in pk.forbid_geoms:
+            gp = pk.d.geom_xpos[gid]
+            gm = pk.d.geom_xmat[gid].reshape(3, 3)
+            axis = gm[:, 2]
+            half = pk.m.geom_size[gid][1]
+            v = cut - gp
+            tt = float(np.clip(v @ axis, -half, half))
+            c0 = min(c0, float(np.linalg.norm(v - tt * axis)))
+        print('指定果串: %s  cut=%s  离主茎=%.3fm' % (
+            name, np.round(cut, 3).tolist(), c0))
+    else:
+        best = pk.pick_best_truss(z_lo=z_lo, z_hi=z_hi)
+        if best is None:
+            print('无符合条件的成熟串')
+            return None
+        (clear, _), name, cut, c0 = best
+        print('选定果串: %s  cut=%s  离主茎=%.3fm' % (
+            name, np.round(cut, 3).tolist(), clear))
     station = float(np.clip(cut[0], -2.0, 2.0))
-    print('选定果串: %s  cut=%s  离主茎=%.3fm  站点 x=%.2f' % (
-        name, np.round(cut, 3).tolist(), clear, station))
+    print('  站点 x=%.2f' % station)
     pk.stage = 'DRIVE TO STATION'
     x = pk.drive_to(station)
     print('已到站 x=%.3f' % x)
@@ -750,7 +775,7 @@ def main():
     pk = Picker()
     mujoco.mj_resetDataKeyframe(pk.m, pk.d, 0)
     if args.chain:
-        run_chain(pk)
+        run_chain(pk, target=args.target)
         return
     mujoco.mj_forward(pk.m, pk.d)
     base = pk.d.xpos[pk.m.body('arm_base_mount').id]
