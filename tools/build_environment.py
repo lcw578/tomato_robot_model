@@ -18,7 +18,7 @@
 用法: python3 tools/build_environment.py [--flat-colors]
   --flat-colors: 材质不带纹理 (UV 异常时的退路)
 """
-import heapq, json, os, re, shutil, struct, subprocess, sys
+import json, os, re, shutil, struct, subprocess, sys
 import numpy as np
 
 sys.path.insert(0, '/data/robot_assembly/tools')
@@ -105,45 +105,6 @@ def quat_z_to(d):
     w, h = np.cos(ang / 2), np.sin(ang / 2)
     return '%.5f %.5f %.5f %.5f' % (float(w), float(ax[0]) * float(h),
                                     float(ax[1]) * float(h), float(ax[2]) * float(h))
-
-
-def flood_rachis(vine_faces, vine_cent, seeds, blocked, budget):
-    """簇内穗轴面选取 (方案 B, 2026-10-17): 在 vine 面邻接图上从种子 Dijkstra 泛洪,
-    权重 = 相邻面质心距, 超出测地预算停止; blocked 面 (贴主干) 不收不扩。
-    返回选中的 vine 面下标集合 —— 这些面从植株网格迁出、随果串剪走 (用户语义:
-    "连接一串番茄中间的长柄"要跟着果串进筐)。"""
-    nf = len(vine_faces)
-    edge2face = {}
-    for fi, f in enumerate(vine_faces):
-        iv = [tok[0] for tok in f]
-        for a, b in ((0, 1), (1, 2), (2, 0)):
-            key = (iv[a], iv[b]) if iv[a] < iv[b] else (iv[b], iv[a])
-            edge2face.setdefault(key, []).append(fi)
-    nbrs = [[] for _ in range(nf)]
-    for fl in edge2face.values():
-        for i in fl:
-            for j in fl:
-                if i != j:
-                    nbrs[i].append(j)
-    dist = {s: 0.0 for s in seeds}
-    heap = [(0.0, s) for s in seeds]
-    heapq.heapify(heap)
-    taken = set()
-    while heap:
-        du, u = heapq.heappop(heap)
-        if du > dist.get(u, np.inf) or blocked[u]:
-            continue
-        taken.add(u)
-        cu = vine_cent[u]
-        for v in nbrs[u]:
-            if v in taken or blocked[v]:
-                continue
-            nd = du + float(np.linalg.norm(vine_cent[v] - cu))
-            if nd <= budget and nd < dist.get(v, np.inf):
-                dist[v] = nd
-                heapq.heappush(heap, (nd, v))
-    return taken
-
 
 
 def fit_cane(vname, px, py, theta_deg, R=0.06):
@@ -293,21 +254,21 @@ def prep_variant(vname, px, py):
     if cane is None:
         print(f'  {vname}: 藤轴拟合失败, 剪切点退回 55% 规则')
     out['cane'] = cane
-    # 簇内穗轴迁移 (方案 B) 上下文: vine 面质心 + 主干屏蔽掩码 (离藤轴表面
-    # <6mm 的面不收不扩 —— 贴茎例外族因此自然少迁/不迁, 主干永不被搬走)
+    # 簇内穗轴迁移 (方案 B 修正版 2) 上下文: 主干屏蔽掩码 (面的质心离藤轴表面
+    # <6mm 不收 —— 贴茎例外族自然少迁/不迁, 主干永不被搬走)
     vine_faces = mats.get('vine', [])
     vine_sel_all = set()
-    vine_ctx = None
+    cane_blocked = None
     if vine_faces and cane is not None:
-        vine_cent = face_centroids(vs, vine_faces)
+        vc = face_centroids(vs, vine_faces)
         base, dirv, z_top = cane
         top_w = base + dirv * (z_top / dirv[2])
         a_o = np.array([base[0] - px, base[2], py - base[1]])
         b_o = np.array([top_w[0] - px, top_w[2], py - top_w[1]])
         ab = b_o - a_o
-        tt = np.clip((vine_cent - a_o) @ ab / (ab @ ab), 0, 1)
-        d_cane = np.linalg.norm(vine_cent - (a_o + np.outer(tt, ab)), axis=1)
-        vine_ctx = (vine_cent, d_cane < STEM_R + 0.006)
+        tt = np.clip((vc - a_o) @ ab / (ab @ ab), 0, 1)
+        d_cane = np.linalg.norm(vc - (a_o + np.outer(tt, ab)), axis=1)
+        cane_blocked = d_cane < STEM_R + 0.006
     for ki, k in enumerate(sorted(trusses)):
         t = trusses[k]
         sel = tr_of_face == ki
@@ -326,31 +287,27 @@ def prep_variant(vname, px, py):
             print('  [cutdbg] %s_t%d: mode=%s clear=%s' % (
                 vname, k, cut_mode,
                 'nan' if cut_clear != cut_clear else '%.4f' % cut_clear))
-        # 簇内穗轴面选取 (方案 B): 种子 = 簇球内 ∪ 果柄走廊 (cut->质心 12mm 内),
-        # 均须在切点靠果簇一侧; 泛洪测地预算 = |质心-cut| + 4cm; 跨串去重。
+        # 簇内穗轴面选取 (方案 B 修正版 2, 2026-10-17 用户反馈): 硬空间门按面的
+        # **全部顶点**判 —— 顶点到簇心距离全部 < 簇半径+2cm 才收。
+        # 教训链: 首版泛洪无空间门, 沿侧枝把整段枝条搬进筐; 二版按"质心"设门,
+        # 被细长连接三角形泄漏 (两顶点在簇内、一顶点在 1.2m 外主干上, 质心仍能
+        # 过门) —— 横在筐上的长杆即此。顶点门下穗轴/果蒂全收, 侧枝/主干/长三角
+        # 形全排除; 也无需邻接图泛洪 (vine 顶点按面复制, 索引邻接本就为空)。
         n_rachis = 0
-        if vine_ctx is not None:
-            vine_cent, cane_blocked = vine_ctx
+        rmax_val = None
+        if cane_blocked is not None:
             R_cl = t['radius']
             ctr = t['centroid']
-            d_ctr = np.linalg.norm(vine_cent - ctr, axis=1)
-            side = (vine_cent - cut) @ (ctr - cut) > 0
-            seg = ctr - cut
-            L_seg = float(np.linalg.norm(seg))
-            tt2 = np.clip((vine_cent - cut) @ seg / max(L_seg ** 2, 1e-12), 0, 1)
-            d_seg = np.linalg.norm(vine_cent - (cut + np.outer(tt2, seg)), axis=1)
-            seeds = np.where(((d_ctr < R_cl + 0.03) | (d_seg < 0.012)) & side)[0]
-            if len(seeds):
-                taken = flood_rachis(vine_faces, vine_cent,
-                                     [int(s) for s in seeds], cane_blocked,
-                                     L_seg + 0.04)
-                taken -= vine_sel_all
-                vine_sel_all |= taken
-                if taken:
-                    idx = sorted(taken)
-                    emit_obj(f'{PLANT_DIR}/{vname}_rachis{k}.obj', vs - cut, vts,
-                             [vine_faces[i] for i in idx])
-                    n_rachis = len(idx)
+            Vd = np.linalg.norm(vs[face_verts_idx(vine_faces)] - ctr, axis=2)
+            vmax = Vd.max(axis=1)                       # 面的最远顶点到簇心
+            sel = np.where((vmax < R_cl + 0.02) & ~cane_blocked)[0]
+            idx = [int(i) for i in sel if i not in vine_sel_all]
+            if idx:
+                vine_sel_all.update(idx)
+                emit_obj(f'{PLANT_DIR}/{vname}_rachis{k}.obj', vs - cut, vts,
+                         [vine_faces[i] for i in idx])
+                n_rachis = len(idx)
+                rmax_val = round(float(vmax[idx].max()), 3)
         # 果串 body 原点 = 剪切点 (torquescale=0 点抓的枢轴): 网格/球均相对剪切点,
         # 否则 MuJoCo 的"按授权位置补偿"会把渲染/碰撞放到双倍偏移处
         emit_obj(f'{PLANT_DIR}/{vname}_truss{k}.obj', vs - cut, vts, faces)
@@ -361,12 +318,14 @@ def prep_variant(vname, px, py):
         out['trusses'].append(dict(k=k, pos=cut, mesh=f'{vname}_truss{k}', rip=t['rip'],
                                    spheres=spheres, cut=cut, attach=attach, dirc=dirc,
                                    ctr_rel=ctr - cut, cut_mode=cut_mode,
-                                   cut_clear=cut_clear, rachis=n_rachis))
+                                   cut_clear=cut_clear, rachis=n_rachis,
+                                   rachis_rmax=rmax_val))
     if vine_sel_all:
         keep = [f for i, f in enumerate(vine_faces) if i not in vine_sel_all]
         emit_obj(f'{PLANT_DIR}/{vname}_vine.obj', vs, vts, keep)
         print(f'  {vname}: 簇内穗轴面迁出 {len(vine_sel_all)}/{len(vine_faces)} ('
-              + ', '.join(f"t{t['k']}:{t['rachis']}" for t in out['trusses'] if t['rachis'])
+              + ', '.join(f"t{t['k']}:{t['rachis']}面,顶点半径≤{t['rachis_rmax']:.2f}m"
+                          for t in out['trusses'] if t['rachis'])
               + ')')
     return out
 
