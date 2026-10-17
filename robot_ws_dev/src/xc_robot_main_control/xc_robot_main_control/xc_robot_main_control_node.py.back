@@ -1,0 +1,2520 @@
+#!/usr/bin/env python3
+import rclpy
+from rclpy.node import Node
+from sensor_msgs.msg import Image
+from cv_bridge import CvBridge
+import message_filters
+from xc_interfaces.srv import YoloDetection
+import cv2
+import numpy as np
+import time
+from sensor_msgs.msg import CameraInfo
+# import numpy as np
+from xc_interfaces.srv import MoveToPose,MoveJoints,GripperControl
+from xc_interfaces.msg import TestResult,AGVStatus,DetectionResult,Detection2UI
+from vision_tomato_interfaces.srv import GetPickPoses
+from vision_tomato_interfaces.msg import PickPoseCandidate
+from geometry_msgs.msg import Point
+import math
+import threading
+from rclpy.executors import MultiThreadedExecutor
+from rclpy.callback_groups import ReentrantCallbackGroup, MutuallyExclusiveCallbackGroup
+
+import pyrealsense2 as rs2
+
+from rcl_interfaces.srv import SetParameters
+from rcl_interfaces.msg import Parameter, ParameterValue
+from rclpy.parameter import ParameterType
+from xc_robot_main_control.stemGrowthAndPoints import StemGrowthAndPoints
+from xc_robot_main_control.moge.moGeDepthEstimator import MoGeDepthEstimator
+
+import os
+import signal
+import subprocess
+#键盘监控
+import select
+import sys
+import tty
+import termios
+from ament_index_python.packages import get_package_share_directory
+
+import copy
+
+
+PID_FILE = "/tmp/realsense_camera.pid"
+# 相机热切换方法
+# self.get_logger().info("[INFO] 开始热切换 RealSense 相机 ...")
+# kill_old_camera()
+# time.sleep(1.0)
+# start_new_camera_launch()
+# self.get_logger().info("[INFO] 热切换命令已发送。")
+#ros2 run xc_robot_main_control xc_robot_main_control_node --log-level debug
+
+class XCRobotMainControlNode(Node):
+    def __init__(self):
+        super().__init__('xc_robot_main_control_node')
+        #可调参数开始
+        
+        self.is_continuous_run = True #True就连续运行，如果是False就分步运行
+        self.is_have_end_effector = True #True就有末端执行器，False就没有
+        self.is_navigation = False #True就处于导航状态，False就不处于导航，设置机器人采摘是否依赖RFID读卡
+        self.is_pub_log=False #True就发布日志，False就不发布日志 只记录车子停下来之后的数据
+        self.is_delete_failed_detection=True #True就删除失败的检测结果，False就不删除
+        self.is_use_base_angle=True #True就表示果梗切线角度转换到基座坐标系后计算，False就只使用图像计算切线角度
+        self.is_two_stage=False #True就表示采用两阶段采摘，False就采用单阶段采摘
+
+        self.is_use_moge_depth_estimator=False #True就使用MoGe深度估计器，False就不使用
+        # 末端执行器的长度 单位是m
+        self.gripper_length=0.10
+
+        # 机械臂X方向误差修正  单位是m
+        self.arm_x_error_modify=0
+        # 初始化工作相机编号标志 1或者2 1为左相机 2为右相机
+        self.camera_working_flag = 1
+        #设定手眼标定文件路径
+        self.hand_eye_main_path="/home/xc/code/test/ros2/robot_ws/src/hand_eye_calibration_python/config/"# 机器人工控机
+        # self.hand_eye_main_path="/home/xucan/code/test/robot_ws/src/hand_eye_calibration_python/config/" # xc 办公室 WSL
+        # self.hand_eye_main_path="/home/xc_home_wsl/code/test/ROS2/robot_ws/src/hand_eye_calibration_python/config/" # xc 家中 WSL
+
+        #可调参数结束
+
+        #多线程处理方法
+        self.reentrant_cb_group = ReentrantCallbackGroup()
+        self.mutex_cb_group = MutuallyExclusiveCallbackGroup()
+        self.bridge = CvBridge()
+        
+        self.change_camera_flag = False #True就切换相机
+        self.have_change_camera=False #True表示已经切换过一次相机
+        
+        # 添加标志位来跟踪detection_callback处理状态，如果为False则可以处理新数据
+        self.is_detection_processing = False
+
+        # 初始化是否为真实相机数据标志
+        self.is_real_camera_data = True
+        # 初始化内参获取标志
+        self.intrinsics_ready = False
+        self.growth_point_calculator=StemGrowthAndPoints()
+
+        self.picking_img_num=0 #记录采摘的图片数量
+
+        self.after_stop_try_times=0 #记录底盘停止后尝试次数
+
+        # 初始化采摘是否成功标志
+        self.is_picking_success = False
+        self.failed_tomato_stem=[]#存储采摘失败的果梗和番茄对（包含完整6个元素）
+        
+        # 初始化MoGe深度估计器
+        # 获取当前文件所在目录的绝对路径
+        # current_dir = os.path.dirname(os.path.abspath(__file__))
+        # # 构建模型路径，确保跨设备兼容
+        # model_path = os.path.join(current_dir, 'moge', 'weights', 'moge-2-vits-normal.pt')
+        self.depth_estimator=None
+        if self.is_use_moge_depth_estimator==True:
+            share_dir = get_package_share_directory('xc_robot_main_control')
+            depth_model_path = os.path.join(share_dir, 'weights', 'moge-2-vits-normal.pt')
+            self.get_logger().info(f"MoGe模型路径: {depth_model_path}")
+            try:
+                self.depth_estimator = MoGeDepthEstimator(model_path=depth_model_path)
+                self.get_logger().info("MoGe深度估计器初始化成功")
+            except Exception as e:
+                self.get_logger().error(f"MoGe深度估计器初始化失败: {e}")
+                self.depth_estimator = None
+        
+
+
+        # 底盘停下来后的标志，当检测到可采摘番茄，底盘需要停止之后再拍一次
+        self.first_see_harvestable_tomato=0
+        
+
+
+        # 初始化眼在手矩阵
+        # self.eyehand_matrix = np.eye(4)
+        self.left_eyehand_matrix = np.eye(4)
+        self.right_eyehand_matrix = np.eye(4)
+
+        # 目标节点和参数信息 用于控制底盘运动
+        #真实导航
+        # self.target_node = '/agv_navigation_node'
+        #仅仅向前
+        self.target_node = '/agv_always_go_straght_node'
+        # 虚拟导航节点
+        # self.target_node = '/vis_car_control_node'
+        self.param_name = 'is_continue_run'
+        self.param_value = False
+        self.get_logger().debug(f"---debug测试----")
+        
+        # 声明参数并设置默认值
+        self.declare_parameter('depth_scale', 0.00025)#L515就是0.00025,如果是D435i就是0.0001
+        self.depth_scale = self.get_parameter('depth_scale').value
+        #保存目标request
+        self.target_point_request_=MoveToPose.Request()
+        # 初始化线程锁
+        self.camera_matrix_lock = threading.Lock()
+        self.agv_status_lock = threading.Lock()
+        
+        # 添加处理标志和锁，用于控制回调的执行
+        self.is_processing = False
+        self.is_handle_one_img = False
+        self.processing_lock = threading.Lock()
+
+        # 初始化gripper_feedback_result,末端检测的反馈结果
+        self.gripper_feedback_result = 0
+        self.get_logger().info(f"初始化时self.gripper_feedback_result: {self.gripper_feedback_result}")
+
+        # 初始化尝试次数
+        self.try_picking_count = 0
+
+        self.color_img_group=[] #底盘停下来后连续采集5帧彩色图片组
+        self.depth_img_group=[] #底盘停下来后连续采集5帧深度图片组
+        self.color_img_group.clear()
+        self.depth_img_group.clear()
+        
+        #尝试获取相机信息        
+        self.try_get_camera_info()
+        
+
+        self.left_calibration_file_path = self.hand_eye_main_path+"left/calibration_results.txt"
+        self.right_calibration_file_path = self.hand_eye_main_path+"right/calibration_results.txt"
+        self.get_eye_hand_matrix()
+        self.matched_pairs_count_print_flag = True #初始化打印匹配数量
+        
+        
+        # 创建ROS2相关订阅与发布者
+
+        # 创建gripper_feedback_result话题订阅者 接收末端执行器反馈处理结果
+        self.gripper_feedback_result_sub=self.create_subscription(
+            TestResult,
+            'test_result',
+            self.gripper_feedback_result_callback,
+            1,
+            callback_group=self.reentrant_cb_group)
+        
+        time.sleep(0.1)
+        
+
+        # 创建YOLO检测服务客户端
+        self.yolo_client = self.create_client(YoloDetection, 'yolo_detection',callback_group=self.mutex_cb_group)
+        
+        # 创建番茄采摘位姿服务客户端
+        self.get_close_pick_poses_client = self.create_client(GetPickPoses, '/vision/tomato/get_pick_poses', callback_group=self.reentrant_cb_group)
+        
+        # 初始化底盘导航开始与否服务
+        self.car_pause_navigation_client = self.create_client(SetParameters, f'{self.target_node}/set_parameters',callback_group=self.reentrant_cb_group)
+        
+        # 创建相机话题订阅
+
+        color_sub = message_filters.Subscriber(self, Image, '/camera/color/image_raw')
+        depth_sub = message_filters.Subscriber(self, Image, '/camera/aligned_depth_to_color/image_raw')
+        
+        self.ts = message_filters.ApproximateTimeSynchronizer(
+            [color_sub, depth_sub], 
+            queue_size=1, 
+            slop=0.1
+        )
+        self.ts.registerCallback(self.image_callback)
+        
+        # 创建机械臂服务调用客户端
+        self.move_to_pose_client = self.create_client(MoveToPose, 'move_to_pose',callback_group=self.reentrant_cb_group)
+        self.move_joints_client = self.create_client(MoveJoints, 'move_joints',callback_group=self.reentrant_cb_group)
+        self.return_to_box_client = self.create_client(MoveToPose, 'return_to_box',callback_group=self.reentrant_cb_group)
+        self.return_to_midpoint_client = self.create_client(MoveToPose, 'target_return_midpoint',callback_group=self.reentrant_cb_group)
+        # 创建末端执行器服务调用客户端
+        self.gripper_control_client = self.create_client(GripperControl, 'gripper/control',callback_group=self.reentrant_cb_group)
+        
+        # 创建发布者用于可视化结果
+        self.visualization_pub = self.create_publisher(Image, '/yolo_matched_image', 10,callback_group=self.reentrant_cb_group)
+        self.detection2ui_pub = self.create_publisher(Detection2UI, '/detection2ui', 1,callback_group=self.reentrant_cb_group)
+        
+        if self.is_pub_log==True:
+            self.detection_result_pub = self.create_publisher(DetectionResult, '/picking_reault_all', 10,callback_group=self.reentrant_cb_group)
+            self.handle_num=0
+        
+        self.agv_status_sub = self.create_subscription(
+            AGVStatus,
+            'agv_status',
+            self.agv_status_callback,
+            1,
+            callback_group=self.reentrant_cb_group)
+        time.sleep(0.1)
+        
+        self.agv_status_=None
+        self.get_logger().info("XC Robot Main Control节点已启动")
+
+        #机械臂去初始位置
+        self.go_init_joints = MoveJoints.Request()                
+        self.go_init_joints.joints[0]= 10.32*math.pi/180
+        self.go_init_joints.joints[1]= 15.37*math.pi/180 
+        self.go_init_joints.joints[2]=134.05*math.pi/180
+        self.go_init_joints.joints[3]=117.05*math.pi/180
+        self.go_init_joints.joints[4]=86.63*math.pi/180
+        self.go_init_joints.joints[5]=0.0*math.pi/180
+        self.move_joints_client.call_async(self.go_init_joints)
+
+        self.gripper_control_client.call_async(GripperControl.Request(command="open"))
+
+
+
+
+    def agv_status_callback(self, msg):
+        """
+        处理AGV状态消息的回调函数
+        """
+        with self.agv_status_lock:
+            if self.agv_status_==None:
+                self.agv_status_=msg
+
+            if msg.white_card_id!=self.agv_status_.white_card_id and msg.white_card_id!=0 and self.is_navigation==True:                
+                self.agv_status_=msg
+                # if msg.white_card_id%10==3 :
+                if msg.white_card_id==13 :
+
+                    self.get_logger().info(f"AGV状态为{msg.white_card_id}")
+                    if self.have_change_camera==False:
+                        self.change_camera_flag=True
+                    else:
+                        self.change_camera_flag=False
+                else:
+                    self.change_camera_flag=False
+                    self.have_change_camera=False
+            if msg.white_card_id!=self.agv_status_.white_card_id and self.is_navigation==False:                                
+                self.agv_status_=msg
+                if msg.white_card_id==13 :
+                    self.get_logger().info(f"11AGV状态为{msg.white_card_id}")
+                    if self.have_change_camera==False:
+                        self.change_camera_flag=True
+                    else:
+                        self.change_camera_flag=False
+                else:
+                    self.change_camera_flag=False
+                    self.have_change_camera=False
+
+
+    def try_get_camera_info(self):
+        # 尝试获取相机内参
+        self.get_logger().info("尝试获取相机内参...")
+        try:
+            # 检查话题是否存在
+            topic_name = '/camera/color/camera_info'
+            start_time = time.time()
+            timeout = 2.0  # 等待2秒
+            topic_exists = False            
+            # 循环检查话题是否存在，直到超时
+            while time.time() - start_time < timeout:
+                # 获取当前所有话题
+                topic_list = self.get_topic_names_and_types()
+                
+                # 检查目标话题是否在列表中
+                for topic, types in topic_list:
+                    if topic == topic_name:
+                        topic_exists = True
+                        break
+                        
+                if topic_exists:
+                    break
+                    
+                # 短暂睡眠后继续检查
+                time.sleep(0.1)
+                
+            if topic_exists:
+                self.get_logger().info(f"成功检测到话题: {topic_name}")
+                # 确保订阅器已经创建并设置了回调函数
+                # 注意：订阅器在__init__方法中已经创建，这里只做确认
+                        # 订阅相机信息话题
+                self.camera_info_sub = self.create_subscription(
+                    CameraInfo, 
+                    '/camera/color/camera_info',
+                    self.camera_info_callback,
+                    1
+                )
+                time.sleep(0.1)
+                self.get_logger().info("已订阅/camera/color/camera_info话题，等待内参数据...")
+            else:
+                self.get_logger().warning(f"在{timeout}秒内未检测到话题: {topic_name}，将使用默认相机内参")
+                self.set_default_intrinsics()
+                
+        except Exception as e:
+            self.get_logger().error(f"获取相机内参失败: {str(e)}")
+    
+    def image_callback(self, color_msg, depth_msg):
+        try:
+            # 检查是否正在处理上一帧数据
+            with self.processing_lock:
+                if self.is_processing==True:
+                    return
+            # 设置标志为正在处理
+            with self.processing_lock:
+                self.is_processing = True
+            # self.get_logger().info("有图片----------")
+            self.get_logger().info("进入图像回调函数，准备处理。。。。")
+            #如果存在采摘不到的番茄，那么就等待2秒，让底盘往前一段距离，避免死循环
+            if len(self.failed_tomato_stem)>0:
+                self.get_logger().warn(f"存在采摘不到的番茄，等待2秒，让底盘往前一段距离，避免死循环,失败的番茄列表为：{len(self.failed_tomato_stem)}")
+                self.is_processing = False
+                self.failed_tomato_stem.clear()
+                time.sleep(5)
+                return
+
+            # 添加尺寸校验
+
+            if color_msg.width != depth_msg.width or color_msg.height != depth_msg.height:
+                self.get_logger().info("图像尺寸不相同，丢弃本帧数据")
+                # 处理结束，重置标志
+                with self.processing_lock:
+                    self.is_processing = False
+                return
+            
+            
+            # 尺寸相同时继续处理
+            request = YoloDetection.Request()
+            request.color_image = color_msg
+            request.depth_image = depth_msg
+            # self.get_logger().info("2222222222222222。")
+
+            # self.get_logger().info(f"image_callback中depth_msg深度图的深度值: {depth_msg[60,394]}")
+            # depth_image_cv = self.bridge.imgmsg_to_cv2(depth_msg, "passthrough")
+            # self.get_logger().info(f"image_callback中depth_image_cv深度图的深度值: {depth_image_cv[394,50]}")
+            """异步调用YOLO服务"""
+            # self.get_logger().info("*******本帧数据处理已完成，所有番茄完成检测和采摘*******")
+            future_yolo_client = self.yolo_client.call_async(request)
+            future_yolo_client.add_done_callback(lambda future: self.detection_callback(future))
+            # self.get_logger().info("333333333333")
+            
+            # future_yolo_client.add_done_callback(lambda future: self.detection_callback_test(future, color_msg,depth_msg))
+
+            # self.get_logger().info("image_callback线程号为：",threading.current_thread().ident)
+
+            
+        except Exception as e:
+            self.get_logger().error(f"图像处理错误: {str(e)}")
+            # 出错时也需要重置标志
+            with self.processing_lock:
+                self.is_processing = False
+
+
+
+
+
+    def get_neighborhood_depth(self, depth_image, stem_cv_mask, x, y, max_window_size=45):
+        """获取邻域深度值的平均值
+        参数:
+            depth_image: 深度图像
+            stem_cv_mask: 果梗掩码
+            x, y: 中心点坐标
+            max_window_size: 最大邻域窗口大小(3=3x3,5=5x5等)
+        返回:
+            邻域有效深度值的平均值，如果没有有效值则返回0.0 真实值单位为米
+        """
+        window_size = 5  # 初始窗口大小
+        while window_size <= max_window_size:
+            half_size = window_size // 2
+            h, w = depth_image.shape[:2]
+            
+            # 计算邻域范围，考虑边界情况
+            x_min = max(0, x - half_size)
+            x_max = min(w, x + half_size + 1)
+            y_min = max(0, y - half_size)
+            y_max = min(h, y + half_size + 1)
+            neighborhood = depth_image[y_min:y_max, x_min:x_max]
+            
+            # 获取对应的掩码区域
+            mask_neighborhood = stem_cv_mask[y_min:y_max, x_min:x_max]
+            
+            # 创建掩码，标记在stem_cv_mask中的像素
+            in_mask = mask_neighborhood > 0
+            
+            if self.is_real_camera_data==False:
+                # 筛选条件：在掩码中，深度值有效，且深度值在合理范围内
+                valid_depths = neighborhood[(in_mask) & (neighborhood*self.depth_scale > 0.20) & ~np.isnan(neighborhood) & (neighborhood*self.depth_scale < 1)]
+            else:
+                # 筛选条件：在掩码中，深度值有效，且深度值在合理范围内
+                valid_depths = neighborhood[(in_mask) & (neighborhood*0.001 > 0.20) & ~np.isnan(neighborhood) & (neighborhood*0.001 < 1)]
+
+            if len(valid_depths) > 0:
+                # 检测并过滤异常值
+                if len(valid_depths) > 1:
+                    # 计算均值和标准差
+                    mean_depth = np.mean(valid_depths)
+                    std_depth = np.std(valid_depths)
+                    
+                    # 使用3σ法则过滤异常值
+                    # 保留在均值 ± 2σ 范围内的值
+                    filtered_depths = valid_depths[np.abs(valid_depths - mean_depth) < 2 * std_depth]
+                    
+                    if len(filtered_depths) > 0:
+                        self.get_logger().info(f"使用{window_size}x{window_size}邻域获取深度值，过滤后有效深度值数量: {len(filtered_depths)}")
+                        if self.is_real_camera_data:
+                            return np.mean(filtered_depths) * 0.001
+                        else:
+                            return np.mean(filtered_depths) * self.depth_scale
+                else:
+                    # 如果只有一个有效深度值，直接返回
+                    self.get_logger().info(f"使用{window_size}x{window_size}邻域获取深度值，只有一个有效深度值")
+                    if self.is_real_camera_data:
+                        return valid_depths[0] * 0.001
+                    else:
+                        return valid_depths[0] * self.depth_scale
+            
+            # 扩大窗口大小
+            window_size += 2
+        # self.get_logger().info(f"周边区域深度值: {neighborhood}")
+            
+        return 0.0
+        
+    def get_valid_depth_value(self, depth_image, depth_img_group, stem_cv_mask, x, y):
+        """获取有效的深度值，通过多步尝试确保深度值的可靠性
+        参数:
+            depth_image: 当前深度图像
+            depth_img_group: 深度图像组（用于时域平均）
+            stem_cv_mask: 果梗掩码
+            x, y: 目标点坐标
+        返回:
+            有效的深度值，如果所有尝试都失败则返回0.0
+        """
+        # 首先获取当前点的深度值
+        if self.is_real_camera_data:
+            depth_value_real = depth_image[y, x] * 0.001
+        else:
+            depth_value_real = depth_image[y, x] * self.depth_scale
+        # 检查深度值是否有效
+        if depth_value_real < 0.20 or np.isnan(depth_value_real) or depth_value_real > 1:
+            # 若深度值无效，尝试使用邻域平均深度值
+            depth_value_real = self.get_neighborhood_depth(depth_image, stem_cv_mask, x, y, max_window_size=45)
+            
+                           
+            if depth_value_real > 0.20 and not np.isnan(depth_value_real) and depth_value_real < 1:
+                self.get_logger().info(f"使用邻域平均深度值，目标点深度值为: {depth_value_real}")
+            else:
+                if self.is_real_camera_data and len(depth_img_group) > 0:
+                    # 使用时域参数，计算附近帧的平均深度值
+                    temp_depth_value_sum = 0.0
+                    temp_depth_value_count = 0
+                    
+                    for temp_depth_img in depth_img_group:
+                        if self.is_real_camera_data:
+                            temp_depth_val = temp_depth_img[y, x] * 0.001
+                        else:
+                            temp_depth_val = temp_depth_img[y, x] * self.depth_scale
+                        if temp_depth_val > 0.20 and not np.isnan(temp_depth_val) and temp_depth_val < 1:
+                            temp_depth_value_sum += temp_depth_val
+                            temp_depth_value_count += 1
+                        else:
+                            # 尝试使用邻域平均深度值
+                            temp_neighborhood_depth_real = self.get_neighborhood_depth(temp_depth_img, stem_cv_mask, x, y, max_window_size=45)
+                            if temp_neighborhood_depth_real > 0.20 and not np.isnan(temp_neighborhood_depth_real) and temp_neighborhood_depth_real < 1:
+                                temp_depth_value_sum += temp_neighborhood_depth_real    
+                                temp_depth_value_count += 1
+                    
+                    if temp_depth_value_count > 0:
+                        depth_value_real = temp_depth_value_sum / temp_depth_value_count
+                        self.get_logger().info(f"使用附近{temp_depth_value_count}帧的平均深度值，目标点深度值为: {depth_value_real}")
+                    else:
+                        self.get_logger().warning(f"无法获取有效的深度值")
+                        return 0.0
+                else:
+                    self.get_logger().warning(f"无法获取有效的深度值")
+                    return 0.0
+        
+        return depth_value_real
+
+    def estimate_depth_with_moge(self, color_image):
+        """使用MoGe深度估计器生成深度图
+        参数:
+            color_image: 彩色图像（BGR格式）
+        返回:
+            depth_map: 生成的深度图，如果估计失败则返回None
+        """
+        if self.depth_estimator is None:
+            self.get_logger().error("MoGe深度估计器未初始化")
+            return None
+        
+        try:
+            depth_map = self.depth_estimator.estimate_depth(color_image)
+            self.get_logger().info(f"MoGe深度估计成功，深度图形状: {depth_map.shape}")
+            return depth_map
+        except Exception as e:
+            self.get_logger().error(f"MoGe深度估计失败: {e}")
+            return None
+
+    def get_mask_average_depth(self, stem_cv_mask, depth_image):
+            """获取掩码区域内非零深度值的平均值
+            参数:
+                stem_cv_mask: 果梗掩码
+                depth_image: 深度图像
+            返回:
+                掩码区域内非零深度值的平均值，如果没有有效值则返回0
+            """
+            # 获取掩码区域内的深度值
+            masked_depth = depth_image[stem_cv_mask > 0]
+
+            
+            # 过滤有效深度值（大于0且非NaN）
+            if self.is_real_camera_data == False:
+                valid_depths = masked_depth[(masked_depth* self.depth_scale > 0.20) & ~np.isnan(masked_depth) & (masked_depth * self.depth_scale < 1)]
+            else:
+                valid_depths = masked_depth[(masked_depth*0.001 > 0.20) & ~np.isnan(masked_depth) & (masked_depth* 0.001 < 1)]
+            
+            # 如果有有效深度值，返回平均值
+            if len(valid_depths) > 0:
+                # self.get_logger().info(f"有效深度值: {valid_depths}")
+                if self.is_real_camera_data == False:
+                    return np.mean(valid_depths)*self.depth_scale
+                else:
+                    return np.mean(valid_depths)*0.001
+            else:
+                self.get_logger().info("掩码区域内没有有效深度值")
+                # self.get_logger().info(f"掩码区域内深度值: {masked_depth}")
+            
+            return 0.0
+
+    def save_failed_match_debug_img(self, pair_idx, stem_cv_mask, tomato_cv_mask, cv_color, growth_direction, center_x, center_y, w, h):
+        """保存匹配失败时的调试图像
+        参数:
+            pair_idx: 匹配对的索引
+            stem_cv_mask: 果梗掩码
+            tomato_cv_mask: 番茄掩码
+            cv_color: 原始彩色图像
+            growth_direction: 生长方向
+            center_x, center_y: 中心点坐标
+            w, h: 图像宽度和高度
+        """
+        stem_area = np.sum(stem_cv_mask > 0)
+        tomato_area = np.sum(tomato_cv_mask > 0)
+        self.get_logger().info(f"匹配失败 #{pair_idx+1} 面积: 果梗={stem_area}像素, 番茄={tomato_area}像素")
+        
+        # 绘制mask和中心线到原始图像
+        debug_img = cv_color.copy()
+        # 绘制mask
+        debug_img[stem_cv_mask > 0] = (0, 255, 0)  # 绿色显示mask区域
+        # 绘制中心线
+        if growth_direction == "朝前":
+            cv2.line(debug_img, (0, center_y), (w-1, center_y), (0, 0, 255), 2)  # 红色水平线
+        else:
+            cv2.line(debug_img, (center_x, 0), (center_x, h-1), (0, 0, 255), 2)  # 红色垂直线
+        # 保存图像
+        timestamp = str(int(time.time()))
+        save_path = f"/home/xc/code/test/temp/match_fail_{timestamp}_pair{pair_idx+1}.jpg" #工控机
+        # save_path = f"/home/xc_home_wsl/code/test/temp/match_fail_{timestamp}_pair{pair_idx+1}.jpg" # 家中 WSL
+
+
+        cv2.imwrite(save_path, debug_img)
+        self.get_logger().info(f"保存匹配失败图像到: {save_path}")
+    
+    def classify_detections(self, response, num_boxes, total_masks):
+        """分类检测框为果梗、番茄和树干
+        
+        Args:
+            response: YOLO检测响应
+            num_boxes: 检测框数量
+            total_masks: 掩码总数
+            
+        Returns:
+            tuple: (stems, tomatos, trunk) 更新后的列表
+        """
+        stems, tomatos, trunks = [], [], []
+        for i in range(num_boxes):
+            idx = i * 4
+            x1 = response.bboxes[idx]
+            y1 = response.bboxes[idx+1]
+            x2 = response.bboxes[idx+2]
+            y2 = response.bboxes[idx+3]
+            conf = response.confidences[i]
+            class_name = response.class_names[i]
+            # self.get_logger().info(f"检测框{i}类别: {class_name}")
+            if class_name.lower() == "stem":
+            # if class_name.lower() == "stalk":
+
+                # 只添加有对应掩码的检测框
+                if i < total_masks:
+                    stems.append((x1, y1, x2, y2, conf, i))
+                else:
+                    self.get_logger().warning(f"检测框{i}为果梗，但无对应掩码")
+            elif class_name.lower() == "tomato":
+                if i < total_masks:
+                    tomatos.append((x1, y1, x2, y2, conf, i))
+                else:
+                    self.get_logger().warning(f"检测框{i}为番茄，但无对应掩码")
+            elif class_name.lower() == "trunk":
+            # elif class_name.lower() == "pipe":
+            
+                if i < total_masks:
+                    trunks.append((x1, y1, x2, y2, conf, i))
+                else:
+                    self.get_logger().warning(f"检测框{i}为树干，但无对应掩码")
+        # self.get_logger().info(f"检测框{i}为树干，但无对应掩码")
+        return stems, tomatos, trunks
+    
+    def car_pause_navigation(self,pause_value):
+        self.get_logger().info(f"准备发送给底盘的指令是：{pause_value}")
+
+        if self.car_pause_navigation_client.wait_for_service(timeout_sec=1.0):
+            # self.get_logger().info(f'等待 {self.target_node} 服务可用...')
+            # 创建参数消息
+            param_msg = Parameter()
+            param_msg.name = self.param_name
+            param_msg.value.type = ParameterType.PARAMETER_BOOL
+            param_msg.value.bool_value = pause_value #让底盘暂停导航
+            # 创建请求
+            request = SetParameters.Request()
+            request.parameters = [param_msg]
+            # 发送请求
+            future_car_pause_navigation_client = self.car_pause_navigation_client.call_async(request)
+            future_car_pause_navigation_client.add_done_callback(
+                lambda future: self.car_pause_navigation_callback(future)
+            )
+        else:
+            self.get_logger().error(f"底盘控制服务{self.target_node}未启动...")
+            # self.get_logger().info(f"发送给底盘的指令是：{pause_value}")
+
+
+    
+    def car_pause_navigation_callback(self,future):
+        # 处理响应并退出
+        if future.result() is not None:
+            result = future.result()
+            if result.results[0].successful:
+                # self.get_logger().info(f'成功设置了 {self.target_node}节点的{self.param_name} 参数')
+                pass
+            else:
+                self.get_logger().error(f'设置参数失败: {result.results[0].reason}')
+        else:
+            self.get_logger().error('服务调用失败')
+
+
+    
+    def determine_growth_direction_and_picking_point_1(self, pair_idx, stem, stem_cv_mask, tomato_cv_mask, cv_color, stem_center_x, tomato_center_x, stem_aspect_ratio, w, h):
+        """判断番茄相对于果梗的位置和果梗生长方向，并计算采摘点
+        参数:
+            pair_idx: 匹配对的索引
+            stem: 果梗数据
+            stem_cv_mask: 果梗掩码
+            tomato_cv_mask: 番茄掩码
+            cv_color: 原始彩色图像
+            stem_center_x: 果梗中心x坐标
+            tomato_center_x: 番茄中心x坐标
+            stem_aspect_ratio: 果梗宽高比
+            w, h: 图像宽度和高度
+        返回:
+            tuple: (position, growth_direction, picking_point)
+            position: 初步判断 番茄相对于果梗的位置（左边或右边）
+        """
+        #修改初步判断左右的代码
+
+        skeleton_return=self.calculate_skeleton(stem_cv_mask)
+        if skeleton_return['success'] and len(skeleton_return['points'])>2:
+            skeleton_points=skeleton_return['points']        
+            # 找到最小行(y坐标)和最大行(y坐标)的索引
+            top_y = np.argmin(skeleton_points[:, 0])  # 最小行索引
+            bottom_y = np.argmax(skeleton_points[:, 0])  # 最大行索引
+            # 获取对应的列坐标(x坐标)
+            top_y_x = skeleton_points[top_y, 1]  # 最小行对应的列坐标
+            bottom_y_x = skeleton_points[bottom_y, 1]  # 最大行对应的列坐标
+            position = "左边" if top_y_x > bottom_y_x else "右边"
+            self.get_logger().info(f"骨架法：果梗顶部y坐标: {top_y_x}, 果梗底部y坐标: {bottom_y_x}")
+
+
+
+        else:  #保底计算左右，只使用矩形框判断      
+            self.get_logger().info(f"果框比较法：番茄中心x坐标: {tomato_center_x}, 果梗中心x坐标: {stem_center_x}")
+            position = "左边" if tomato_center_x < stem_center_x else "右边"
+        growth_direction = "朝前"
+        picking_point = None
+        
+        # 初始化center_x和center_y为默认值
+        center_x = int((stem[0] + stem[2]) / 2)
+        center_y = int((stem[1] + stem[3]) / 2)
+        self.get_logger().info(f"果梗宽高比: {stem_aspect_ratio}, 果梗初步判断位置：{position}")
+        # 根据位置和宽高比确定生长方向和采摘点
+        if position == "左边":
+            if stem_aspect_ratio < 0.6:
+                growth_direction = "朝前"
+                # 水平方向的中心线
+                center_y = int((stem[1] + stem[3]) / 2)
+                line_segment = stem_cv_mask[center_y, :]
+                nonzero_indices = np.where(line_segment > 0)[0]
+                if len(nonzero_indices) > 0:
+                    picking_point = (int((nonzero_indices[0] + nonzero_indices[-1]) / 2), center_y)
+                else:
+                    self.save_failed_match_debug_img(pair_idx, stem_cv_mask, tomato_cv_mask, cv_color, growth_direction, center_x, center_y, w, h)
+            else:
+                growth_direction = "朝左"
+                # 垂直方向的中心线
+                center_x = int((stem[0] + stem[2]) / 2)
+                line_segment = stem_cv_mask[:, center_x]
+                nonzero_indices = np.where(line_segment > 0)[0]
+                if len(nonzero_indices) > 0:
+                    picking_point = (center_x, int((nonzero_indices[0] + nonzero_indices[-1]) / 2))
+                else:
+                    self.save_failed_match_debug_img(pair_idx, stem_cv_mask, tomato_cv_mask, cv_color, growth_direction, center_x, center_y, w, h)
+        else:  # position == "右边"
+            if stem_aspect_ratio < 0.9:
+                growth_direction = "朝前"
+                # 水平方向的中心线
+                center_y = int((stem[1] + stem[3]) / 2)
+                line_segment = stem_cv_mask[center_y, :]
+                nonzero_indices = np.where(line_segment > 0)[0]
+                if len(nonzero_indices) > 0:
+                    picking_point = (int((nonzero_indices[0] + nonzero_indices[-1]) / 2), center_y)
+                else:
+                    self.save_failed_match_debug_img(pair_idx, stem_cv_mask, tomato_cv_mask, cv_color, growth_direction, center_x, center_y, w, h)
+            else:
+                growth_direction = "朝右"
+                # 垂直方向的中心线
+                center_x = int((stem[0] + stem[2]) / 2)
+                line_segment = stem_cv_mask[:, center_x]
+                nonzero_indices = np.where(line_segment > 0)[0]
+                if len(nonzero_indices) > 0:
+                    picking_point = (center_x, int((nonzero_indices[0] + nonzero_indices[-1]) / 2))
+                else:
+                    self.save_failed_match_debug_img(pair_idx, stem_cv_mask, tomato_cv_mask, cv_color, growth_direction, center_x, center_y, w, h)
+        self.get_logger().info(f"果梗最终判断朝向：{growth_direction}")
+        
+        
+        # 检测stem_cv_mask中的连通区域数量
+        num_labels, labels = cv2.connectedComponents(stem_cv_mask)
+        # num_labels包含背景标签，所以实际区域数量需要减1
+        actual_regions = num_labels - 1        
+        # 如果连通区域数量大于1，则执行其他方法
+        coords = np.column_stack(np.where(stem_cv_mask > 0))
+        if len(coords) > 0 and actual_regions > 1:
+            # OpenCV的坐标是(y,x)，需要转换为(x,y)
+            coords = coords[:, ::-1]
+            # 计算最小外接矩形
+            rect = cv2.minAreaRect(coords.astype(np.float32))
+            # 获取矩形的中心点作为采摘点
+            picking_point = (int(rect[0][0]), int(rect[0][1]))
+            
+            # 获取矩形的其他信息（可选）
+            # box_points = cv2.boxPoints(rect)  # 获取矩形的四个顶点
+            # angle = rect[2]  # 获取旋转角度
+            stem_cv_mask_temp = stem_cv_mask.copy()
+            # 方法1: 转换为彩色图像
+            # 如果stem_cv_mask是二值图像，需要先转换为BGR格式
+            if len(stem_cv_mask_temp.shape) == 2:  # 灰度图或二值图
+                stem_cv_mask_color = cv2.cvtColor(stem_cv_mask_temp, cv2.COLOR_GRAY2BGR)
+            else:
+                stem_cv_mask_color = stem_cv_mask_temp 
+
+            # 获取矩形的四个顶点
+            box_points = cv2.boxPoints(rect)
+            # 转换为整数坐标
+            box_points = np.int0(box_points)
+
+            # 在彩色图像上绘制矩形（绿色）
+            cv2.polylines(stem_cv_mask_color, [box_points], isClosed=True, color=(0, 255, 0), thickness=2)
+
+            # 标记矩形的中心点（红色）
+            center = tuple(map(int, rect[0]))
+            cv2.circle(stem_cv_mask_color, center, radius=5, color=(0, 0, 255), thickness=-1)
+            # 显示图像
+            # cv2.imshow('Stem Mask with Bounding Rectangle', stem_cv_mask_color)
+            # cv2.waitKey(1)  # 等待按键，0表示无限等待
+            
+            self.get_logger().info(f"使用最小外接矩形方法确定采摘点: {picking_point}")
+        return position, growth_direction, picking_point
+
+    def calculate_skeleton(self,mask_data):
+        # 性能与算法配置
+        CONFIG = {
+            'enable_downsampling': False,      # 启用下采样 (加速大图处理)
+            'downsample_ratio': 1.0,          # 下采样比例 (0.5表示长宽各缩小一半)
+            'max_image_size': 400,            # 触发下采样的最小边长阈值
+            'min_skeleton_points': 6,         # 最小骨架点数 (设置较低以适应短果梗)
+            'trim_ratio': 0.15,               # 统计直径时，去除两端极大/极小值的比例 (15%)
+        }
+        try:
+            # --- 1. 预处理 ---
+            if len(mask_data.shape) > 2:
+                mask_data = mask_data[:, :, 0]
+                
+            original_shape = mask_data.shape
+            scale_factor = 1.0
+            
+            # 智能下采样：如果图像够大，则缩小以加速计算
+            if (CONFIG['enable_downsampling'] and 
+                max(original_shape) > CONFIG['max_image_size']):
+                
+                scale_factor = CONFIG['downsample_ratio']
+                new_w = int(original_shape[1] * scale_factor)
+                new_h = int(original_shape[0] * scale_factor)
+                # 使用最近邻插值保持二值特性（0或255）
+                mask_working = cv2.resize(mask_data, (new_w, new_h), interpolation=cv2.INTER_NEAREST)
+            else:
+                mask_working = mask_data.copy()
+
+            # 形态学操作：平滑边缘，填充内部小孔
+            kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3))
+            # 先闭运算(连通断开区域) 再开运算(去噪)
+            mask_cleaned = cv2.morphologyEx(mask_working.astype(np.uint8), cv2.MORPH_CLOSE, kernel)
+            mask_cleaned = cv2.morphologyEx(mask_cleaned, cv2.MORPH_OPEN, kernel)
+            # 安全检查
+            if np.count_nonzero(mask_cleaned) < 10:
+                return {'success': False, 'msg': '有效像素过少'}
+            # 骨架化：提取单像素宽度的中心线
+            skeleton = cv2.ximgproc.thinning(mask_cleaned, thinningType=cv2.ximgproc.THINNING_GUOHALL)
+            
+            # 清理骨架：只保留最大的连通分支，去除毛刺
+            skeleton = self._keep_largest_skeleton(skeleton)
+            
+            # 获取骨架坐标点 (y, x)
+            skeleton_points = np.column_stack(np.where(skeleton > 0))
+            
+            if len(skeleton_points) < CONFIG['min_skeleton_points']:
+                return {'success': False, 'msg': f'骨架点不足({len(skeleton_points)})'}
+            else:
+                return {'success': True, 'points': skeleton_points}
+
+            
+        except Exception as e:
+            self.get_logger().error(f"骨架提取或直径计算失败: {e}")
+            return None 
+        
+    def _keep_largest_skeleton(self,skel_img):
+        """清理骨架，只保留最大连通域"""
+        num, labels = cv2.connectedComponents(skel_img)
+        if num <= 2: return skel_img # 0是背景，1是骨架，若只有1个或没有则直接返回
+        
+        max_area = 0
+        max_idx = 1
+        for i in range(1, num):
+            area = np.sum(labels == i)
+            if area > max_area:
+                max_area = area
+                max_idx = i
+                
+        res = np.zeros_like(skel_img)
+        res[labels == max_idx] = 255
+        return res 
+
+# 主程序 main
+    def detection_callback(self, future):
+        try:
+            # 底盘停止后的尝试次数
+            # self.get_logger().warning("进入了detection_callback主程序")
+            
+            #清空采摘失败的番茄列表
+            # self.failed_tomato_stem.clear()
+            if self.is_navigation==True:            
+                with self.agv_status_lock:
+                    end_num=self.agv_status_.white_card_id%10
+                    if end_num!=2 and end_num!=3:#只有在RFID卡片尾号为2或者3才执行
+                        return
+            
+            response = future.result()
+
+            # 只有当使用真实相机数据并且机器人已经停下来时，才保存5帧图像
+            if len(self.color_img_group)<=5 and self.first_see_harvestable_tomato!=0 and self.is_real_camera_data == True: 
+                # 底盘停止后，连续存储5帧图像
+                temp_cv_colcor=self.bridge.imgmsg_to_cv2(response.color_image, "bgr8")
+                temp_cv_depth=self.bridge.imgmsg_to_cv2(response.depth_image, "passthrough")
+                self.color_img_group.append(temp_cv_colcor)
+                self.depth_img_group.append(temp_cv_depth)
+                self.is_processing = False
+
+                return
+            
+            if self.first_see_harvestable_tomato!=0:
+                self.after_stop_try_times+=1
+                self.first_see_harvestable_tomato=self.first_see_harvestable_tomato+1
+
+                
+
+
+            # 获取彩色图像
+            cv_color = self.bridge.imgmsg_to_cv2(response.color_image, "bgr8")
+            h, w = cv_color.shape[:2]
+
+            # 获取深度图像            
+            depth_image = self.bridge.imgmsg_to_cv2(response.depth_image, "passthrough")
+            if self.depth_estimator!=None:
+                depth_map_estimates = self.estimate_depth_with_moge(cv_color) 
+            # self.get_logger().info(f"detection_callback中深度图的深度值: {depth_image[394,50]}")
+            
+            # 读取相机内参时加锁
+            with self.camera_matrix_lock:
+                # current_camera_matrix = self.camera_matrix.copy()
+                if self.intrinsics is None:
+                    self.get_logger().warning("相机内参未初始化，无法计算3D坐标")
+                    self.is_processing = False
+                    return
+                current_intrinsics=self.intrinsics
+            
+            # 添加重要的调试信息
+            total_boxes = len(response.class_ids)
+            total_masks = len(response.masks) if hasattr(response, 'masks') else 0
+            # self.get_logger().info(f"检测框数量: {total_boxes}, 掩码数量: {total_masks}")
+            
+            # 解析检测结果
+            # stems, tomatos, trunk = [], [], []
+            num_boxes = len(response.class_ids)
+            
+            # 收集所有实际存在的索引
+            valid_indices = set(range(total_masks)) if total_masks > 0 else set()
+            # 分类检测框
+            stems, tomatos, trunks =self.classify_detections(response, num_boxes, total_masks) 
+            # 统计数量
+            stem_count = len(stems)
+            tomato_count = len(tomatos)
+            trunks_count =len(trunks)
+
+            # 非连续运行模式下，等待用户按键
+            if self.is_continuous_run==False and self.first_see_harvestable_tomato!=0:
+                self.get_logger().info(f"等待按键，then 执行果梗与番茄串匹配")
+                self.wait_for_keypress()
+
+            # self.get_logger().warning("进入到这里了11111111")
+            
+            # 执行茎果匹配
+            matched_img, matched_pairs,matched_rectangles = self.combine_boxes(cv_color, stems, tomatos, (h, w))
+            # matched_rectangles 表示匹配后的x1 y1 x2 y2 四个坐标
+            # 发布可视化结果
+            matched_msg = self.bridge.cv2_to_imgmsg(matched_img, "bgr8")
+            # matched_msg.header = color_msg.header
+            self.visualization_pub.publish(matched_msg)
+            
+            # 统计数量
+
+            matched_pairs_count = len(matched_pairs)
+            self.get_logger().info("+++++++++++++++++++++++++++++++++++++++++++++++++++++")
+            self.get_logger().info(
+                f"果梗数量: {stem_count} | 番茄数量: {tomato_count} | 主茎数量: {trunks_count}"
+            )
+            self.get_logger().info(
+                f"匹配数量: {matched_pairs_count}"
+            )
+
+            # 非连续运行模式下，等待用户按键
+            if self.is_continuous_run==False and self.first_see_harvestable_tomato!=0:
+                self.get_logger().info(f"等待按键，then 执行果梗方向与采摘点判定")
+                self.wait_for_keypress()
+            
+            if matched_pairs_count==0: #如果数量配对是0，那就退出
+                if self.matched_pairs_count_print_flag==True:
+                    self.get_logger().info("+++++++++++++++++++++++++++++++++++++++++++++++++++++")
+                    self.get_logger().info(
+                        f"果梗数量: {stem_count} | 番茄数量: {tomato_count} | 主茎数量: {trunks_count}"
+                    )
+                    self.get_logger().info(
+                        f"匹配数量: {matched_pairs_count}"
+                    )
+                    self.matched_pairs_count_print_flag=False #只打印一次
+                pub_detection2ui_msg=Detection2UI()
+                pub_detection2ui_msg.color_image=response.color_image   
+                pub_detection2ui_msg.class_ids=response.class_ids
+                pub_detection2ui_msg.class_names=response.class_names
+                pub_detection2ui_msg.confidences=response.confidences
+                pub_detection2ui_msg.bboxes=response.bboxes
+                pub_detection2ui_msg.masks=response.masks
+                self.detection2ui_pub.publish(pub_detection2ui_msg)
+                self.color_img_group.clear()
+                self.depth_img_group.clear()
+
+                if self.is_pub_log==True and stem_count!=0 and tomato_count!=0:
+                    pub_log_msg=DetectionResult()
+                    pub_log_msg.color_image=response.color_image
+                    pub_log_msg.depth_image=response.depth_image
+                    pub_log_msg.handle_num=self.handle_num
+                    self.timestamp=str(time.time())
+                    pub_log_msg.timestamp=self.timestamp
+                    pub_log_msg.class_ids=response.class_ids
+                    pub_log_msg.class_names=response.class_names
+                    pub_log_msg.confidences=response.confidences
+                    pub_log_msg.bboxes=response.bboxes
+                    pub_log_msg.masks=response.masks
+                    self.detection_result_pub.publish(pub_log_msg)
+                if self.first_see_harvestable_tomato!=0:
+                    self.get_logger().info(f"机器人停下来后，我尝试第{self.after_stop_try_times}次匹配失败,看到番茄的次数{self.first_see_harvestable_tomato}")
+                    if self.after_stop_try_times>5:
+                        pass
+                        self.get_logger().warning(f"底盘停止后，尝试{self.after_stop_try_times}次仍未成功，匹配失败")
+                        self.first_see_harvestable_tomato=0
+                        self.after_stop_try_times=0      
+                        self.car_pause_navigation(True)
+                        time.sleep(0.5)
+                        self.car_pause_navigation(True)
+                        self.color_img_group.clear()
+                        self.depth_img_group.clear()
+                self.is_processing = False
+                with self.agv_status_lock:
+                    if self.change_camera_flag==True :                    
+                        # 切换相机切换到另一个相机
+                        # self.get_logger().info(f"11111111111")
+                        self.kill_old_camera()
+                        time.sleep(1)
+                        self.start_new_camera_launch()
+                        time.sleep(2)
+                        self.have_change_camera=True
+                        self.change_camera_flag=False
+                return # 退出回调函数
+            
+
+            self.matched_pairs_count_print_flag=True #初始化打印匹配数量
+            self.get_logger().info("+++++++++++++++++++++++++++++++++++++++++++++++++++++")
+            self.get_logger().info(
+                f"果梗数量: {stem_count} | 番茄数量: {tomato_count} | 主茎数量: {trunks_count}"
+            )
+            self.get_logger().info(
+                f"匹配数量: {matched_pairs_count}"
+            )
+            if self.is_pub_log==True:
+                pub_log_msg=DetectionResult()
+                pub_log_msg.color_image=response.color_image
+                pub_log_msg.depth_image=response.depth_image
+                self.handle_num+=1
+                pub_log_msg.handle_num=self.handle_num
+                self.timestamp=str(time.time())
+                pub_log_msg.timestamp=self.timestamp
+                pub_log_msg.class_ids=response.class_ids
+                pub_log_msg.class_names=response.class_names
+                pub_log_msg.confidences=response.confidences
+                pub_log_msg.bboxes=response.bboxes
+                pub_log_msg.masks=response.masks
+                # 确保所有值都是整数类型
+                pub_log_msg.matched_rectangles=[int(val) for sublist in matched_rectangles for val in sublist]
+                pub_log_msg.growth_directions=[]  
+                pub_log_msg.picking_points_x=[] 
+                pub_log_msg.picking_points_y=[]
+                pub_log_msg.picking_points_z=[] 
+                pub_log_msg.target_arm_points_x=[] 
+                pub_log_msg.target_arm_points_y=[] 
+                pub_log_msg.target_arm_points_z=[] 
+                pub_log_msg.distances=[]
+                pub_log_msg.watch_tomato_nums=[] 
+                pub_log_msg.go_to_target_results=[]
+                pub_log_msg.gripper_feedback_results=[]
+                pub_log_msg.return_to_box_results=[]
+                pub_log_msg.gripper_close_results=[]
+                pub_log_msg.gripper_open_results=[]
+                pub_log_msg.try_pick_times=[]
+                
+
+
+            # self.get_logger().info("==== 开始处理匹配对应的掩码 ====")
+
+            #------------------开始处理每一对---------------------
+            pub_detection2ui_msg=Detection2UI()
+            pub_detection2ui_msg.color_image=response.color_image   
+            pub_detection2ui_msg.class_ids=response.class_ids
+            pub_detection2ui_msg.class_names=response.class_names
+            pub_detection2ui_msg.confidences=response.confidences
+            pub_detection2ui_msg.bboxes=response.bboxes
+            pub_detection2ui_msg.masks=response.masks
+            # 确保所有值都是整数类型
+            pub_detection2ui_msg.matched_rectangles=[int(val) for sublist in matched_rectangles for val in sublist]
+            pub_detection2ui_msg.distances=0.0
+            self.detection2ui_pub.publish(pub_detection2ui_msg)
+
+
+            for pair_idx, (stem, tomato) in enumerate(matched_pairs):
+                if self.is_pub_log==True:
+                    self.log_growth_direction="无"
+                    self.log_picking_point_x=0
+                    self.log_picking_point_y=0
+                    self.log_picking_point_z=0
+                    self.log_distance=0
+                    self.log_target_arm_point_x=0
+                    self.log_target_arm_point_y=0
+                    self.log_target_arm_point_z=0
+                    self.log_watch_tomato_num=0
+                    self.log_go_to_target_result=99999
+                    self.log_gripper_feedback_result=99999
+                    self.log_return_to_box_result=99999
+                    self.log_gripper_close_result=99999
+                    self.log_gripper_open_result=99999
+                    self.log_try_pick_time=99
+                stem_idx = stem[5]  # 果梗在masks中的索引 x y w h confidence id  六个元素
+                tomato_idx = tomato[5]  # 番茄在masks中的索引
+                
+                self.get_logger().info(f"处理匹配对 #{pair_idx+1}/{matched_pairs_count}: 果梗索引={stem_idx}, 番茄索引={tomato_idx}")
+                            # 添加索引有效性检查
+                if stem_idx >= total_masks:
+                    self.get_logger().error(
+                        f"果梗索引{stem_idx}超出范围 (最大索引={total_masks-1})"
+                    )
+                    continue
+                    
+                if tomato_idx >= total_masks:
+                    self.get_logger().error(
+                        f"番茄索引{tomato_idx}超出范围 (最大索引={total_masks-1})"
+                    )
+                    continue
+                try:
+                    # 获取果梗掩码
+                    stem_mask = response.masks[stem_idx]
+                    stem_cv_mask = self.bridge.imgmsg_to_cv2(stem_mask.mask, "mono8")
+                    
+                    # 获取番茄掩码
+                    tomato_mask = response.masks[tomato_idx]
+                    tomato_cv_mask = self.bridge.imgmsg_to_cv2(tomato_mask.mask, "mono8")
+                    # 获取mask的宽和高 (width, height)
+                    # height, width = stem_cv_mask.shape[:2]
+                    
+                    # 计算果梗和番茄的竖直中心线位置
+                    stem_center_x = (stem[0] + stem[2]) / 2  # (x1 + x2)/2
+                    tomato_center_x = (tomato[0] + tomato[2]) / 2
+                    
+                    # 计算果梗的宽高比
+                    stem_width = abs(stem[2] - stem[0])
+                    stem_height = abs(stem[3] - stem[1])
+                    stem_aspect_ratio = stem_width / stem_height if stem_height != 0 else 0
+                    
+                    # 判断番茄相对于果梗的位置和果梗生长方向
+                    ret,growth_direction, is_growth_down, picking_point, rad, skeleton_leftmost_point, skeleton_rightmost_point, skeleton_topmost_point, tangent_angle=self.growth_point_calculator.determine_growth_direction_and_picking_point(
+                        pair_idx,
+                        stem,
+                        tomato,
+                        stem_cv_mask,
+                        tomato_cv_mask,
+                        cv_color,                            
+                        stem_center_x,
+                        tomato_center_x,
+                        stem_aspect_ratio,
+                        w,
+                        h)
+                    if ret==False:
+                        continue
+                    pub_detection2ui_msg.growth_directions=growth_direction
+                    # position, growth_direction, picking_point = self.determine_growth_direction_and_picking_point(
+                    #     pair_idx, stem, stem_cv_mask, tomato_cv_mask, cv_color,
+                    #     stem_center_x, tomato_center_x, stem_aspect_ratio, w, h
+                    # )
+                    # 输出采摘点信息
+                    # self.get_logger().info(f"匹配对111111 #{pair_idx+1} 的采摘点坐标: ({picking_point[0]}, {picking_point[1]})")
+                    if picking_point is None or skeleton_leftmost_point is None or skeleton_rightmost_point is None:
+                        self.get_logger().warning(
+                            f"匹配对 #{pair_idx+1} 无法计算3D坐标: "
+                            f"无法获取采摘点或果梗边界点"
+                        )
+                        continue
+                    #采摘点、左边点和右边点均有，可以继续执行
+                    x, y = picking_point
+                    pub_detection2ui_msg.picking_points_x=x
+                    pub_detection2ui_msg.picking_points_y=y
+                    x_left, y_left = skeleton_leftmost_point
+                    x_right, y_right = skeleton_rightmost_point
+                    x_top, y_top = skeleton_topmost_point
+                    self.get_logger().info(f"匹配对 #{pair_idx+1} 的采摘点坐标: ({x}, {y})")
+                    self.get_logger().info(f"匹配对 #{pair_idx+1} 的果梗左边界坐标: ({x_left}, {y_left})")
+                    self.get_logger().info(f"匹配对 #{pair_idx+1} 的果梗右边界坐标: ({x_right}, {y_right})")
+                    # 确保坐标在图像范围内
+                    x = int(max(0, min(x, w-1)))
+                    y = int(max(0, min(y, h-1)))
+                    x_left = int(max(0, min(x_left, w-1)))
+                    y_left = int(max(0, min(y_left, h-1)))
+                    x_right = int(max(0, min(x_right, w-1)))
+                    y_right = int(max(0, min(y_right, h-1)))
+                    x_top = int(max(0, min(x_top, w-1)))
+                    y_top = int(max(0, min(y_top, h-1)))
+                    
+                    # 非连续运行模式下，等待用户按键
+                    if self.is_continuous_run==False and self.first_see_harvestable_tomato!=0:
+                        self.get_logger().info(f"等待按键，then 执行采摘点相对于机械臂的空间坐标")                            
+                        self.wait_for_keypress()
+
+                    # 获取深度值，处理0或NaN或者大于1的情况
+                    
+                    if self.is_real_camera_data==True and self.first_see_harvestable_tomato!=0:
+                        self.get_logger().info(f"-----采集的深度图组数量: {len(self.depth_img_group)}")
+                        depth_value_real = self.get_valid_depth_value(depth_image, self.depth_img_group, stem_cv_mask, x, y)
+                        depth_value_left_real=self.get_valid_depth_value(depth_image, self.depth_img_group, stem_cv_mask, x_left, y_left)
+                        depth_value_right_real=self.get_valid_depth_value(depth_image, self.depth_img_group, stem_cv_mask, x_right, y_right)
+                        depth_value_top_real=self.get_valid_depth_value(depth_image, self.depth_img_group, stem_cv_mask, x_top, y_top)
+                        self.get_logger().info(f"-----相机深度的果梗左边界深度值: {depth_value_left_real}")
+                        self.get_logger().info(f"-----相机深度的果梗右边界深度值: {depth_value_right_real}")
+                        self.get_logger().info(f"-----相机深度的果梗上边界深度值: {depth_value_top_real}")
+                        
+                        if depth_value_real<0.2 or depth_value_left_real<0.2 or depth_value_right_real<0.2 or depth_value_top_real<0.2 or depth_value_right_real>1.0 or depth_value_left_real>1.0 or depth_value_top_real>1.0:
+                            if self.depth_estimator!=None:#如果附近五张图片都没有深度信息,那就使用深度估计器
+                                depth_value_real = self.get_valid_depth_value(depth_map_estimates, self.depth_img_group, stem_cv_mask, x, y)
+                                depth_value_left_real=self.get_valid_depth_value(depth_map_estimates, self.depth_img_group, stem_cv_mask, x_left, y_left)
+                                depth_value_right_real=self.get_valid_depth_value(depth_map_estimates, self.depth_img_group, stem_cv_mask, x_right, y_right)
+                                depth_value_top_real=self.get_valid_depth_value(depth_map_estimates, self.depth_img_group, stem_cv_mask, x_top, y_top)
+                            else:#如果深度值为0，或者大于1，或者NaN，那就继续过
+                                self.get_logger().info(f"有深度值是0，我要放弃这一串了....")
+                                self.failed_tomato_stem.append(stem)
+                                self.failed_tomato_stem.append(tomato)
+                                continue
+                        
+                        
+                        self.get_logger().info(f"-----最终果梗左边界深度值: {depth_value_left_real}")
+                        self.get_logger().info(f"-----最终果梗右边界深度值: {depth_value_right_real}")
+                        self.get_logger().info(f"-----最终果梗上边界深度值: {depth_value_top_real}")
+                    else:
+                        depth_value_real = self.get_mask_average_depth(stem_cv_mask,depth_image)
+                    self.get_logger().info(f"-----采摘点深度值: {depth_value_real}")
+
+                    if depth_value_real > 0.20 and not np.isnan(depth_value_real) and depth_value_real < 1:
+                        pub_detection2ui_msg.picking_points_z=depth_value_real
+                        # self.get_logger().info(f"-----采摘点深度值: {depth_value_real}")
+                        # if self.is_real_camera_data==True:
+                        #     self.get_logger().info(f"使用附近5帧的平均深度值，目标点深度值为: {depth_value_real}")
+                        #     self.get_logger().info(f"使用附近5帧的平均深度值，目标点深度值为: {depth_value_real}")
+                    else:
+                        self.get_logger().warning(f"匹配对 #{pair_idx+1} 无有效深度值")
+                        # save_timestamp_1 = str(int(time.time()))
+                        # # save_path = f"/home/xc/code/test/temp/matched_no_depth_{save_timestamp_1}_pair{pair_idx+1}.jpg" #工控机
+                        # save_path = f"/home/xc_home_wsl/code/test/temp/matched_no_depth_{save_timestamp_1}_pair{pair_idx+1}.jpg" # 家中 WSL
+                        # cv2.imwrite(save_path,  stem_cv_mask)
+                        # self.get_logger().info(f"保存匹配失败图像到: {save_path}")
+                        continue
+                    
+                    
+                    if self.is_pub_log==True:
+                        self.log_picking_point_x=x
+                        self.log_picking_point_y=y
+                        self.log_picking_point_z=depth_value_real
+                    
+                    #rs2.rs2_deproject_pixel_to_point 函数将像素坐标 (x, y) 和深度值 depth_value_real 转换为相机坐标系中的 3D 点坐标 point_3d。
+                    # 计算结果和深度值depth_value_real单位相同，本例子中，计算结果为米
+                    point_3d=rs2.rs2_deproject_pixel_to_point(
+                        current_intrinsics, 
+                        [x, y], 
+                        depth_value_real)
+                    if self.is_real_camera_data==True and self.first_see_harvestable_tomato!=0:
+                        point_3d_left=rs2.rs2_deproject_pixel_to_point(
+                            current_intrinsics, 
+                            [x_left, y_left], 
+                            depth_value_left_real)
+                        point_3d_right=rs2.rs2_deproject_pixel_to_point(
+                            current_intrinsics, 
+                            [x_right, y_right], 
+                            depth_value_right_real)
+                        point_3d_top=rs2.rs2_deproject_pixel_to_point(
+                            current_intrinsics, 
+                            [x_top, y_top], 
+                            depth_value_top_real)
+                    self.get_logger().info(
+                        f"匹配对 #{pair_idx+1} 在相机坐标系下的3D坐标: "
+                        f"X={point_3d[0]:.3f}m, Y={point_3d[1]:.3f}m, Z={point_3d[2]:.3f}m | "
+                        f"生长方向={growth_direction}"
+                    )
+                    
+                    
+                    camera_point = np.array([point_3d[0], point_3d[1], point_3d[2]])
+                    homogeneous_point = np.append(camera_point, 1.0)  # 结果是 [x, y, z, 1] 形状为 (4,)
+                    
+                    if self.is_real_camera_data==True and self.first_see_harvestable_tomato!=0:
+                        camera_point_left = np.array([point_3d_left[0], point_3d_left[1], point_3d_left[2]])
+                        camera_point_right = np.array([point_3d_right[0], point_3d_right[1], point_3d_right[2]])
+                        camera_point_top = np.array([point_3d_top[0], point_3d_top[1], point_3d_top[2]])
+                        homogeneous_point_left = np.append(camera_point_left, 1.0)  # 结果是 [x, y, z, 1] 形状为 (4,)
+                        homogeneous_point_right = np.append(camera_point_right, 1.0)  # 结果是 [x, y, z, 1] 形状为 (4,)
+                        homogeneous_point_top = np.append(camera_point_top, 1.0)  # 结果是 [x, y, z, 1] 形状为 (4,)
+                    
+                    # self.get_logger().info(f"目标点在相机坐标系下的齐次坐标为:{homogeneous_point}")
+                    # self.get_logger().info(f"左相机手眼标定矩阵为:{self.left_eyehand_matrix}")
+                    
+                    # 使用手眼标定矩阵将相机坐标系下的点转换到机器人基座坐标系下
+                    if self.camera_working_flag == 1:
+                        base_point = np.dot(self.left_eyehand_matrix, homogeneous_point)  # 结果是 [x, y, z, 1]
+                        if self.is_real_camera_data==True and self.first_see_harvestable_tomato!=0:
+                            base_point_left = np.dot(self.left_eyehand_matrix, homogeneous_point_left)  # 结果是 [x, y, z, 1]
+                            base_point_right = np.dot(self.left_eyehand_matrix, homogeneous_point_right)  # 结果是 [x, y, z, 1]
+                            base_point_top = np.dot(self.left_eyehand_matrix, homogeneous_point_top)  # 结果是 [x, y, z, 1]
+                    else:
+                        base_point = np.dot(self.right_eyehand_matrix, homogeneous_point)  # 结果是 [x, y, z, 1]
+                        if self.is_real_camera_data==True and self.first_see_harvestable_tomato!=0:
+                            base_point_left = np.dot(self.right_eyehand_matrix, homogeneous_point_left)  # 结果是 [x, y, z, 1]
+                            base_point_right = np.dot(self.right_eyehand_matrix, homogeneous_point_right)  # 结果是 [x, y, z, 1]
+                            base_point_top = np.dot(self.right_eyehand_matrix, homogeneous_point_top)  # 结果是 [x, y, z, 1]
+                    
+                    # 提取前三个值作为最终的3D坐标
+                    X = base_point[0]
+                    Y = base_point[1]
+                    Z = base_point[2]
+
+                    #修正X误差 可能是手眼标定引起的
+                    self.get_logger().info(f"修正前目标相对于机械臂底座的坐标: X={X:.3f}m, Y={Y:.3f}m, Z={Z:.3f}m")
+                    # if X<0:
+                    X=X+self.arm_x_error_modify
+
+                    # 计算到机械臂基座的直线距离                            
+                    distance = math.sqrt( X**2 + Y**2 + Z**2)
+                    self.get_logger().info(f"修正后目标点相对于机械臂底座的坐标: X={X:.3f}m, Y={Y:.3f}m, Z={Z:.3f}m, 距离={distance:.3f}m")
+                    if self.is_pub_log==True:
+                        self.log_distance=distance
+                        self.log_target_arm_point_x=X
+                        self.log_target_arm_point_y=Y
+                        self.log_target_arm_point_z=Z
+                    if distance > 0.784+self.gripper_length or Z<0.25: # 0.784为机械臂的作业半径 https://www.aubo-robotics.cn/products/i/14
+                        self.get_logger().warning(
+                            f"匹配对 #{pair_idx+1} 目标点距离机械臂作业半径 {0.784+self.gripper_length:.3f}m 或低于安全高度 {0.2:.3f}m, 距离={distance:.3f}m"
+                        )
+                        continue
+
+                    pub_detection2ui_msg.distances=distance
+
+                    if self.is_pub_log==True:
+                        self.log_watch_tomato_num=self.first_see_harvestable_tomato
+                    
+                    #如果是第一次看到番茄，那就只让底盘停下来，后面都不需要执行 延时1s
+                    if self.first_see_harvestable_tomato==0:
+                        self.first_see_harvestable_tomato=self.first_see_harvestable_tomato+1
+                        self.car_pause_navigation(False)
+                        time.sleep(1.0)
+                        self.car_pause_navigation(False)
+                        self.color_img_group.clear()
+                        self.depth_img_group.clear()
+                        self.after_stop_try_times=0
+                        with self.processing_lock:
+                            self.is_processing = False
+                            self.get_logger().info(f"我已经让底盘停下来了，继续接收图片: {self.is_processing}")
+                        return
+                    
+
+                    rx, ry, rz = 90.0*math.pi / 180.0, 0.0, 0.0
+
+
+                    # 根据生长方向设置末端姿态
+                    # if growth_direction == "朝左":
+                    #     ry = -30.0 * math.pi / 180.0  # 顺时针30度
+                    # elif growth_direction == "朝右":
+                    #     ry = 30.0 * math.pi / 180.0  # 逆时针30度
+                    mid2target_angle=0.0 # 正值是X轴逆时针转动，负值是顺时针转动  机械臂rz初始角度加上该角度即可
+                    
+
+                    if self.is_real_camera_data==True and self.first_see_harvestable_tomato!=0:
+                        # 计算目标点与机械臂基座的角度  限制在-70度到70度之间
+                        # tangent_angle_by_base 末端旋转的角度 范围在-90-90度 逆时针为正,顺时针为负 
+                        # mid2target_angle 过渡点与目标点之间的角度 范围在-180-180度 逆时针为正 顺时针为负
+                        # mid2target_angle进行转换,不论是Y值的正 还是负 朝前长的都转换为0.0
+                        mid2target_angle,tangent_angle_by_base,leftOrRight=self.create_mid2target_angle(base_point_left,base_point_right,base_point_top,growth_direction,Y)
+                    
+                    else:
+                        mid2target_angle=np.random.uniform(low=-70.0, high=70.0)*math.pi / 180.0
+                        tangent_angle_by_base=tangent_angle #如果是仿真番茄图片，那就不转换到机械臂坐标系计算切角
+                    if self.is_use_base_angle==True:
+                        tangent_angle=tangent_angle_by_base
+                        if tangent_angle>0.0:
+                            # ry=-90.0*math.pi / 180.0+tangent_angle 
+                            ry=-70.0*math.pi / 180.0  #临时方法，固定住末端旋转角度
+                        else:
+                            # ry=90.0*math.pi / 180.0+tangent_angle
+                            ry=70.0*math.pi / 180.0  #临时方法，固定住末端旋转角度
+                    else:
+                        # 根据生长角度设置末端姿态
+                        if tangent_angle > 0.0:
+                            # ry=-90.0*math.pi / 180.0+tangent_angle
+                            ry=-70.0*math.pi / 180.0  #临时方法，固定住末端旋转角度
+                        else:
+                            # ry=90.0*math.pi / 180.0-tangent_angle
+                            ry=70.0*math.pi / 180.0  #临时方法，固定住末端旋转角度
+                    
+                    # 限制RY值在[-70°,70°]之间
+                    if abs(ry)>70.0*math.pi / 180.0:
+                        ry=70.0*math.pi / 180.0 if ry>0 else -70.0*math.pi / 180.0
+                    # 根据Y值的正 和负来设置末端姿态
+                    # RX： 90°   RY： -30°    0°   30°   RZ:0 或者 180°
+                    if Y>0:
+                        rz=180.0*math.pi /180.0 # 正值是X轴逆时针转动，负值是顺时针转动  机械臂rz初始角度加上该角度即可
+                        
+                    else:
+                        rz=0.0*math.pi /180.0 # 正值是X轴逆时针转动，负值是顺时针转动  机械臂rz初始角度加上该角度即可
+                        
+                    self.get_logger().info(f"目标点在机械臂底座坐标系下的坐标: X={X:.3f}m, Y={Y:.3f}m, Z={Z:.3f}m, RX={rx*180.0/math.pi:.3f}°, RY={ry*180.0/math.pi:.3f}°, RZ={rz*180.0/math.pi:.3f}°")
+                    
+                    # 准备调用机械臂服务
+                    request = MoveToPose.Request()
+                    request.x = X
+                    request.y = Y
+                    request.z = Z
+                    request.rx = rx
+                    request.ry = ry
+                    request.rz = rz
+                    request.mid_to_target=False
+                    request.mid2target_angle=mid2target_angle
+                    # 限制mid2target_angle,太朝后生长的就直接放弃
+                    self.get_logger().info(f"mid2target_angle值为：{mid2target_angle}")
+                    
+                    if Y>0 :
+                        if mid2target_angle>60.0*math.pi/180 and mid2target_angle<120.0*math.pi/180:
+                            continue # 太朝后生长的就直接放弃
+                        elif mid2target_angle>-110.0*math.pi/180 and mid2target_angle<-70.0*math.pi/180: #朝前生长，从上往下采摘
+                            request.y=Y-self.gripper_length*math.cos(60.0*math.pi/180.0)
+                            request.z=Z+self.gripper_length*math.sin(60.0*math.pi/180.0)
+                            # continue # 太朝前生长也直接放弃 如果要放弃，就打开这个
+                        else: #正常范围内生长
+                            cal_angle=mid2target_angle
+                            if mid2target_angle>90.0*math.pi/180:                                
+                                cal_angle=mid2target_angle-180.0*math.pi/180.0
+                            elif mid2target_angle<-90.0*math.pi/180:
+                                cal_angle=mid2target_angle+180.0*math.pi/180.0
+                            else:
+                                cal_angle=mid2target_angle
+                            request.x=X+math.sin(cal_angle)*self.gripper_length
+                            request.y=Y-math.cos(cal_angle)*self.gripper_length
+                    else:
+                        if mid2target_angle>-110.0*math.pi/180 and mid2target_angle<-70.0*math.pi/180:
+                            continue  # 太朝后生长的就直接放弃
+                        elif mid2target_angle>70.0*math.pi/180 and mid2target_angle<110.0*math.pi/180:
+                            request.y=Y+self.gripper_length*math.cos(60.0*math.pi/180.0)
+                            request.z=Z+self.gripper_length*math.sin(60.0*math.pi/180.0)
+                            # continue # 太朝前生长的就直接放弃
+                        else:
+                            cal_angle=mid2target_angle
+                            if mid2target_angle>90.0*math.pi/180:                                
+                                cal_angle=mid2target_angle-180.0*math.pi/180.0
+                            elif mid2target_angle<-90.0*math.pi/180:
+                                cal_angle=mid2target_angle+180.0*math.pi/180.0
+                            else:
+                                cal_angle=mid2target_angle
+                            request.x=X-math.sin(cal_angle)*self.gripper_length
+                            request.y=Y+math.cos(cal_angle)*self.gripper_length
+                            
+                    if self.is_two_stage==True:
+                        request.start2mid=True
+                    else:
+                        request.start2mid=False
+
+
+                    self.target_point_request_=copy.deepcopy(request) #供末端反馈失败后调整位置使用
+                    self.get_logger().info(f"准备发送坐标给机械臂: X={request.x:.3f}m, Y={request.y:.3f}m, Z={request.z:.3f}m, RX={request.rx*180.0/math.pi:.3f}°, RY={request.ry*180.0/math.pi:.3f}°, RZ={request.rz*180.0/math.pi:.3f}°, mid2target_angle={request.mid2target_angle:.3f}rad")
+                    pub_detection2ui_msg.mid2target_angle=mid2target_angle*180.0/math.pi
+                    pub_detection2ui_msg.arm_ry=tangent_angle*180.0/math.pi
+                    self.detection2ui_pub.publish(pub_detection2ui_msg)
+                    
+                    # 开始调用机械臂服务
+                    # 非连续运行模式下，等待用户按键
+                    if self.is_continuous_run==False and self.first_see_harvestable_tomato!=0:
+                        self.get_logger().info(f"等待按键，then 执行机械臂运动到采摘点")
+                        self.wait_for_keypress()
+                    if self.move_to_pose_client.wait_for_service(0.5)==True:
+                        #异步调用方法，即调用后不等待服务端返回结果
+                        # 先打开 gripper
+                        self.gripper_control_client.call_async(GripperControl.Request(command="open"))
+                        time.sleep(0.2)
+                        self.is_moveing_to_pose_client=True
+                        future_move_to_pose_client = self.move_to_pose_client.call_async(request)
+                        future_move_to_pose_client.add_done_callback(
+                            lambda future: self.move_to_pose_callback(future,request)
+                        )
+                        # 等待结果返回
+                        while self.is_moveing_to_pose_client==True:
+                            # self.get_logger().info(f"我在等待。。。。V1")
+                            time.sleep(0.5)
+                        
+                        #执行结果有两种情况，一种是执行成功，一种是执行失败
+                        #将执行失败的番茄和果梗位置添加到失败列表中
+                        self.get_logger().info(f"self.is_picking_success是{self.is_picking_success}")
+                        if self.is_picking_success==False:
+                            self.failed_tomato_stem.append(stem)
+                            self.failed_tomato_stem.append(tomato)
+                            
+
+                        # 将是否采摘成功标志重置为False
+                        self.is_picking_success=False
+                            
+
+                        # 非连续运行模式下，等待用户按键
+                        if self.is_continuous_run==False and self.first_see_harvestable_tomato!=0:
+                            self.get_logger().info(f"等待按键，then 处理第'{pair_idx+2}/{matched_pairs_count}' 串番茄")
+                            self.wait_for_keypress()
+
+                    else:
+                        self.get_logger().warning(
+                            f"机械臂服务未就绪，无法发送坐标: X={request.x:.3f}m, Y={request.y:.3f}m, Z={request.z:.3f}m, RX={request.rx*180.0/math.pi:.3f}°, RY={request.ry*180.0/math.pi:.3f}°, RZ={request.rz*180.0/math.pi:.3f}°"
+                        )
+
+                
+                except IndexError:
+                    self.get_logger().error(f"索引错误: mask总数量={len(response.masks)}, stem_idx={stem_idx}, tomato_idx={tomato_idx} 超出masks范围")
+                except Exception as e:
+                    self.get_logger().error(f"处理匹配对 #{pair_idx+1} 失败: {str(e)}")
+                
+                if self.is_pub_log==True:
+                    pub_log_msg.growth_directions.append(self.log_growth_direction)
+                    pub_log_msg.picking_points_x.append(self.log_picking_point_x)
+                    pub_log_msg.picking_points_y.append(self.log_picking_point_y)
+                    pub_log_msg.picking_points_z.append(self.log_picking_point_z)
+                    pub_log_msg.distances.append(self.log_distance)
+                    pub_log_msg.target_arm_points_x.append(self.log_target_arm_point_x)
+                    pub_log_msg.target_arm_points_y.append(self.log_target_arm_point_y)
+                    pub_log_msg.target_arm_points_z.append(self.log_target_arm_point_z)
+                    pub_log_msg.go_to_target_results.append(self.log_go_to_target_result)
+                    pub_log_msg.gripper_feedback_results.append(self.gripper_feedback_result)
+                    pub_log_msg.return_to_box_results.append(self.log_return_to_box_result)
+                    pub_log_msg.gripper_close_results.append(self.log_gripper_close_result)
+                    pub_log_msg.gripper_open_results.append(self.log_gripper_open_result)
+                    pub_log_msg.watch_tomato_nums.append(self.log_watch_tomato_num)
+                    pub_log_msg.try_pick_times.append(self.log_try_pick_time)
+            
+
+            # 重置可采摘番茄检测标志
+            #停下来后尝试采摘的次数,只尝试采摘一次，不论是否成功，都继续导航
+            if self.first_see_harvestable_tomato!=1: 
+                if self.is_pub_log==True:
+                    self.detection_result_pub.publish(pub_log_msg)
+                # 继续导航
+                #调用修改底盘控制服务参数函数  True  表示底盘继续导航
+                self.first_see_harvestable_tomato=0
+                self.car_pause_navigation(True)
+                time.sleep(0.5)
+                self.car_pause_navigation(True)
+                self.color_img_group.clear()
+                self.depth_img_group.clear()
+                self.is_processing = False
+            else:
+                self.get_logger().info(f"我已经让底盘停下来，准备执行动作: {self.first_see_harvestable_tomato}")
+                
+            
+            #图片识别的尝试次数 只要进入回调函数，after_stop_try_times就增加一次
+            if self.after_stop_try_times>5: 
+                self.get_logger().warning(f"底盘停止后，尝试{self.after_stop_try_times}次仍未成功，可能是检测错误")
+                if self.is_pub_log==True:
+                    self.detection_result_pub.publish(pub_log_msg)
+                self.first_see_harvestable_tomato=0
+                self.after_stop_try_times=0      
+                self.car_pause_navigation(True)
+                time.sleep(0.5)
+                self.car_pause_navigation(True)
+                self.color_img_group.clear()
+                self.depth_img_group.clear()
+
+            with self.agv_status_lock:
+                if self.change_camera_flag==True :                    
+                    # 切换相机切换到另一个相机
+                    # self.get_logger().info(f"2222222222")
+
+                    self.kill_old_camera()
+                    time.sleep(1)
+                    self.start_new_camera_launch()
+                    time.sleep(2)
+                    self.have_change_camera=True
+                    self.change_camera_flag=False
+                        #继续接受图片
+            
+        
+        except Exception as e:
+            self.get_logger().error(f"服务处理错误: {str(e)}")
+            with self.processing_lock:
+                self.is_processing = False
+
+
+    def create_mid2target_angle(self,base_point_left,base_point_right,base_point_top,growth_direction,Y):
+        # 计算目标点与机械臂基坐标的角度
+        # mid2target_angle正值是X轴逆时针转动，负值是顺时针转动
+        # tangent_angle正值是X轴逆时针转动，负值是顺时针转动  待定
+        # 机械臂rz初始角度加上该角度即可
+        # return mid2target_angle（xy平面，即过渡点到目标点的角度）,tangent_angle_by_base（xz平面，即末端旋转角度）,leftOrRight
+
+        # tangent_angle_by_base 末端旋转的角度 范围在-90-90度 逆时针为正,顺时针为负
+        # mid2target_angle 过渡点与目标点之间的角度 范围在-180-180度 逆时针为正 顺时针为负
+
+        leftOrRight = 0 #0是前，1是左，2是右
+        self.get_logger().info(f"base_point_top: {base_point_top}, base_point_left: {base_point_left}, base_point_right: {base_point_right}")
+        
+        tangent_angle_by_base = -90.0*math.pi/180 if Y > 0 else 90.0*math.pi/180
+
+        distance_top2left = math.sqrt((base_point_top[0] - base_point_left[0])**2 + (base_point_top[2] - base_point_left[2])**2)
+        distance_top2right = math.sqrt((base_point_top[0] - base_point_right[0])**2 + (base_point_top[2] - base_point_right[2])**2)
+        if distance_top2left > distance_top2right:
+            base_point_bottom = base_point_left
+            self.get_logger().info(f"  base_point_bottom: left")
+        else:
+            base_point_bottom = base_point_right
+            self.get_logger().info(f"  base_point_bottom: right")
+            
+        if abs(base_point_bottom[2] - base_point_top[2]) > 0.005:
+            if Y > 0:
+                tangent_angle_by_base = math.atan2(
+                    base_point_top[2] - base_point_bottom[2],
+                    base_point_top[0] - base_point_bottom[0]
+                )
+            else:
+                tangent_angle_by_base = math.atan2(
+                    base_point_top[2] - base_point_bottom[2],
+                    base_point_bottom[0] - base_point_top[0]
+                )
+            self.get_logger().info(f"  1111 tangent_angle_by_base: {tangent_angle_by_base*180/math.pi:.3f}")
+            
+            w2hRatio = (base_point_top[0] - base_point_bottom[0]) / (base_point_top[2] - base_point_bottom[2])
+            self.get_logger().info(f"  w2hRatio: {w2hRatio}")
+            if abs(w2hRatio) > 0.6:
+                if Y > 0:
+                    leftOrRight = 1 if w2hRatio > 0 else 2
+                else:
+                    leftOrRight = 2 if w2hRatio > 0 else 1
+
+            if tangent_angle_by_base < -90 * math.pi / 180:
+                tangent_angle_by_base = -tangent_angle_by_base - 90.0 * math.pi / 180 #90-(tangent_angle_by_base+180)
+            elif tangent_angle_by_base > 90 * math.pi / 180:
+                tangent_angle_by_base = -tangent_angle_by_base + 90.0 * math.pi / 180
+
+        if leftOrRight != 0:
+            mid2target_angle = math.atan2(
+                base_point_bottom[1] - base_point_top[1],
+                base_point_bottom[0] - base_point_top[0]
+            )
+        else:
+            mid2target_angle = 0.0
+
+        self.get_logger().info(f"base_point_bottom: {base_point_bottom}, base_point_top: {base_point_top}")
+        self.get_logger().info(f"  xz朝向判断: {leftOrRight}, Y: {Y}, mid2target_angle: {mid2target_angle*180/math.pi:.3f}")
+
+        return mid2target_angle, tangent_angle_by_base, leftOrRight
+
+    def move_to_pose_callback(self,future,request_old):
+        # 获取服务端返回结果
+        request=copy.deepcopy(self.target_point_request_)
+        arm_response = future.result()
+        if self.is_pub_log==True:
+            self.log_go_to_target_result=arm_response.result
+        if arm_response.result == 0:                                            
+            self.get_logger().info(f"机械臂移动结果: '成功!!!'")
+            
+            # 非连续运行模式下，等待用户按键
+            if self.is_continuous_run==False and self.first_see_harvestable_tomato!=0:
+                self.get_logger().info(f"等待按键，then 执行反馈检测")
+                self.wait_for_keypress()
+            time.sleep(0.5)
+            #如果有末端，那就关闭夹爪，如果没有，那就返回直接果箱            
+            if self.is_have_end_effector==True and request_old.start2mid==False:
+                self.get_logger().info(f"------------------末端执行器检测结果：{self.gripper_feedback_result}--------------") 
+                if self.is_pub_log==True:
+                    self.log_gripper_feedback_result=self.gripper_feedback_result
+                    self.log_try_pick_time=self.try_picking_count
+                if self.gripper_feedback_result == 2:#表示检测到果梗 临时解决办法
+                    self.get_logger().info(f"末端执行器检测到果梗") 
+                    # 非连续运行模式下，等待用户按键
+                    if self.is_continuous_run==False and self.first_see_harvestable_tomato!=0:
+                        self.get_logger().info(f"等待按键，then 执行关闭夹爪")
+                        self.wait_for_keypress()
+                    #如果不想关闭末端，就把close改为open
+                    gripper_future = self.gripper_control_client.call_async(GripperControl.Request(command="close"))
+                    gripper_future.add_done_callback(
+                        lambda future: self.gripper_callback_close(future,request)
+                    )
+                    #重置末端反馈结果
+                    self.gripper_feedback_result=0
+                    #重置尝试采摘次数
+                    self.try_picking_count = 0
+                else: #表示检测到主茎或者未检测到物体
+                    self.get_logger().info(
+                    f"末端执行器检测结果: {'未检测到物体' if self.gripper_feedback_result == 0 else '检测到主茎'}")
+                    # 如果检测到的不是果梗或者检测到的是主茎，那就退到中间点再来一次，注意，回到中间点要打开反馈检测flag
+                    self.get_logger().info(f"尝试次数: {self.try_picking_count}")
+                    if self.try_picking_count<4:
+                        # self.get_logger().info("*****************************")
+                        # 准备调用机械臂服务
+                        return_midpoint_future = self.return_to_midpoint_client.call_async(request)
+                        self.try_picking_count = self.try_picking_count + 1
+                        return_midpoint_future.add_done_callback(
+                            lambda future: self.return_to_midpoint_callback(future,request)
+                        )
+                    else:
+                        return_future = self.return_to_box_client.call_async(request)
+                        return_future.add_done_callback(
+                            lambda future: self.return_to_box_callback(future,False)
+                        )
+                        self.get_logger().warn(
+                            f"111111本串番茄尝试4次均采摘失败, 放弃该串番茄, 尝试采摘下一串番茄!!!")
+                        self.is_picking_success=False
+            elif self.is_have_end_effector==False and request_old.start2mid==False:
+                return_future = self.return_to_box_client.call_async(request)
+                return_future.add_done_callback(
+                    lambda future: self.return_to_box_callback(future,True)
+                )
+            elif request_old.start2mid==True:
+                close_request = GetPickPoses.Request()
+                close_request.return_debug_images = False
+                return_future = self.get_close_pick_poses_client.call_async(close_request)
+                return_future.add_done_callback(
+                    lambda future: self.get_close_pick_poses_callback(future)
+                )
+
+
+            
+        elif arm_response.result == 31004:
+            self.get_logger().info(
+                f"再次尝试采摘: '碰撞检测失败!!!', 错误码={arm_response.result}，尝试次数={self.try_picking_count}")
+            if self.try_picking_count<4:
+                # self.get_logger().info("*****************************")
+                # 准备调用机械臂服务
+                return_midpoint_future = self.return_to_midpoint_client.call_async(request)
+                self.try_picking_count = self.try_picking_count + 1
+                return_midpoint_future.add_done_callback(
+                    lambda future: self.return_to_midpoint_callback(future,request)
+                )
+            else:
+                request.mid_to_target=True
+                return_future = self.return_to_box_client.call_async(request,False)
+                return_future.add_done_callback(
+                    lambda future: self.return_to_box_callback(future,False)
+                )
+                self.get_logger().warn(
+                    f"本串番茄采摘失败尝试采摘下一串番茄!!!")
+                self.is_picking_success=False
+        else:
+            self.get_logger().info(
+                f"机械臂去往采摘点: '失败!!!', 错误码={arm_response.result}") 
+            # 30001 or 30007 or 30003 or 30002 or 31001 :#表示表示过渡点逆解失败或者目标点逆解失败从初始位置关节运动到过渡点失败
+            move_joint2initial_future = self.move_joints_client.call_async(self.go_init_joints)
+            move_joint2initial_future.add_done_callback(
+                    lambda future: self.move_joints_callback(future)
+                )
+            
+            #如果机械臂移动到初始位置失败，那么就表示本串番茄处理失败
+            
+
+    def get_close_pick_poses_callback(self,future):
+        if future.result().success == True:
+            best_pose = PickPoseCandidate()
+            best_pose = copy.deepcopy(future.result().best)
+            x=float(best_pose.pose_xyzrpy_base[0])
+            y=float(best_pose.pose_xyzrpy_base[1])
+            z=float(best_pose.pose_xyzrpy_base[2])
+            roll=float(best_pose.pose_xyzrpy_base[3])
+            pitch=float(best_pose.pose_xyzrpy_base[4])
+            yaw=float(best_pose.pose_xyzrpy_base[5])
+            self.get_logger().info(f"近端采摘位姿服务成功，最佳位姿是:x={x}, y={y}, z={z}, roll={roll}, pitch={pitch}, yaw={yaw}")
+            # 构建机械臂运动请求
+            two_stage_request = MoveToPose.Request()
+            two_stage_request.x=x
+            two_stage_request.y=y
+            two_stage_request.z=z
+            two_stage_request.rx=roll
+            two_stage_request.ry=pitch
+            two_stage_request.rz=yaw
+            two_stage_request.mid_to_target=True
+            two_stage_request.mid2target_angle=roll # TODO待定，需要判定方向
+            two_stage_request.start2mid=False #此次取消近端识别标志，使用原始数据
+
+            # 调用机械臂服务
+            move_future = self.move_to_pose_client.call_async(two_stage_request)
+            move_future.add_done_callback(
+                lambda future: self.move_to_pose_callback(future, two_stage_request)
+            )
+
+
+            # two_stage_request=copy.deepcopy(self.target_point_request_)
+            # two_stage_request.pose_xyzrpy_camera = best_pose_camera.pose_xyzrpy_camera
+            # self.move_joints_client.call_async(two_stage_request)
+            # self.move_joints_client.add_done_callback(
+            #     lambda future: self.move_joints_callback(future)
+            # )
+        else:
+            self.get_logger().info(f"近端采摘位姿服务失败了，结果是{future.result().message}")
+            far_request=copy.deepcopy(self.target_point_request_)
+            far_request.mid_to_target=True
+            far_request.start2mid=False #此次取消近端识别标志，使用原始数据
+            self.get_logger().info(f"近端采摘位姿服务失败了，发送原本的结果{far_request}")
+            far_future = self.move_to_pose_client.call_async(far_request)
+            far_future.add_done_callback(
+                lambda future: self.move_to_pose_callback(future, far_request)
+            )
+
+
+
+
+    def move_joints_callback(self,future):
+        # 一般调用这个函数，都是在机械臂运动失败后调用的，所以调用成功后，就直接告诉程序这串番茄结束了
+        if future.result().result == 0:
+            self.get_logger().info(f"机械臂移动到初始位置成功")
+            #本帧图片中的本串番茄处理结束，可以进行下一串
+            self.is_moveing_to_pose_client=False        
+            #重置末端反馈结果
+            self.gripper_feedback_result=0
+            #重置尝试采摘次数
+            self.try_picking_count = 0
+        else:
+            self.get_logger().info(
+                f"机械臂移动到初始位置'失败!!!', 错误码={future.result().result}")
+            
+        # 表示本串处理结束了
+        self.is_picking_success=False
+            
+    
+    
+    
+    def return_to_midpoint_callback(self,future,request):
+        self.get_logger().info(f"机械臂返回中间点有结果了，结果是{future.result().result}")
+
+        if future.result().result == 0:
+            self.get_logger().info(f"机械臂返回中间点成功")
+            # 非连续运行模式下，等待用户按键
+            if self.is_continuous_run==False and self.first_see_harvestable_tomato!=0:
+                self.get_logger().info(f"等待按键，then 执行反馈检测")
+                self.wait_for_keypress()
+            request = MoveToPose.Request()
+            request=copy.deepcopy(self.target_point_request_)
+            if self.is_two_stage==True:
+                request.start2mid=True
+                close_request = GetPickPoses.Request()
+                close_request.return_debug_images = False
+                return_future = self.get_close_pick_poses_client.call_async(close_request)
+                return_future.add_done_callback(
+                    lambda future: self.get_close_pick_poses_callback(future)
+                )
+                
+            else:
+                request.start2mid=False
+            # self.try_picking_count
+            # self.get_logger().info(f"尝试采摘次数: {self.try_picking_count}, 目标点: {self.target_point_request_}")
+                if self.try_picking_count==1:
+                    request.x=self.target_point_request_.x+0.02
+                if self.try_picking_count==2:
+                    request.x=self.target_point_request_.x-0.02
+                if self.try_picking_count==3:
+                    request.z=self.target_point_request_.z+0.02
+                if self.try_picking_count==4:
+                    request.z=self.target_point_request_.z-0.02
+                request.mid_to_target=True
+                # self.get_logger().info(f"*****尝试采摘次数: {self.try_picking_count}, 目标点: {request}")
+                future_move_to_pose_client = self.move_to_pose_client.call_async(request)
+                future_move_to_pose_client.add_done_callback(
+                                        lambda future: self.move_to_pose_callback(future,request)
+                                        )
+            
+
+        else:
+            self.get_logger().error(
+                f"机械臂返回中间点'失败!!!', 错误码={future.result().result}")
+            # go_return_error_request = MoveJoints.Request()                
+            # go_return_error_request.joints[0]= 10.32*math.pi/180
+            # go_return_error_request.joints[1]= 15.37*math.pi/180 
+            # go_return_error_request.joints[2]=134.05*math.pi/180
+            # go_return_error_request.joints[3]=117.05*math.pi/180
+            # go_return_error_request.joints[4]=86.63*math.pi/180
+            # go_return_error_request.joints[5]=0.0*math.pi/180
+            move_joint2initial_future = self.move_joints_client.call_async(self.go_init_joints)
+            move_joint2initial_future.add_done_callback(
+                    lambda future: self.move_joints_callback(future)
+                )
+            
+    def gripper_callback_close(self,future,request):
+        if self.is_pub_log==True:
+            self.log_gripper_close_result=int(future.result().success)
+        if future.result().success==True:
+            self.get_logger().info(f"末端执行器关闭成功")
+            # 非连续运行模式下，等待用户按键
+            if self.is_continuous_run==False and self.first_see_harvestable_tomato!=0:
+                self.get_logger().info(f"等待按键，then 执行返回果箱")
+                self.wait_for_keypress()
+            time.sleep(1)
+            return_future = self.return_to_box_client.call_async(request)
+            return_future.add_done_callback(
+                lambda future: self.return_to_box_callback(future,True)
+            )            
+
+        else:
+            self.get_logger().error(
+                f"末端执行器关闭失败")
+    
+    def return_to_box_callback(self,future,success_flag):
+        #success_flag表示前一步骤的采摘是否成功 true就是成功 false就是失败
+        if self.is_pub_log==True:
+            self.log_return_to_box_result=future.result().result
+        if future.result().result == 0:
+            self.get_logger().info(f"返回果箱成功")
+            # 非连续运行模式下，等待用户按键
+            if self.is_continuous_run==False and self.first_see_harvestable_tomato!=0:
+                self.get_logger().info(f"等待按键，then 执行打开手爪")
+                self.wait_for_keypress()
+
+            if self.is_have_end_effector==True:
+                # 如果有手爪，那就打开手爪，释放番茄
+                gripper_future = self.gripper_control_client.call_async(GripperControl.Request(command="open"))
+                gripper_future.add_done_callback(
+                    lambda future: self.gripper_callback_open(future)
+                )
+            else:
+                #本帧图片中的本串番茄处理结束，可以进行下一串
+                self.is_moveing_to_pose_client=False            
+                #重置末端反馈结果
+                self.gripper_feedback_result=0
+                #重置尝试采摘次数
+                self.try_picking_count = 0
+                # 采摘成功标志
+                if success_flag==True:
+                    self.is_picking_success=True
+
+        else:#30004或者30005
+            self.get_logger().error(
+                f"返回果箱'失败!!!', 错误码={future.result().result}")
+            move_joint2initial_future = self.move_joints_client.call_async(self.go_init_joints)
+            move_joint2initial_future.add_done_callback(
+                    lambda future: self.move_joints_callback(future)
+                )
+            
+            # 采摘成功标志--返回失败了
+            
+    
+    def gripper_callback_open(self,future):
+        if self.is_pub_log==True:
+            self.log_gripper_open_result=int(future.result().success)
+        if future.result().success==True:
+            self.get_logger().info(f"末端执行器打开成功")
+            #重置末端反馈结果
+            self.gripper_feedback_result=0
+            #重置尝试采摘次数
+            self.try_picking_count = 0
+            # # 采摘成功标志 -- 打开手爪成功，那么就表示本串番茄处理成功
+            # self.is_picking_success=True
+            #本帧图片中的本串番茄处理结束，可以进行下一串
+            self.is_moveing_to_pose_client=False          
+        else:
+            self.get_logger().error(f"末端执行器打开失败")
+            #本帧图片中的本串番茄处理结束，可以进行下一串
+            self.is_moveing_to_pose_client=False
+
+
+    def call_get_pick_poses(self, return_debug_images=False):
+        """
+        调用番茄采摘位姿服务
+        
+        Args:
+            return_debug_images: 是否返回调试图像
+            
+        Returns:
+            GetPickPoses.Response: 服务响应对象，如果服务未就绪则返回None
+        """
+        # 检查服务是否可用
+        if not self.get_close_pick_poses_client.wait_for_service(timeout_sec=2.0):
+            self.get_logger().error('番茄采摘位姿服务未就绪')
+            return None
+            
+        # 创建请求
+        request = GetPickPoses.Request()
+        request.return_debug_images = return_debug_images
+        
+        # 异步调用服务
+        future = self.get_close_pick_poses_client.call_async(request)
+        
+        return future
+
+    def get_pick_poses_callback(self, future):
+        """
+        处理番茄采摘位姿服务响应的回调函数
+        
+        Args:
+            future: 异步服务调用的future对象
+        """
+        try:
+            response = future.result()
+            if response is None:
+                self.get_logger().error('番茄采摘位姿服务响应为None')
+                return
+                
+            if response.success:
+                self.get_logger().info(f'番茄采摘位姿服务调用成功，找到 {len(response.candidates)} 个候选位姿')
+                
+                # 处理最佳位姿（如果存在）
+                if response.has_best:
+                    best_pose = response.best
+                    self.get_logger().info(
+                        f'最佳采摘位姿: 位置=[{best_pose.pose_xyzrpy_camera[0]:.3f}, '
+                        f'{best_pose.pose_xyzrpy_camera[1]:.3f}, {best_pose.pose_xyzrpy_camera[2]:.3f}], '
+                        f'姿态=[{best_pose.pose_xyzrpy_camera[3]:.3f}, '
+                        f'{best_pose.pose_xyzrpy_camera[4]:.3f}, {best_pose.pose_xyzrpy_camera[5]:.3f}], '
+                        f'得分={best_pose.score:.2f}'
+                    )
+                    
+                    # 在这里可以添加将最佳位姿转换为机械臂运动的逻辑
+                    # 例如：
+                    # target_x = best_pose.pose_xyzrpy_camera[0]
+                    # target_y = best_pose.pose_xyzrpy_camera[1]
+                    # target_z = best_pose.pose_xyzrpy_camera[2]
+                    # target_rx = best_pose.pose_xyzrpy_camera[3]
+                    # target_ry = best_pose.pose_xyzrpy_camera[4]
+                    # target_rz = best_pose.pose_xyzrpy_camera[5]
+                    # self.move_to_pose(target_x, target_y, target_z, target_rx, target_ry, target_rz)
+                else:
+                    self.get_logger().info('没有找到有效的采摘位姿')
+                    
+            else:
+                self.get_logger().error(f'番茄采摘位姿服务调用失败: {response.message}')
+                
+        except Exception as e:
+            self.get_logger().error(f'处理番茄采摘位姿响应时出错: {str(e)}')
+
+
+    def kill_old_camera(self):
+        """
+        杀死旧的相机相关进程：
+        1. 原有方式：通过 PID 文件杀死 launch 进程。
+        2. 新增方式：通过关键词 "-r __node:=camera" 杀死所有匹配的进程。
+        """
+
+        # === 方式一：读取 PID 文件并终止对应的 launch 进程 ===
+        pid_file = PID_FILE
+        if os.path.exists(pid_file):
+            with open(pid_file, "r") as f:
+                pid_str = f.read().strip()
+            if not pid_str:
+                self.get_logger().info("[WARN] PID file is empty.")
+            else:
+                try:
+                    pid = int(pid_str)
+                    os.kill(pid, signal.SIGTERM)
+                    self.get_logger().info(f"[INFO] Killed old launch process with PID: {pid}")
+                except ValueError:
+                    self.get_logger().info("[ERROR] Invalid PID in file.")
+                except ProcessLookupError:
+                    self.get_logger().info("[WARN] Process already terminated.")
+                except Exception as e:
+                    self.get_logger().info(f"[ERROR] Failed to kill process: {e}")
+        else:
+            self.get_logger().info("[INFO] No PID file found.")
+
+        # === 方式二：杀死所有包含 "-r __node:=camera" 参数的进程 ===
+        self.kill_nodes_by_ros2_node_name("__node:=camera")
+
+
+    def gripper_feedback_result_callback(self, msg):
+        """处理gripper_feedback_result话题消息"""
+        # self.get_logger().info(f"gripper_feedback_result1111: {msg.result},self.gripper_feedback_result: {self.gripper_feedback_result}")
+        if self.gripper_feedback_result == 0 and msg.result!=0:
+            self.get_logger().info(f"gripper_feedback_result: {msg.result}")
+            if msg.result == 3: #只有当gripper反馈结果为主茎时，才更新gripper_feedback_result为3
+                self.gripper_feedback_result = 3
+            else:
+                self.gripper_feedback_result = 2
+                # self.gripper_feedback_result = msg.result
+
+            
+            # self.get_logger().info(f"self.gripper_feedback_result结果是: {self.gripper_feedback_result}")
+
+
+
+    def kill_nodes_by_ros2_node_name(self, node_name="__node:=camera"):
+        """
+        根据指定的 ROS2 node 名称（如 "__node:=camera"）查找并终止所有相关进程。
+        """
+        try:
+            # 使用 ps 命令结合 grep 查找含有 "-r __node:=camera" 参数的所有进程
+            result = subprocess.run(
+                ['ps', 'aux'],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True
+            )
+
+            lines = result.stdout.strip().split('\n')
+            killed_pids = []
+
+            for line in lines:
+                if f'-r {node_name}' in line:
+                    parts = line.split()
+                    pid = parts[1]
+                    if pid.isdigit():
+                        try:
+                            os.kill(int(pid), signal.SIGTERM)
+                            self.get_logger().info(f"[INFO] Killed process with PID: {pid} matching '{node_name}'")
+                            killed_pids.append(pid)
+                        except ProcessLookupError:
+                            self.get_logger().info(f"[WARNING] Process {pid} already terminated.")
+                        except Exception as e:
+                            self.get_logger().info(f"[ERROR] Failed to kill process {pid}: {e}")
+
+            if not killed_pids:
+                self.get_logger().info(f"[INFO] No processes found with argument '-r {node_name}'")
+
+        except Exception as e:
+            self.get_logger().info(f"[ERROR] Error while killing nodes by node name: {e}")
+
+    def start_new_camera_launch(self):
+        """启动新的相机 launch：xc_robot_main_control/realsense_hot_change_launch_1.py"""
+        self.get_logger().info(f"[INFO] self.camera_working_flag的值是：{self.camera_working_flag}")
+        if self.camera_working_flag == 1:
+            self.get_logger().info(f"[INFO] 我要把相机变为2")            
+            cmd = [
+                "ros2", "launch",
+                "xc_robot_main_control",
+                "realsense_hot_switch_2_launch.py"
+            ]
+            self.camera_working_flag = 2
+        else:
+            self.get_logger().info(f"[INFO] 我要把相机变为1")            
+            cmd = [
+                "ros2", "launch",
+                "xc_robot_main_control",
+                "realsense_hot_switch_1_launch.py"
+            ]
+            self.camera_working_flag = 1
+
+        self.get_logger().info(f"[INFO] 启动新相机：{' '.join(cmd)}")
+        # 使用 Popen 异步启动，不阻塞当前脚本
+        subprocess.Popen(cmd)
+        time.sleep(1.0)
+        self.intrinsics_ready = False
+        self.try_get_camera_info() # 尝试获取相机信息,更新内参
+
+    def read_calibration_file(self,file_path):
+        """
+        从标定结果文件中读取旋转矩阵和平移向量
+        """
+        with open(file_path, 'r', encoding='utf-8') as f:
+            lines = f.readlines()
+        
+        # 解析旋转矩阵
+        rotation_lines = []
+        translation_lines = []
+        
+        for i, line in enumerate(lines):
+            if "R_end2cam:" in line:
+                # 旋转矩阵在接下来的3行
+                rotation_lines = [lines[i+1].strip(), lines[i+2].strip(), lines[i+3].strip()]
+                self.get_logger().info(f"[INFO] 读取到的旋转矩阵行: {rotation_lines}")
+                # self.get_logger().info(rotation_lines)
+            elif "T_end2cam:" in line:
+                # 平移向量在下3行
+                translation_lines.append(lines[i+1].strip())
+                translation_lines.append(lines[i+2].strip())
+                translation_lines.append(lines[i+3].strip())
+                self.get_logger().info(f"[INFO] 读取到的平移向量行: {translation_lines}")
+                # self.get_logger().info(translation_line)
+        
+        # 提取旋转矩阵数值
+        rotation_matrix = np.zeros((3, 3))
+        for i, line in enumerate(rotation_lines):
+            values = line.split()
+            for j, val in enumerate(values):
+                rotation_matrix[i, j] = float(val)
+        
+        # 提取平移向量数值
+        # translation_vector = np.zeros(3)
+        # for i, line in enumerate(translation_line):
+
+        # translation_values = translation_line.split()
+
+
+        # translation_vector = np.array([float(val) for val in translation_values])
+        
+        return rotation_matrix, translation_lines
+    
+    def create_transformation_matrix(self,rotation_matrix, translation_vector):
+        """
+        根据旋转矩阵和平移向量创建4x4变换矩阵
+        """
+        # 创建4x4单位矩阵
+        transformation_matrix = np.eye(4)
+        
+        # 填充旋转矩阵部分（左上角3x3）
+        transformation_matrix[:3, :3] = rotation_matrix
+        
+        # 填充平移向量部分（右列前3行）
+        transformation_matrix[:3, 3] = translation_vector
+        
+        return transformation_matrix
+
+    
+    def get_eye_hand_matrix(self):
+        """
+        获取手眼标定矩阵
+        """
+        # 读取左相机标定结果
+        # left_rotation_matrix, left_translation_vector = self.read_calibration_file(self.left_calibration_file_path)
+        # # 创建左相机变换矩阵
+        # left_transformation_matrix = self.create_transformation_matrix(left_rotation_matrix, left_translation_vector)
+        # self.left_eyehand_matrix = left_transformation_matrix
+        left_transformation_matrix=self.read_matrix_from_txt(self.left_calibration_file_path)
+        self.left_eyehand_matrix=left_transformation_matrix
+        self.get_logger().info("----------左相机手眼标定矩阵------")
+        self.get_logger().info(f"\n{self.left_eyehand_matrix}")
+            
+        
+        # 读取右相机标定结果
+        # right_rotation_matrix, right_translation_vector = self.read_calibration_file(self.right_calibration_file_path)
+        # # 创建右相机变换矩阵
+        # right_transformation_matrix = self.create_transformation_matrix(right_rotation_matrix, right_translation_vector)
+        # # 右相机变换矩阵赋值
+        # self.right_eyehand_matrix = right_transformation_matrix
+        right_transformation_matrix=self.read_matrix_from_txt(self.right_calibration_file_path)
+        self.right_eyehand_matrix=right_transformation_matrix
+        self.get_logger().info("----------右相机手眼标定矩阵------")
+        self.get_logger().info(f"\n{self.right_eyehand_matrix}")
+        
+
+        
+        # 计算手眼变换矩阵（左相机到右相机的变换）
+        # self.eyehand_matrix = np.dot(np.linalg.inv(right_transformation_matrix), left_transformation_matrix)
+        
+    def read_matrix_from_txt(self,file_path):
+        """
+        从txt文件读取数据并转换为4x4 numpy矩阵
+        
+        Args:
+            file_path (str): 文件路径
+        
+        Returns:
+            numpy.ndarray: 4x4矩阵
+        """
+        # 读取文件内容
+        with open(file_path, 'r') as file:
+            content = file.read().strip()
+        
+        # 按行分割
+        lines = content.split('\n')
+        
+        # 创建4x4矩阵
+        matrix = np.zeros((4, 4))
+        
+        # 解析每行数据
+        for i, line in enumerate(lines):
+            # 按逗号分割数值
+            values = line.split(',')
+            for j, value in enumerate(values):
+                # 转换为浮点数并填入矩阵
+                matrix[i, j] = float(value)
+        
+        return matrix
+    # 以下是从原始代码移植的匹配算法函数
+    @staticmethod
+    def calculate_iou(box1, box2):
+        """精确计算两个矩形框的交并比"""
+        x_left = max(box1[0], box2[0])
+        y_top = max(box1[1], box2[1])
+        x_right = min(box1[2], box2[2])
+        y_bottom = min(box1[3], box2[3])
+
+        if x_right < x_left or y_bottom < y_top:
+            return 0.0
+
+        intersection_area = (x_right - x_left) * (y_bottom - y_top)
+        box1_area = (box1[2] - box1[0]) * (box1[3] - box1[1])
+        box2_area = (box2[2] - box2[0]) * (box2[3] - box2[1])
+        union_area = box1_area + box2_area - intersection_area
+        return intersection_area / union_area if union_area > 0 else 0
+
+    @staticmethod
+    def calculate_iou_stems(box1, box2):
+        """精确计算两个矩形框的交并比（以box1为基准）"""
+        x_left = max(box1[0], box2[0])
+        y_top = max(box1[1], box2[1])
+        x_right = min(box1[2], box2[2])
+        y_bottom = min(box1[3], box2[3])
+
+        if x_right < x_left or y_bottom < y_top:
+            return 0.0
+
+        intersection_area = (x_right - x_left) * (y_bottom - y_top)
+        box1_area = (box1[2] - box1[0]) * (box1[3] - box1[1])
+        return intersection_area / box1_area if box1_area > 0 else 0
+
+    @staticmethod
+    def calculate_gap(boxA, boxB):
+        """通用间隙计算函数"""
+        # X方向间隙
+        if boxA[2] <= boxB[0]:  # A在B左边
+            x_gap = boxB[0] - boxA[2]
+        elif boxB[2] <= boxA[0]:  # B在A左边
+            x_gap = boxA[0] - boxB[2]
+        else:
+            x_gap = -1
+
+        # Y方向间隙
+        if boxA[3] <= boxB[1]:  # A在B上边
+            y_gap = boxB[1] - boxA[3]
+        elif boxB[3] <= boxA[1]:  # B在A上边
+            y_gap = boxA[1] - boxB[3]
+        else:
+            y_gap = -1
+
+        return x_gap, y_gap
+
+    @staticmethod
+    def can_intersect_after_shift(box1, box2, img_width, img_height, 
+                                 x_shift_ratio=0.15, y_shift_ratio=0.15,
+                                 iou_threshold=0):
+        """判断是否可以通过平移产生有效交集（强制stem在下边沿上方）"""
+        if box1[3] > box2[3]:  # stem底部必须<=tomato底部
+            return False, 0
+
+        original_iou = XCRobotMainControlNode.calculate_iou_stems(box1, box2)
+        if original_iou > iou_threshold:
+            return True, original_iou
+
+        x_gap, y_gap = XCRobotMainControlNode.calculate_gap(box1, box2)
+        x_threshold = img_width * x_shift_ratio
+        y_threshold = img_height * y_shift_ratio
+        threshold_min = min(x_threshold, y_threshold)
+
+        best_iou = 0
+        # 横向平移判断
+        if 0 <= x_gap <= threshold_min:
+            box1_shifted = [box1[0] + x_gap, box1[1], box1[2] + x_gap, box1[3]]
+            box2_shifted = [box2[0] - x_gap, box2[1], box2[2] - x_gap, box2[3]]
+            best_iou = max(best_iou, XCRobotMainControlNode.calculate_iou_stems(box1_shifted, box2_shifted))
+
+        # 纵向平移判断
+        if 0 <= y_gap <= threshold_min:
+            box1_shifted = [box1[0], box1[1] + y_gap, box1[2], box1[3] + y_gap]
+            box2_shifted = [box2[0], box2[1] - y_gap, box2[2], box2[3] - y_gap]
+            best_iou = max(best_iou, XCRobotMainControlNode.calculate_iou_stems(box1_shifted, box2_shifted))
+
+        return (best_iou > iou_threshold), best_iou
+
+    def combine_boxes(self, img, stems, tomatos, img_size, iou_threshold=0):
+        """智能组合框选择（保持stem位置条件）"""
+        # self.get_logger().info('进入了combine_boxes程序----')
+        
+        matched_stems = set()
+        matched_tomatos = set()
+        matched_pairs = []  # 存储匹配的果梗和番茄对（包含完整6个元素）
+        matched_rectangles = [] #存储匹配结果 x1 y1 x2 y2
+        
+        # 遍历所有果梗
+        for s_idx, stem in enumerate(stems):
+            if s_idx in matched_stems:
+                continue
+
+            best_tomato = None
+            best_tomato_idx = None
+            best_iou = 0
+            stem_bottom = stem[3]
+
+            # 遍历所有番茄
+            for t_idx, tomato in enumerate(tomatos):
+                if t_idx in matched_tomatos or stem_bottom > (tomato[1]+tomato[3])/2:
+                    continue
+
+                current_iou = self.calculate_iou_stems(stem, tomato)
+
+                if current_iou > best_iou and current_iou > iou_threshold:
+                    best_iou = current_iou
+                    best_tomato = tomato
+                    best_tomato_idx = t_idx
+
+            # 次选可平移匹配的番茄
+            if best_tomato is None:
+                for t_idx, tomato in enumerate(tomatos):
+                    if t_idx in matched_tomatos or stem_bottom > (tomato[1]+tomato[3])/2:
+                        continue
+
+                    can_shift, shifted_iou = self.can_intersect_after_shift(
+                        stem, tomato, img_size[1], img_size[0], iou_threshold=iou_threshold
+                    )
+                    if can_shift and shifted_iou > best_iou:
+                        best_iou = shifted_iou
+                        best_tomato = tomato
+                        best_tomato_idx = t_idx
+
+            # 绘制组合框并记录匹配
+            if best_tomato is not None:
+                # 将坐标转换为整数
+                x1 = int(min(stem[0], best_tomato[0]))
+                y1 = int(min(stem[1], best_tomato[1]))
+                x2 = int(max(stem[2], best_tomato[2]))
+                y2 = int(max(stem[3], best_tomato[3]))
+                
+                # 确保坐标在图像范围内
+                h, w = img.shape[:2]
+                x1 = max(0, min(x1, w-1))
+                y1 = max(0, min(y1, h-1))
+                x2 = max(0, min(x2, w-1))
+                y2 = max(0, min(y2, h-1))
+                
+                cv2.rectangle(img, (x1, y1), (x2, y2), (255, 0, 0), 10)
+                matched_rectangles.append([x1, y1, x2, y2])
+                
+                # 添加到匹配集合
+                matched_stems.add(s_idx)
+                matched_tomatos.add(best_tomato_idx)
+                
+                # 记录完整的果梗和番茄信息（包含所有6个元素）
+                matched_pairs.append((stem, best_tomato))
+        # self.get_logger().info(f'准备离开combine_boxes程序,匹配数量为{len(matched_pairs)}----')
+                
+        # cv2.imshow("Matched Boxes", img)
+        # cv2.waitKey(0)
+        # cv2.destroyAllWindows()
+        return img, matched_pairs, matched_rectangles
+
+    def camera_info_callback(self, msg):
+        """相机内参回调函数"""
+        if self.intrinsics_ready:
+            return
+        try:
+            with self.camera_matrix_lock:
+                self.intrinsics = rs2.intrinsics()
+                self.intrinsics.width = msg.width
+                self.intrinsics.height = msg.height
+                self.intrinsics.ppx = msg.k[2]
+                self.intrinsics.ppy = msg.k[5]
+                self.intrinsics.fx = msg.k[0]
+                self.intrinsics.fy = msg.k[4]
+                if msg.distortion_model == 'plumb_bob':
+                    self.intrinsics.model = rs2.distortion.brown_conrady
+                elif msg.distortion_model == 'equidistant':
+                    self.intrinsics.model = rs2.distortion.kannala_brandt4
+                self.intrinsics.coeffs = [i for i in msg.d]
+                self.intrinsics_ready = True
+                self.is_real_camera_data = True
+                #取消订阅
+                self.destroy_subscription(self.camera_info_sub)
+                self.camera_info_sub = None
+                self.get_logger().info(f"已获取相机内参")
+
+        except Exception as e:
+            self.get_logger().error(f"处理相机内参时出错: {e},使用默认内参")
+            self.set_default_intrinsics()
+    
+    def set_default_intrinsics(self):
+        with self.camera_matrix_lock:
+            
+            self.intrinsics = rs2.intrinsics()
+            self.intrinsics.width = 1280
+            self.intrinsics.height = 720
+            self.intrinsics.fx = 904.136
+            self.intrinsics.fy = 904.541 
+            self.intrinsics.ppx = 646.646
+            self.intrinsics.ppy = 352.313
+            self.intrinsics.model = rs2.distortion.brown_conrady
+            self.intrinsics.coeffs = [0.170956, -0.525839, -0.000931794, 0.000153935, 0.486463]
+            
+            # 深度缩放因子和偏移量
+            self.depth_scale = 0.00025
+            self.depth_offset = 0.00025
+            self.is_real_camera_data = False
+            self.intrinsics_ready = False
+
+    def wait_for_keypress(self):
+        """
+        等待键盘按键输入
+        按'd'继续执行，按'q'退出程序
+        """
+        self.get_logger().info('等待用户按键...')
+        # 保存原始终端设置
+        old_settings = termios.tcgetattr(sys.stdin)
+        try:
+            # 设置终端为非阻塞模式
+            tty.setraw(sys.stdin.fileno())
+            while True:
+                # 非阻塞读取
+                ready, _, _ = select.select([sys.stdin], [], [], 0.1)  # 0.1秒超时
+                if ready:
+                    key = sys.stdin.read(1)
+                    if key.lower() == 'd':  # 接受大写和小写D
+                        self.get_logger().info('收到"d"键，继续执行...')
+                        break
+                    elif key.lower() == 'q':  # 接受大写和小写Q
+                        self.get_logger().info('收到"q"键，退出程序...')
+                        sys.exit(0)
+                # 短暂休眠以减少CPU占用
+                time.sleep(0.01)
+        except Exception as e:
+            self.get_logger().error(f'键盘监听出现错误: {e}')
+        finally:
+            # 恢复终端设置
+            termios.tcsetattr(sys.stdin, termios.TCSADRAIN, old_settings)
+
+def main(args=None):
+    rclpy.init(args=args)
+    # rclpy.init(args=args)
+    # 显式设置日志级别为DEBUG
+    rclpy.logging.set_logger_level('xc_robot_main_control_node', rclpy.logging.LoggingSeverity.DEBUG)
+    node = XCRobotMainControlNode()
+    # 使用多线程执行器以更好地处理订阅和服务
+    executor = MultiThreadedExecutor(num_threads=4)
+    executor.add_node(node)
+    try:
+        executor.spin()
+    finally:
+        # node.get_logger().info(f"33333333333")
+        node.kill_old_camera()
+
+        executor.remove_node(node)
+        node.destroy_node()
+        rclpy.shutdown()
+
+if __name__ == '__main__':
+    main()

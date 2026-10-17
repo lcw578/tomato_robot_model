@@ -1,0 +1,6 @@
+sensor_msgs/Image color_image
+---
+InstanceMask[] instances
+sensor_msgs/Image debug_image
+bool success
+string message

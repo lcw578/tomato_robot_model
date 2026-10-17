@@ -1,0 +1,89 @@
+#!/usr/bin/env python3
+
+import rclpy
+from rclpy.node import Node
+from xc_interfaces.srv import ControlAGV
+import time
+
+
+class AGVControlClient(Node):
+    def __init__(self):
+        super().__init__('agv_always_go_straght_node')
+        
+        # 创建服务客户端
+        self.cli = self.create_client(ControlAGV, 'control_agv')
+        self.declare_parameter('is_continue_run', True)
+        self.is_continue_run_ = self.get_parameter('is_continue_run').value
+        self.last_is_continue_run_ = False
+        
+        # 等待服务可用
+        # while not self.cli.wait_for_service(timeout_sec=1.0):
+        #     self.get_logger().info('等待control_agv服务可用...')
+        
+        self.req = ControlAGV.Request()
+        
+        # 设置请求参数
+        self.req.linear_speed = 100      # 直行速度
+        self.req.angular_speed = 0       # 旋转速度
+        self.req.lift_magnetic_sensor = True  # 磁条传感器升起
+
+        self.req_stop = ControlAGV.Request()
+        self.req_stop.linear_speed = 0      # 直行速度
+        self.req_stop.angular_speed = 0       # 旋转速度
+        self.req_stop.lift_magnetic_sensor = True  # 磁条传感器升起
+        
+        # self.get_logger().info(f'准备发送控制命令: linear_speed={self.req.linear_speed}, '
+        #                       f'angular_speed={self.req.angular_speed}, '
+        #                       f'lift_magnetic_sensor={self.req.lift_magnetic_sensor}')
+        
+        # 创建定时器，定期发送请求
+        self.timer = self.create_timer(0.1, self.send_request)  # 每0.1秒发送一次请求
+        self.future = None
+
+    def send_request(self):
+        """发送服务请求"""
+        # 发送新的请求
+        self.is_continue_run_ = self.get_parameter('is_continue_run').value
+        if self.is_continue_run_ != self.last_is_continue_run_:
+            self.last_is_continue_run_ = self.is_continue_run_
+            self.get_logger().info(f'是否继续直行: {self.is_continue_run_}')
+        # if self.is_continue_run_==True:
+        #     self.future = self.cli.call_async(self.req)
+        # else:
+        #     self.future = self.cli.call_async(self.req_stop)
+        time.sleep(0.1)
+        # self.future.add_done_callback(self.response_callback)
+
+    def response_callback(self, future):
+        """处理服务响应"""
+        try:
+            response = future.result()
+            self.get_logger().info(
+                f'服务响应 - 控制命令成功: {response.control_cmd_success}, '
+                f'状态命令成功: {response.status_cmd_success}, '
+                # f'电池电压: {response.agv_status.battery_voltage}, '
+                f'左轮速度: {response.agv_status.left_wheel_speed}, '
+                f'右轮速度: {response.agv_status.right_wheel_speed},'
+                f'RFID卡号: {response.agv_status.white_card_id}'
+            )
+        except Exception as e:
+            self.get_logger().error(f'服务调用失败: {e}')
+
+
+def main(args=None):
+    rclpy.init(args=args)
+    
+    client = AGVControlClient()
+    
+    try:
+        # 开始处理ROS消息
+        rclpy.spin(client)
+    except KeyboardInterrupt:
+        pass
+    finally:
+        client.destroy_node()
+        rclpy.shutdown()
+
+
+if __name__ == '__main__':
+    main()

@@ -1,0 +1,6 @@
+# GripperControl.srv
+string command     # "open" 或 "close"
+---
+bool success       # 是否成功执行
+int32 current_position  # 执行结束时的实际位置（脉冲）
+string message     # 状态信息，如 "Reached target", "Timeout", "Invalid command"

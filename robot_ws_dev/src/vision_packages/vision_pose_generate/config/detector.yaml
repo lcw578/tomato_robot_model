@@ -1,0 +1,12 @@
+detection_service:
+  ros__parameters:
+    model_path: package://vision_pose_generate/weights/yolo11s_seg_peduncle_cluster_0601_640_best.pt
+    ultralytics_source_dir: /home/dong/codes_vision/ultralytics
+    image_size: 640
+    conf_threshold: 0.35
+    iou_threshold: 0.5
+    device: cuda:0
+    border_margin_px: 5
+    overlap_iou_warn: 0.20
+    same_class_duplicate_iou: 0.70
+    filter_same_class_duplicates: true

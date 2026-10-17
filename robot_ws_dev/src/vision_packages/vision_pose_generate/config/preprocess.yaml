@@ -1,0 +1,10 @@
+image_preprocess_node:
+  ros__parameters:
+    input_color_topic: /cam_hand/color/image_rect_raw
+    input_depth_topic: /cam_hand/aligned_depth_to_color/image_raw
+    input_camera_info_topic: /cam_hand/color/camera_info
+    output_color_topic: /vision/tomato/crop/color/image_raw
+    output_depth_topic: /vision/tomato/crop/depth/image_raw
+    output_camera_info_topic: /vision/tomato/crop/camera_info
+    crop_mode: center_square
+    publish_rate_limit_hz: 10.0

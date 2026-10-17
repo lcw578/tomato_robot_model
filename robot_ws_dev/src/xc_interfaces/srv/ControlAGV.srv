@@ -1,0 +1,10 @@
+# 请求参数
+int16 linear_speed   # 直行速度 (mm/s)
+int16 angular_speed  # 旋转速度 (mm/s)
+bool lift_magnetic_sensor  # 磁条传感器升降 (0:下降，1:上升)
+
+---
+# 响应参数
+bool control_cmd_success   # 控制命令是否成功
+bool status_cmd_success    # 状态获取命令是否成功
+AGVStatus agv_status        # AGV状态信息

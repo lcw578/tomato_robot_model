@@ -1,0 +1,38 @@
+ros2 run hand_eye_calibration_python go_aruco_center 
+[INFO] [1773902284.619092893] [aruco_detection_node]: MoGe模型路径: /home/xc/code/test/ros2/robot_ws/install/xc_robot_main_control/share/xc_robot_main_control/weights/moge-2-vits-normal.pt
+使用设备: cuda
+正在加载模型...
+模型加载完成
+[INFO] [1773902285.344358261] [aruco_detection_node]: MoGe深度估计器初始化成功
+[INFO] [1773902285.344797869] [aruco_detection_node]: 参数设置: marker_length=0.1, gripper_length=0.15
+[INFO] [1773902285.392397729] [aruco_detection_node]: 收到相机信息，准备保存内参...
+[INFO] [1773902285.392757933] [aruco_detection_node]: 收到相机信息，已保存内参
+[INFO] [1773902285.393543942] [aruco_detection_node]: 已获取相机内参
+[INFO] [1773902296.029291063] [aruco_detection_node]: ArUco中心点在相机坐标系: X=0.2682, Y=0.0901, Z=0.8200
+[INFO] [1773902296.758686620] [aruco_detection_node]: depth:camera:820.0000,estimator:3.5958
+[INFO] [1773902296.759299619] [aruco_detection_node]: 成功加载手眼标定矩阵
+point_depth_camera:0.26820571899414064,0.09013998413085937,0.8200000000000001
+point_solvePnP_camera:0.265840,0.088753,0.810000
+[INFO] [1773902296.760191270] [aruco_detection_node]: 
+============================================================
+ArUco标志相对于机械臂底座坐标系 real_depth:
+位置信息 (X, Y, Z):
+  X = 0.112831 米
+  Y = 0.601412 米
+  Z = 0.295621 米
+ArUco标志相对于机械臂底座坐标系 solvePnP:
+位置信息 (X, Y, Z):
+  X = 0.106088 米
+  Y = 0.594077 米
+  Z = 0.296679 米
+姿态信息 (四元数 w, x, y, z):
+  w = 0.716897
+  x = 0.694970
+  y = -0.031309
+  z = -0.045782
+============================================================
+[INFO] [1773902296.760573732] [aruco_detection_node]: 调用机械臂移动服务，目标位置: X=0.113m, Y=0.451m, Z=0.296m
+[INFO] [1773902296.761531986] [aruco_detection_node]: 已将is_detected参数重置为False
+[INFO] [1773902306.335179399] [aruco_detection_node]: 前往目标点移动:xc_interfaces.srv.MoveToPose_Response(result=0)
+[INFO] [1773902306.335501978] [aruco_detection_node]: 机械臂前往目标点移动成功
+[INFO] [1773902326.357566415] [aruco_detection_node]: 已将is_return2box_key参数重置为False

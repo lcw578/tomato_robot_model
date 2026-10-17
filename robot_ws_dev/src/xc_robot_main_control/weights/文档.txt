@@ -1,0 +1,1 @@
+现在的pt名称：tomato-seg2025063018-yolov8-xucan.pt

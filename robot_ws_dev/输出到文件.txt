@@ -1,0 +1,2 @@
+2>&1 |tee ~/20260727out_launch2.txt
+

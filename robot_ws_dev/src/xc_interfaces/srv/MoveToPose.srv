@@ -1,0 +1,11 @@
+float64 x
+float64 y
+float64 z
+float64 rx
+float64 ry
+float64 rz
+bool mid_to_target  # 是否仅仅从过渡点到目标点
+float64 mid2target_angle   # 需要以什么角度接近目标的
+bool start2mid   # 是否仅仅从初始点到过渡点，即两段式，后面一段是仅仅从过渡点到目标点
+---
+int32 result  # 0-成功，其他-错误码

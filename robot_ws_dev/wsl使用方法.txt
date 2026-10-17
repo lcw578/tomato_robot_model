@@ -1,0 +1,11 @@
+wsl -l -v 列出所有的WSL版本
+wsl -d <发行版名称> 切换到指定的WSL版本,如wsl -d Ubuntu-22.04
+wsl --set-default <发行版名称> 设置默认的WSL版本
+wsl --shutdown 关闭所有的WSL实例
+
+
+https://blog.csdn.net/m0_61250891/article/details/140421263 USB设备在WSL中使用
+usbipd list 查看所有的USB设备
+usbipd bind --busid 4-4 绑定USB设备到WSL 共享设备 4-4为设备号，每个人可能不同
+usbipd attach --wsl --busid 4-4  挂载USB设备到WSL 共享设备 4-4为设备号，每个人可能不同
+usbipd detach --busid 4-4 卸载USB设备从WSL 共享设备 4-4为设备号，每个人可能不同

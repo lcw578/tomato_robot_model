@@ -1,0 +1,21 @@
+ 14/03 09:25:37,518 DEBUG [136681291818816] (context.cpp:57) Librealsense VERSION: 2.56.5.9235
+ 14/03 09:25:37,519 INFO [136681291818816] (backend-v4l2.cpp:675) Cannot access /sys/class/d4xx-class
+ 14/03 09:25:37,520 INFO [136681291818816] (backend-v4l2.cpp:775) Enumerating UVC video0 realpath=/sys/devices/platform/vhci_hcd.0/usb2/2-1/2-1:1.0/video4linux/video0
+ 14/03 09:25:37,569 INFO [136681291818816] (backend-v4l2.cpp:775) Enumerating UVC video1 realpath=/sys/devices/platform/vhci_hcd.0/usb2/2-1/2-1:1.0/video4linux/video1
+ 14/03 09:25:37,569 INFO [136681291818816] (backend-v4l2.cpp:775) Enumerating UVC video2 realpath=/sys/devices/platform/vhci_hcd.0/usb2/2-1/2-1:1.0/video4linux/video2
+ 14/03 09:25:37,569 INFO [136681291818816] (backend-v4l2.cpp:775) Enumerating UVC video3 realpath=/sys/devices/platform/vhci_hcd.0/usb2/2-1/2-1:1.0/video4linux/video3
+ 14/03 09:25:37,569 INFO [136681291818816] (backend-v4l2.cpp:775) Enumerating UVC video4 realpath=/sys/devices/platform/vhci_hcd.0/usb2/2-1/2-1:1.0/video4linux/video4
+ 14/03 09:25:37,570 INFO [136681291818816] (backend-v4l2.cpp:775) Enumerating UVC video5 realpath=/sys/devices/platform/vhci_hcd.0/usb2/2-1/2-1:1.0/video4linux/video5
+ 14/03 09:25:37,570 INFO [136681291818816] (backend-v4l2.cpp:775) Enumerating UVC video6 realpath=/sys/devices/platform/vhci_hcd.0/usb2/2-1/2-1:1.4/video4linux/video6
+ 14/03 09:25:37,570 INFO [136681291818816] (backend-v4l2.cpp:775) Enumerating UVC video7 realpath=/sys/devices/platform/vhci_hcd.0/usb2/2-1/2-1:1.4/video4linux/video7
+ 14/03 09:25:37,571 INFO [136681291818816] (backend-v4l2.cpp:675) Cannot access /sys/class/d4xx-class
+ 14/03 09:25:37,572 INFO [136681291818816] (backend-v4l2.cpp:675) Cannot access /sys/class/d4xx-class
+ 14/03 09:25:37,572 INFO [136681291818816] (backend-v4l2.cpp:775) Enumerating UVC video0 realpath=/sys/devices/platform/vhci_hcd.0/usb2/2-1/2-1:1.0/video4linux/video0
+ 14/03 09:25:37,573 INFO [136681291818816] (backend-v4l2.cpp:775) Enumerating UVC video1 realpath=/sys/devices/platform/vhci_hcd.0/usb2/2-1/2-1:1.0/video4linux/video1
+ 14/03 09:25:37,573 INFO [136681291818816] (backend-v4l2.cpp:775) Enumerating UVC video2 realpath=/sys/devices/platform/vhci_hcd.0/usb2/2-1/2-1:1.0/video4linux/video2
+ 14/03 09:25:37,573 INFO [136681291818816] (backend-v4l2.cpp:775) Enumerating UVC video3 realpath=/sys/devices/platform/vhci_hcd.0/usb2/2-1/2-1:1.0/video4linux/video3
+ 14/03 09:25:37,573 INFO [136681291818816] (backend-v4l2.cpp:775) Enumerating UVC video4 realpath=/sys/devices/platform/vhci_hcd.0/usb2/2-1/2-1:1.0/video4linux/video4
+ 14/03 09:25:37,574 INFO [136681291818816] (backend-v4l2.cpp:775) Enumerating UVC video5 realpath=/sys/devices/platform/vhci_hcd.0/usb2/2-1/2-1:1.0/video4linux/video5
+ 14/03 09:25:37,574 INFO [136681291818816] (backend-v4l2.cpp:775) Enumerating UVC video6 realpath=/sys/devices/platform/vhci_hcd.0/usb2/2-1/2-1:1.4/video4linux/video6
+ 14/03 09:25:37,574 INFO [136681291818816] (backend-v4l2.cpp:775) Enumerating UVC video7 realpath=/sys/devices/platform/vhci_hcd.0/usb2/2-1/2-1:1.4/video4linux/video7
+ 14/03 09:25:37,574 DEBUG [136681291818816] (context.cpp:141) Found 0 RealSense devices (0xfe requested & 0xff from device-mask in settings)

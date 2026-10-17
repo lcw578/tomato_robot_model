@@ -1,0 +1,1051 @@
+#!/usr/bin/env python3
+import rclpy
+from rclpy.node import Node
+from rclpy.client import Client
+from rclpy.executors import MultiThreadedExecutor
+from rclpy.callback_groups import ReentrantCallbackGroup, MutuallyExclusiveCallbackGroup
+import threading
+import time
+import numpy as np
+import cv2
+import pyrealsense2 as rs2
+import re
+import ast
+
+# 导入必要的消息和服务类型
+from sensor_msgs.msg import Image, CameraInfo
+from xc_interfaces.msg import ArmStatus
+from xc_interfaces.srv import MoveJoints
+from geometry_msgs.msg import Point, Quaternion
+from cv_bridge import CvBridge
+
+import message_filters
+from math import radians
+
+# 检查是否有按键事件
+import select
+import sys
+import tty
+import termios
+
+import matplotlib.pyplot as plt
+from scipy.spatial.transform import Rotation as R
+
+class HandEyeCalibrationNode(Node):
+    def __init__(self):
+        super().__init__('hand_eye_calibration_node')
+        
+        # 参数设置
+        self.path="/home/xucan/code/test/robot_ws/src/hand_eye_calibration_python/config/left/" # xc 办公室 WSL
+        # /home/xc_home_wsl/code/test/ROS2/robot_ws/src/hand_eye_calibration_python/config/hand/arcuo_end_3d_results.txt
+        # self.path="/home/xc/code/test/ros2/robot_ws/src/hand_eye_calibration_python/config/left/" # 机器人工控机
+
+        self.declare_parameter('joint_file_path', '')
+        self.joint_file_path = self.get_parameter('joint_file_path').get_parameter_value().string_value
+        
+        # 定义aruco字典
+        self.aruco_dict = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_4X4_250)        
+        self.marker_length = 0.025 # aruco标记的边长，单位：米
+
+        self.calibrate_method=cv2.CALIB_HAND_EYE_TSAI
+
+        # 设置是online标定还是offline标定
+        self.is_online_calibration = False # 是否在线标定
+
+        # 如果没有指定关节文件路径，使用默认路径
+        if not self.joint_file_path:
+            self.joint_file_path = self.path + 'hand_eye_calibration_joints.txt'
+        
+        self.get_img_num=0
+        self.get_arm_status_num=0
+
+        # 状态标志
+        self.calibration_complete = False # 标定是否完成
+        self.waiting_for_arm_status = False # 是否等待机械臂状态
+        self.waiting_for_image = False # 是否等待图像
+        self.success_detect_aruco = False # 是否成功检测到aruco标记
+        self.success_save_arm_status = False # 是否成功保存机械臂状态
+        self.intrinsics_ready = False # 是否准备好相机内参
+        
+        self.current_joint_index = 0 # 当前关节索引
+        self.joint_positions = [] # 关节位置列表
+        self.collected_images = [] # 采集的图像列表
+        self.R_end2base =[]
+        self.R_end2base_Euler =[] # 机械臂变换矩阵的旋转部分-欧拉角
+        self.T_end2base =[]
+        self.R_cam2target =[]
+        self.T_cam2target =[]
+        self.M_target2cam =[]
+        self.temp_R_end2base =[] #临时保存机械臂变换矩阵的旋转部分
+        self.temp_R_end2base_Euler =[] #临时保存机械臂变换矩阵的旋转部分-欧拉角
+        self.temp_T_end2base =[] #临时保存机械臂变换矩阵的平移部分
+        self.temp_R_cam2target =[] #临时保存目标变换矩阵的旋转部分
+        self.temp_T_cam2target =[] #临时保存目标变换矩阵的平移部分
+        self.aruco_centers=[]
+        self.R_result = np.eye(3) # 标定结果的旋转矩阵
+        self.T_result = np.zeros((3, 1)) # 标定结果的平移向量
+        #多线程处理方法
+        self.reentrant_cb_group = ReentrantCallbackGroup()
+        self.mutex_cb_group = MutuallyExclusiveCallbackGroup()
+        
+        if self.is_online_calibration==False:
+            # 订阅者
+            # self.load_calibration_data()
+            self.load_calibration_data_from_file()
+            self.save_calibration_results()
+
+
+        if self.is_online_calibration==True:
+            # 服务客户端
+            self.move_joints_client = self.create_client(MoveJoints, 'move_joints',callback_group=self.mutex_cb_group)
+            while not self.move_joints_client.wait_for_service(timeout_sec=1.0):
+                self.get_logger().info('等待 move_joints 服务...')
+            
+            # 订阅者
+            self.arm_status_sub = self.create_subscription(
+                ArmStatus, 'arm_status', self.arm_status_callback, 1,callback_group=self.reentrant_cb_group)
+            
+            self.camera_info_sub = self.create_subscription(
+                CameraInfo, '/camera/color/camera_info', self.camera_info_callback, 1,callback_group=self.mutex_cb_group)
+            
+            # 创建相机话题订阅
+            color_sub = message_filters.Subscriber(self, Image, '/camera/color/image_raw')
+            # color_sub = message_filters.Subscriber(self, Image, '/cam_hand/color/image_rect_raw')           
+            
+            depth_sub = message_filters.Subscriber(self, Image, '/camera/aligned_depth_to_color/image_raw')
+            # depth_sub = message_filters.Subscriber(self, Image, '/cam_hand/aligned_depth_to_color/image_raw')
+            
+            self.ts = message_filters.ApproximateTimeSynchronizer(
+                [color_sub, depth_sub], 
+                queue_size=1, 
+                slop=0.1,
+                # callback_group=self.reentrant_cb_group
+            )
+            self.ts.registerCallback(self.image_callback)
+
+
+            # self.image_sub = self.create_subscription(
+            #     Image, '/camera/color/image_raw', self.image_callback, 1,callback_group=self.reentrant_cb_group)
+            
+            
+            # 其他初始化
+            self.camera_matrix = None
+            self.dist_coeffs = None
+            self.bridge = CvBridge()
+            
+            # 加载关节位置
+            self.load_joint_positions()
+            
+            # 启动标定过程
+            self.start_calibration()
+    
+    def load_joint_positions(self):
+        """
+        加载关节位置文件
+        """
+        try:
+            with open(self.joint_file_path, 'r') as f:
+                for line in f:
+                    # 跳过注释和空行
+                    line = line.strip()
+                    if not line or line.startswith('#'):
+                        continue
+                    # 解析关节角度，转换为弧度
+                    joint_values = line.split(',')
+                    if len(joint_values) == 6:
+                        # 将角度转换为弧度
+                        joints_rad = [float(val) * np.pi / 180.0 for val in joint_values]
+                        self.joint_positions.append(joints_rad)
+            self.get_logger().info(f'成功加载 {len(self.joint_positions)} 个关节位置')
+        except Exception as e:
+            self.get_logger().error(f'加载关节位置文件失败: {e}')
+    
+    def load_calibration_data_from_file(self):
+        """
+        从文件中加载已保存的标定数据 (R_end2base, T_end2base, R_target2cam, T_target2cam)。
+        """
+        filepath = self.path + 'arcuo_end_3d_results.txt'
+        self.get_logger().info(f'正在从 {filepath} 加载标定数据...')
+
+        # 清空现有数据
+        self.R_end2base.clear()
+        self.T_end2base.clear()
+        self.R_cam2target.clear()
+        self.T_cam2target.clear()
+
+        try:
+            with open(filepath, 'r') as f:
+                content = f.read()
+            
+            # 使用更精确的正则表达式按标题分割
+            sections = re.split(r'\n\n(?=(?:R_end2base_Euler|T_end2base|R_cam2target|T_cam2target):)', content)
+            
+            # 移除可能的空段
+            sections = [section for section in sections if section.strip()]
+            
+            # 创建一个映射来存储各部分的内容
+            data_sections = {}
+            
+            for section in sections:
+                if not section.strip():
+                    continue
+                
+                lines = section.strip().split('\n')
+                header = lines[0]
+                
+                if header.startswith('R_end2base_Euler:'):
+                    data_sections['R_end2base_Euler'] = lines[1:]
+                elif header.startswith('T_end2base:'):
+                    data_sections['T_end2base'] = lines[1:]
+                elif header.startswith('R_cam2target:'):
+                    data_sections['R_cam2target'] = lines[1:]
+                elif header.startswith('T_cam2target:'):
+                    data_sections['T_cam2target'] = lines[1:]
+            
+            
+            # 解析R_end2base (欧拉角旋转向量)
+            if 'R_end2base_Euler' in data_sections:
+                for line in data_sections['R_end2base_Euler']:
+                    if ':' not in line: continue
+                    try:
+                        # 解析旋转向量: "[x, y, z]"
+                        # 提取索引和数值部分
+                        parts = line.split(':', 1)
+                        if len(parts) != 2:
+                            continue
+                        
+                        # 解析数组: "[x, y, z]"
+                        value_str = parts[1].strip()
+                        # 移除方括号并分割数值
+                        value_str = value_str.strip('[]')
+    
+                        values = [float(x) for x in value_str.split()]
+                        # print("value_str:",values )
+
+                        
+                        if len(values) == 3:
+                            # 直接保存欧拉角作为Vector3类型
+                            # from geometry_msgs.msg import Vector3
+                            self.R_end2base_Euler.append(np.array([values[0], values[1], values[2]]))
+                            print("R_end2base_Euler:",self.R_end2base_Euler[-1])
+                        else:
+                            self.get_logger().warn(f"R_end2base_Euler 数据格式不正确: '{line}'")
+                    except Exception as e:
+                        self.get_logger().warn(f"解析 R_end2base_Euler 行失败: '{line}', 错误: {e}")
+            
+            # 解析T_end2base (平移向量)
+            if 'T_end2base' in data_sections:
+                for line in data_sections['T_end2base']:
+                    print("T_end2base:",line)
+                    if ':' not in line: continue
+                    try:
+                        value_str = line.split(':', 1)[1].strip()
+                        # 解析list: "[x, y, z]"
+                        t_list = ast.literal_eval(value_str)
+                        if isinstance(t_list, list) and len(t_list) == 3:
+                            self.T_end2base.append(t_list)
+                        else:
+                            self.get_logger().warn(f"T_end2base 数据格式不正确: '{value_str}'")
+                    except Exception as e:
+                        self.get_logger().warn(f"解析 T_end2base 行失败: '{line}', 错误: {e}")
+
+            # 解析R_cam2target (旋转向量)
+            if 'R_cam2target' in data_sections:
+                lines = data_sections['R_cam2target'] 
+                i = 0
+                while i < len(lines):
+                    line = lines[i]
+                    if ':' not in line: 
+                        i += 1
+                        continue
+                    try:
+                        # 检查是否有足够的行数
+                        if i+2 < len(lines):
+                            try:
+                                # 打印调试信息
+                                # print("--------R_target2cam---------",lines[i]," ", lines[i+1]," ", lines[i+2])
+                                
+                                # 不使用正则表达式，直接解析数值
+                                # 解析第一行：提取 "[[" 和 "]]" 之间的数值
+                                line1 = lines[i].strip()
+                                start1 = line1.find("[[") + 2
+                                end1 = line1.find("]")
+                                if start1 == -1 or end1 == -1:
+                                    i += 1
+                                    continue
+                                val1 = float(line1[start1:end1].strip())
+                                # print("val1:", val1)
+                                
+                                # 解析第二行：提取 "[" 和 "]" 之间的数值
+                                line2 = lines[i+1].strip()
+                                start2 = line2.find("[") + 1
+                                end2 = line2.find("]")
+                                if start2 == -1 or end2 == -1:
+                                    i += 1
+                                    continue
+                                val2 = float(line2[start2:end2].strip())
+                                # print("val2:", val2)
+                                
+                                # 解析第三行：提取 "[" 和 "]]" 之间的数值
+                                line3 = lines[i+2].strip()
+                                start3 = line3.find("[") + 1
+                                end3 = line3.find("]]")
+                                if start3 == -1 or end3 == -1:
+                                    i += 1
+                                    continue
+                                val3 = float(line3[start3:end3].strip())
+                                # print("val3:", val3)
+                                # 创建3x1向量
+                                vec = np.array([val1, val2, val3]).reshape((3, 1))
+
+                                self.R_cam2target.append(vec)
+                                # 跳过已处理的行
+                                i += 3
+                                
+                            except ValueError as e:
+                                self.get_logger().warn(f"解析 R_cam2target 数值失败，行: '{lines[i]}', 错误: {e}")
+                                i += 1
+                            except Exception as e:
+                                self.get_logger().warn(f"解析 R_cam2target 行失败: '{lines[i]}', 错误: {e}")
+                                i += 1
+                        else:
+                            i += 1
+                    except Exception as e:
+                        self.get_logger().warn(f"解析 R_cam2target 行失败: '{line}', 错误: {e}")
+                        i += 1
+
+             # 解析T_target2cam (平移向量)
+            if 'T_cam2target' in data_sections:
+                i = 0
+                lines = data_sections['T_cam2target']
+                while i < len(lines):
+                    line = lines[i]
+                    if ':' not in line: 
+                        i += 1
+                        continue
+                    try:
+                        # 检查是否有足够的行数
+                        if i+2 < len(lines):
+                            try:
+                                # 打印调试信息
+                                # print("--------T_cam2target---------",lines[i]," ", lines[i+1]," ", lines[i+2])
+                                
+                                # 不使用正则表达式，直接解析数值
+                                # 解析第一行：提取 "[[" 和 "]]" 之间的数值
+                                line1 = lines[i].strip()
+                                start1 = line1.find("[[") + 2
+                                end1 = line1.find("]")
+                                if start1 == -1 or end1 == -1:
+                                    i += 1
+                                    continue
+                                val1 = float(line1[start1:end1].strip())
+                                # print("val1:", val1)
+                                
+                                # 解析第二行：提取 "[" 和 "]" 之间的数值
+                                line2 = lines[i+1].strip()
+                                start2 = line2.find("[") + 1
+                                end2 = line2.find("]")
+                                if start2 == -1 or end2 == -1:
+                                    i += 1
+                                    continue
+                                val2 = float(line2[start2:end2].strip())
+                                # print("val2:", val2)
+                                
+                                # 解析第三行：提取 "[" 和 "]]" 之间的数值
+                                line3 = lines[i+2].strip()
+                                start3 = line3.find("[") + 1
+                                end3 = line3.find("]]")
+                                if start3 == -1 or end3 == -1:
+                                    i += 1
+                                    continue
+                                val3 = float(line3[start3:end3].strip())
+                                # print("val3:", val3)
+                                # 创建3x1向量
+                                vec = np.array([val1, val2, val3]).reshape((3, 1))
+
+                                self.T_cam2target.append(vec)
+                                # 跳过已处理的行
+                                i += 3
+                                
+                            except ValueError as e:
+                                self.get_logger().warn(f"解析 T_cam2target 数值失败，行: '{lines[i]}', 错误: {e}")
+                                i += 1
+                            except Exception as e:
+                                self.get_logger().warn(f"解析 T_cam2target 行失败: '{lines[i]}', 错误: {e}")
+                                i += 1
+                        else:
+                            i += 1
+                    except Exception as e:
+                        self.get_logger().warn(f"解析 T_cam2target 行失败: '{line}', 错误: {e}")
+                        i += 1
+            
+            # 记录加载的数据数量
+            self.get_logger().info(f'加载了 {len(self.R_end2base_Euler)} 个 R_end2base_Euler 数据')
+            self.get_logger().info(f'加载了 {len(self.T_end2base)} 个 T_end2base 数据')
+            self.get_logger().info(f'加载了 {len(self.R_cam2target)} 个 R_cam2target 数据')
+            self.get_logger().info(f'加载了 {len(self.T_cam2target)} 个 T_cam2target 数据')
+            
+            # 离线模式下，将欧拉角转换为四元数，填充 R_end2base
+            if not self.is_online_calibration:
+                self.R_end2base = []
+                for euler in self.R_end2base_Euler:
+                    rot = R.from_euler('xyz', [euler[0], euler[1], euler[2]])
+                    quat = rot.as_quat()  # 返回 [x, y, z, w] 顺序
+                    # 创建具有 w, x, y, z 属性的对象
+                    from types import SimpleNamespace
+                    q_obj = SimpleNamespace(w=quat[3], x=quat[0], y=quat[1], z=quat[2])
+                    self.R_end2base.append(q_obj)
+            
+        except FileNotFoundError:
+            self.get_logger().error(f'找不到文件: {filepath}')
+        except Exception as e:
+            self.get_logger().error(f'加载标定数据时发生错误: {e}')
+
+
+
+    def start_calibration(self):
+        if not self.joint_positions:
+            self.get_logger().error('没有加载到关节位置，无法开始标定')
+            return
+        
+        self.get_logger().info('开始手眼标定过程')
+        self.move_to_next_position()
+    
+    def move_to_next_position(self):
+        if self.current_joint_index >= len(self.joint_positions):
+            self.get_logger().info('所有位置标定完成')
+            self.calibration_complete = True
+            # TODO 这里可以添加保存标定结果的逻辑
+            self.save_calibration_results()
+            sys.exit(0) # 标定完成后退出程序
+            return
+        
+        target_joints = self.joint_positions[self.current_joint_index]
+        self.get_logger().info(f'准备移动到位置 {self.current_joint_index + 1}/{len(self.joint_positions)},"请按d继续,按q退出"')
+                # 等待用户按下'd'键
+        self.get_logger().info('等待用户按键...')
+        # 保存原始终端设置
+        old_settings = termios.tcgetattr(sys.stdin)
+        try:
+            # 设置终端为非阻塞模式
+            tty.setraw(sys.stdin.fileno())
+            while True:
+                # 非阻塞读取
+                ready, _, _ = select.select([sys.stdin], [], [], 0.1)  # 0.1秒超时
+                if ready:
+                    key = sys.stdin.read(1)
+                    if key.lower() == 'd':  # 接受大写和小写D
+                        self.get_logger().info('收到"d"键，继续执行...')
+                        break
+                    elif key.lower() == 'q':  # 接受大写和小写Q
+                        self.get_logger().info('收到"q"键，退出程序...')
+                        sys.exit(0)
+                # 短暂休眠以减少CPU占用
+                time.sleep(0.01)
+        except Exception as e:
+            self.get_logger().error(f'键盘监听出现错误: {e}')
+        finally:
+            # 恢复终端设置
+            termios.tcsetattr(sys.stdin, termios.TCSADRAIN, old_settings)
+        # 调用move_joints服务
+        request = MoveJoints.Request()
+        request.joints = target_joints
+        
+        future = self.move_joints_client.call_async(request)
+        future.add_done_callback(self.move_joints_callback)
+    
+    def move_joints_callback(self, future):
+        try:
+            response = future.result()
+            if response.result == 0:
+                self.get_logger().info('机械臂运动成功')
+                # 等待机械臂稳定
+                time.sleep(2.0)
+                # 设置标志，等待arm_status回调和图像处理
+                self.waiting_for_arm_status = True
+                self.waiting_for_image = True  # 添加这行以启用图像处理
+                
+                time.sleep(2.5)
+                if self.success_save_arm_status and self.success_detect_aruco:
+                    # 确保数据存在且维度正确
+                    if self.temp_R_end2base_Euler and self.temp_T_end2base and self.temp_R_cam2target and self.temp_T_cam2target:
+                        self.R_end2base.append(self.temp_R_end2base[-1])
+                        self.R_end2base_Euler.append(self.temp_R_end2base_Euler[-1])
+                        self.T_end2base.append(self.temp_T_end2base[-1])
+                        self.R_cam2target.append(self.temp_R_cam2target[-1])
+                        self.T_cam2target.append(self.temp_T_cam2target[-1])
+                    # 清空临时容器，准备下一次采集
+                    self.temp_R_end2base.clear()
+                    self.temp_R_end2base_Euler.clear()
+                    self.temp_T_end2base.clear()
+                    self.temp_R_cam2target.clear()
+                    self.temp_T_cam2target.clear()
+                    self.success_save_arm_status = False
+                    self.success_detect_aruco = False
+                else:
+                    self.get_logger().error('数据采集失败，未成功保存机械臂位置或检测到Aruco标记')
+                    self.get_logger().info(f"self.success_save_arm_status: {self.success_save_arm_status}")
+                    self.get_logger().info(f"self.success_detect_aruco: {self.success_detect_aruco}")
+                    self.waiting_for_arm_status = False
+                    self.waiting_for_image = False  # 如果失败了，那也要停止处理机械臂位置和图像识别
+            else:
+                self.get_logger().error(f'机械臂运动失败，错误码: {response.result}')
+        except Exception as e:
+            self.get_logger().error(f'调用move_joints服务失败: {e}')
+        finally:
+            # 无论是否成功，都让移动到下一个位置
+            self.current_joint_index += 1
+            self.move_to_next_position()
+    
+    def image_callback(self, color_msg, depth_msg):
+        # test_img = self.bridge.imgmsg_to_cv2(msg, 'bgr8')
+        # cv_color = self.bridge.imgmsg_to_cv2(color_msg, "bgr8")
+        # print("image_callback线程号为：",threading.current_thread().ident)
+        # cv2.imshow(f'cam_color_img', test_img)
+        # cv2.waitKey(30)
+        
+        # 只有在等待图像时才处理
+        if self.waiting_for_image:
+            if self.get_img_num<10:
+                self.get_img_num+=1
+                return          
+            
+            # 检查相机内参是否已就绪
+            if not self.intrinsics_ready:
+                self.get_logger().warn("相机内参尚未就绪，跳过本帧")
+                return
+                
+            try:
+                if color_msg.width != depth_msg.width or color_msg.height != depth_msg.height:
+                    self.get_logger().info("图像尺寸不相同，丢弃本帧数据")
+                    # 处理结束，重置标志
+                    with self.processing_lock:
+                        self.is_processing = False
+                    return
+                # 将ROS图像转换为OpenCV格式
+                cv_image = self.bridge.imgmsg_to_cv2(color_msg, desired_encoding='bgr8')
+                depth_image = self.bridge.imgmsg_to_cv2(depth_msg, "passthrough")
+                
+                # print("接收到的图像大小为 ",cv_image.shape)
+                # cv2.imshow(f'cv_image', cv_image)
+                # cv2.waitKey(30)
+                # cv2.imwrite(f'/home/xc/code/test/ros2/robot_ws/src/hand_eye_calibration_python/config/left/cv_image.jpg', cv_image)
+                # cv_image_drawed = cv_image.copy()
+                gray = cv2.cvtColor(cv_image, cv2.COLOR_BGR2GRAY) # 从彩色图制作一样灰度图，将用于aruco的检测
+                cv_image_drawed = gray.copy()
+                cv_image_original_path=self.path+f'img/aruco_{self.current_joint_index}_cv_image_original_c.png'
+                # cv2.imwrite(f'{cv_image_original_path}', cv_image_drawed) 
+                depth_image_path=self.path+f'img/aruco_{self.current_joint_index}_cv_image_original_d.png'
+                compression_params = [cv2.IMWRITE_PNG_COMPRESSION, 0]
+
+                # cv2.imwrite(f'{depth_image_path}', depth_image, compression_params)
+
+                # 所用的标签序号
+                
+                aruco_dict = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_4X4_250) #使用了 DICT_4X4_250 字典，它是一个4x4位的ArUco码，共包含250个不同的标记
+                parameters = cv2.aruco.DetectorParameters()
+                detector = cv2.aruco.ArucoDetector(aruco_dict, parameters)
+
+                corners, ids, _ = cv2.aruco.detectMarkers(gray, aruco_dict,parameters=parameters)
+                
+                # corners,ids,rejected=detector.detectMarkers(gray, aruco_dict)
+                # corners, ids, rejected = cv2.aruco.ArucoDetector.detectMarkers(cv_image, aruco_dict, parameters=parameters)
+                marker_corners_3d = np.array([
+                                            [-self.marker_length/2,  self.marker_length/2, 0],  # 左上 - 对应 corners[0][0]
+                                            [ self.marker_length/2,  self.marker_length/2, 0],  # 右上 - 对应 corners[0][1]
+                                            [ self.marker_length/2, -self.marker_length/2, 0],  # 右下 - 对应 corners[0][2]
+                                            [-self.marker_length/2, -self.marker_length/2, 0]   # 左下 - 对应 corners[0][3]
+                                            ], dtype=np.float32)
+
+                # 只有检测到标记才继续处理
+                if ids is not None and len(ids) > 0:
+                    point = np.average(corners[0][0], axis=0)  # 计算4个角点的中心点 corners[0][0]就是4行2列的二维数组，axis=0表示对最高维度求平均得到1行2列的数组也就是一个点（码的中心点）
+                    depth_value = depth_image[int(point[1]), int(point[0])]
+                    # print("depth_value:", depth_value)
+                    if depth_value == 0:
+                        depths = []
+                        for row in range(int(point[0]-10), int(point[0]+11)):
+                            # print("\n")
+                            for col in range(int(point[1]-10), int(point[1]+11)):
+                                ele_dep = depth_image[col, row]
+                                # print( ele_dep)
+                                if ele_dep != 0:
+                                    depths.append(ele_dep)
+                        if len(depths) != 0:
+                            depth_value = sum(depths)/len(depths)  # 程序没报错depth不可能为0 因为len(depths)=0程序报错告诉我们 depth=0
+                    point=np.append(point, depth_value)  # 将深度值加入到point
+                    if depth_value != 0:
+                        x, y, z = rs2.rs2_deproject_pixel_to_point(self.intrinsics, [point[0], point[1]], point[2])
+                        print("--------center：", x, y, z)
+                        self.aruco_centers.append([x, y, z])
+
+                    for i, corner in enumerate(corners):
+                        # corner 是一个形状为 (1, 4, 2) 的数组，需要重塑为 (4, 2)
+                        image_points = corner.reshape(4, 2).astype(np.float32)
+
+                        # 使用 solvePnP 计算位姿
+                        success, rvecs, tvecs = cv2.solvePnP(
+                            objectPoints=marker_corners_3d,  # 3D点
+                            imagePoints=image_points,         # 对应的2D图像点
+                            cameraMatrix=self.camera_matrix,
+                            distCoeffs=self.dist_coeffs,
+                            flags=cv2.SOLVEPNP_IPPE_SQUARE    # 特别适合方形标记的算法[1](@ref)
+                        )
+                        print("======= solvePnP 结果 =======")
+                        # print(f"success: {success}")
+                        print(f"rvecs: {rvecs}")
+                        print(f"tvecs: {tvecs}")
+                        
+                        # 使用 calibrateCamera 计算位姿
+                        # image_size_test=(1280,720)
+                        # ret, self.camera_matrix, self.dist_coeffs, rvecs_calibrateCamera, tvecs_calibrateCamera = cv2.calibrateCamera(
+                        #     [marker_corners_3d], [image_points], image_size_test,
+                        #     cameraMatrix=self.camera_matrix,  # 已知内参矩阵
+                        #     distCoeffs=self.dist_coeffs,  # 已知畸变系数
+                        #     flags=cv2.CALIB_USE_INTRINSIC_GUESS +  # 使用已知内参作为初始值
+                        #         cv2.CALIB_FIX_INTRINSIC  # 固定内参，不优化
+                        #         )
+                        # print("======= calibrateCamera 结果 =======")
+                        # print(f"ret: {ret}")
+                        # print(f"camera_matrix: {self.camera_matrix}")
+                        # print(f"dist_coeffs: {self.dist_coeffs}")
+                        # print(f"rvecs_calibrateCamera: {rvecs_calibrateCamera}")
+                        # print(f"tvecs_calibrateCamera: {tvecs_calibrateCamera}")
+
+
+
+                        reprojected_points, _ = cv2.projectPoints(
+                        marker_corners_3d, rvecs, tvecs, self.camera_matrix, self.dist_coeffs)
+                        reprojected_points = reprojected_points.reshape(4, 2)  # 重投影的角点，使用-1自动推断维度
+                        # print(f"------image_points:{image_points}")
+                        # print(f"------reprojected_points:{reprojected_points}") 
+                        
+                        # self.show_aruco_detector(gray,image_points,reprojected_points)
+                    
+                    
+
+                    if success and rvecs is not None and tvecs is not None:
+                        # 确保rvecs是正确的形状 (3, 1)
+                        if rvecs.size == 3:
+                            rvecs = rvecs.reshape(3, 1)
+                        # 确保tvecs是正确的形状 (3, 1)
+                        if tvecs.size == 3:
+                            tvecs = tvecs.reshape(3, 1)
+                        
+                        # 保存检测结果
+                        self.temp_R_cam2target.append(rvecs)  # 保存旋转向量
+                        self.temp_T_cam2target.append(tvecs)  # 保存平移向量
+                        self.success_detect_aruco = True
+                        self.get_logger().info(f'aruco {self.current_joint_index} 识别结果: 位置={tvecs.flatten()}, 方向={rvecs.flatten()}')
+                        self.show_aruco_detector(gray,image_points,reprojected_points)
+                        # cv2.aruco.drawDetectedMarkers(cv_image_drawed, corners, ids)
+                        
+
+                        self.waiting_for_image = False
+                    else:
+                        self.get_logger().error(f'aruco {self.current_joint_index} 识别结果: 未检测到有效位置向量或方向向量')
+            except Exception as e:
+                self.get_logger().error(f'aruco处理图像失败: {e}')
+            self.get_img_num=0
+        
+
+    def arm_status_callback(self, msg):
+        # print("arm_status_callback线程号为：",threading.current_thread().ident)
+
+        if self.calibration_complete or not self.waiting_for_arm_status:
+            return
+        if self.get_arm_status_num<10:
+            self.get_arm_status_num+=1
+            return
+        
+        self.get_logger().info(f'收到机械臂 {self.current_joint_index} 状态: 位置={msg.position}, 方向={msg.orientation}')
+        
+
+        # 保存当前位置的变换矩阵
+        self.temp_R_end2base.append(msg.orientation)
+        temp_Euler=np.array([msg.rx, msg.ry, msg.rz])
+        self.temp_R_end2base_Euler.append(temp_Euler)
+        # 提取 Point 对象的 x, y, z 值并组成数组
+        self.temp_T_end2base.append([msg.position.x, msg.position.y, msg.position.z])
+                # 获取最新的四元数并转换为旋转矩阵
+        latest_quat = self.temp_R_end2base[-1]  # 获取最新添加的四元数
+        R_latest = self.quaternion_to_rotation_matrix(latest_quat)  # 转换为旋转矩阵
+        
+        # 将旋转矩阵转换为旋转向量
+        R_arm_vec = cv2.Rodrigues(R_latest)[0]  # 注意这里应该是R_latest而不是R_arm
+        
+        print("末端→机械臂底座的旋转向量:", R_arm_vec[0][0]*180/np.pi, R_arm_vec[1][0]*180/np.pi, R_arm_vec[2][0]*180/np.pi)
+        print("末端→机械臂底座的旋转向量--欧拉角:", temp_Euler[0]*180/np.pi, temp_Euler[1]*180/np.pi, temp_Euler[2]*180/np.pi)
+
+        
+        # 获取最新的平移向量
+        T_latest = np.array(self.temp_T_end2base[-1]).reshape(3, 1)
+        print("末端→机械臂底座的平移向量:", T_latest[0][0], T_latest[1][0], T_latest[2][0])
+        
+        self.success_save_arm_status = True
+        
+        # 标记当前位置已完成
+        self.get_arm_status_num=0
+        self.waiting_for_arm_status = False
+
+    
+    def show_aruco_detector(self,original_img,detected_points,reprojected_points):
+        try:
+            # cv2.imshow(f'original_no_reprojected', original_img)
+            local_original_img=cv2.cvtColor(original_img,cv2.COLOR_GRAY2BGR)
+            
+            img1 = local_original_img.copy()
+            for i in range(len(detected_points)):
+                    pt = detected_points[i]
+                    x, y = int(pt[0]), int(pt[1])
+                    cv2.circle(img1, (x, y), 8, (0, 255, 0), -1)  # 绿色：检测点
+                    cv2.putText(img1, f'{i}', (x+10, y-10), 
+                            cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
+                    cv2.putText(img1, f'({x}, {y})', (x-40, y+25), 
+                            cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
+            # 绘制四边形
+            if len(detected_points) >= 4:
+                pts = detected_points.astype(np.int32)  
+                cv2.polylines(img1, [pts], True, (0, 255, 0), 2)
+            
+            img2 = local_original_img.copy()
+            # 绘制重投影的角点
+            for i in range(len(reprojected_points)):
+                pt = reprojected_points[i]
+                x, y = int(pt[0]), int(pt[1])
+                cv2.circle(img2, (x, y), 8, (0, 0, 255), -1)  # 红色：重投影点
+                cv2.putText(img2, f'{i}', (x+10, y-10), 
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
+                cv2.putText(img2, f'({x}, {y})', (x-40, y+25), 
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
+            
+            # 绘制四边形
+            if len(reprojected_points) >= 4:
+                pts = reprojected_points.astype(np.int32)
+                cv2.polylines(img2, [pts], True, (0, 0, 255), 2)
+            
+            cv_image_drawed_path=self.path+f'img/aruco_{self.current_joint_index}_cv_image_detected.png'
+            cv_image_origin_path=self.path+f'img/aruco_{self.current_joint_index}_cv_image_reprojected.png'
+
+
+            # cv2.imwrite(f'{cv_image_drawed_path}', img1) 
+            # cv2.imwrite(f'{cv_image_origin_path}', img2)
+
+        except Exception as e:
+            self.get_logger().error(f'启动图像显示失败: {e}')
+
+
+    def camera_info_callback(self, msg):
+        # 保存相机内参
+        if self.intrinsics_ready:
+            return
+        self.camera_matrix = np.array(msg.k).reshape(3, 3)
+        self.dist_coeffs = np.array(msg.d)
+        self.get_logger().info('收到相机信息，已保存内参')
+        self.intrinsics = rs2.intrinsics()
+        self.intrinsics.width = msg.width
+        self.intrinsics.height = msg.height
+        self.intrinsics.ppx = msg.k[2]
+        self.intrinsics.ppy = msg.k[5]
+        self.intrinsics.fx = msg.k[0]
+        self.intrinsics.fy = msg.k[4]
+        if msg.distortion_model == 'plumb_bob':
+            self.intrinsics.model = rs2.distortion.brown_conrady
+        elif msg.distortion_model == 'equidistant':
+            self.intrinsics.model = rs2.distortion.kannala_brandt4
+        self.intrinsics.coeffs = [i for i in msg.d]
+        self.intrinsics_ready = True
+        self.is_real_camera_data = True
+        #取消订阅
+        self.destroy_subscription(self.camera_info_sub)
+        self.camera_info_sub = None
+        self.get_logger().info(f"已获取相机内参")
+
+
+
+
+
+        self.intrinsics_ready = True
+        #取消订阅
+        self.destroy_subscription(self.camera_info_sub)
+        self.camera_info_sub = None
+        self.get_logger().info(f"已获取相机内参")
+    
+    
+    def save_calibration_results(self):
+        # 例如使用OpenCV的calibrateHandEye函数
+        self.get_logger().info(f'共收集 {len(self.R_end2base_Euler)} 组机械臂到相机的变换矩阵数据')
+        self.get_logger().info(f'共收集 {len(self.R_cam2target)} 组相机到标定板的变换矩阵数据')
+        arcuo_end_3d_results_path= self.path +'arcuo_end_3d_results.txt'
+        calibration_results_path= self.path +'calibration_results.txt'
+        calibration_results_path_Matrix= self.path +'calibration_results_Matrix.txt'
+
+
+
+        if len(self.R_end2base_Euler) != len(self.R_cam2target):
+            self.get_logger().error('数据量不匹配，无法进行手眼标定')
+            return
+        #如果是online，就保存数据到文件
+        if self.is_online_calibration==True:
+            with open(arcuo_end_3d_results_path, 'w') as f:
+                f.write('R_end2base_Euler:\n')
+                for i, r in enumerate(self.R_end2base_Euler):
+                    f.write(f'{i}: {r}\n')
+                f.write('\nT_end2base:\n')
+                for i, t in enumerate(self.T_end2base):
+                    f.write(f'{i}: {t}\n')
+                f.write('\nR_cam2target:\n')
+                for i, r in enumerate(self.R_cam2target):   
+                    f.write(f'{i}: {r}\n')
+                f.write('\nT_cam2target:\n')
+                for i, t in enumerate(self.T_cam2target):
+                    f.write(f'{i}: {t}\n')
+        # 4. 旋转向量→旋转矩阵
+        R_cam2target = [cv2.Rodrigues(rvec)[0] for rvec in self.R_cam2target]  # 相机→标定板的旋转矩阵
+        T_cam2target = [tvec.reshape(3, 1) for tvec in self.T_cam2target]  # 相机→标定板的平移向量
+
+        # R_arm = [self.quaternion_to_rotation_matrix(quat) for quat in self.R_end2base]  # 机械臂→相机的旋转矩阵
+        R_arm = [cv2.Rodrigues(rvec)[0] for rvec in self.R_end2base_Euler]  # 机械臂→相机的旋转矩阵
+        T_arm = [np.array(pos).reshape(3, 1) for pos in self.T_end2base]  # 机械臂→相机的平移向量
+
+        R_arm_vec4Euler=[]
+        for i in range(len(R_arm)):
+            # temp_R_arm=R_arm[i]
+            # temp_T_arm=T_arm[i]
+            rot = R.from_euler('xyz', [self.R_end2base_Euler[i][0], self.R_end2base_Euler[i][1], self.R_end2base_Euler[i][2]])
+            R_temp_vec4Euler=rot.as_rotvec()
+            R_arm_vec4Euler.append(R_temp_vec4Euler)
+            print(f"机械臂旋转向量 {i}:", R_temp_vec4Euler[0],R_temp_vec4Euler[1],R_temp_vec4Euler[2])
+            
+            R_temp,_=cv2.Rodrigues(R_temp_vec4Euler)
+            print(f"机械臂旋转矩阵 {i}:", R_temp)
+            print(f"机械臂平移向量 {i}:", T_arm[i])
+        
+        R_target2cam=[]
+        T_target2cam=[]
+
+        for i in range(len(R_cam2target)):
+            # temp_R_cam2target=R_cam2target[i]
+            # temp_T_cam2target=T_cam2target[i]
+            R_temp,_=cv2.Rodrigues(R_cam2target[i])
+            R_target2cam.append(R_cam2target[i].T)
+            T_target2cam.append(-R_cam2target[i].T@T_cam2target[i]+T_cam2target[i]) 
+            print(f"R_cam2target_vector {i}:", R_temp[0],R_temp[1],R_temp[2])
+            print(f"R_cam2target {i}:",R_cam2target[i])
+
+        print("*"*50)
+        # cv计算
+        R_end2cam3, T_end2cam3 = cv2.calibrateHandEye(
+                R_arm_vec4Euler, 
+                T_arm, 
+                R_cam2target,
+                T_cam2target, 
+                method=self.calibrate_method)
+        self.get_logger().info(f'旋转矩阵3： {R_end2cam3} ')
+        self.get_logger().info(f'平移向量3： {T_end2cam3} ')
+        print("*"*50)
+
+        R_end2cam4, T_end2cam4 = cv2.calibrateHandEye(
+                R_cam2target,
+                T_cam2target,
+                R_arm_vec4Euler, 
+                T_arm,
+                method=self.calibrate_method)
+        self.get_logger().info(f'旋转矩阵4： {R_end2cam4} ')
+        self.get_logger().info(f'平移向量4： {T_end2cam4} ')
+        print("*"*50)
+
+        centers_in_camera=np.ones((4,len(R_arm_vec4Euler)))
+        centers_in_base=np.ones((4,len(R_arm_vec4Euler)))
+        centers_in_end = np.array([0.0,0.0,0.018,1])  # 【固定值】aruco中心在末端系中(0,0,18)mm  2025 徐灿加的支架厚度6mm 7+6=13 标定版厚度5mm 所以是18mm
+        endpoint_in_base = []  # 【求误差用的】末端相对base的xyz 和上面的centers_in_base的xyz就相差一点点
+        Trans_end2bases = []
+        for i in range(len(R_arm_vec4Euler)):
+            centers_in_camera[:3,i]=self.T_cam2target[i].flatten()
+            Trans_end2base = self.quat_to_pos_matrix_hm(
+                self.T_end2base[i][0],
+                self.T_end2base[i][1],
+                self.T_end2base[i][2],
+                self.R_end2base[i].w,
+                self.R_end2base[i].x,
+                self.R_end2base[i].y,
+                self.R_end2base[i].z)
+            print(f'end2base {i}:',
+                self.T_end2base[i][0],
+                self.T_end2base[i][1],
+                self.T_end2base[i][2],
+                self.R_end2base[i].w,
+                self.R_end2base[i].x,
+                self.R_end2base[i].y,
+                self.R_end2base[i].z)
+            print(f'机械臂4*4矩阵-pys {i} :', Trans_end2base)
+            Trans_end2bases.append(Trans_end2base)
+            centers_in_base[:4,i] = np.dot(Trans_end2base, centers_in_end)
+        # bP = bTc×cP (bP是标定点相对base的xyz；bTc是待求camera2base转换矩阵；cP是标定点相对camera的xyz)
+        # ->推导出 bP × (cP)的伪逆 = bTc   --------------- 标定核心部分求bTc ----------
+        inverse_ctenters_in_camera = np.linalg.pinv(centers_in_camera) # 4x9求伪逆得到9x4
+        bTc = np.dot(centers_in_base, inverse_ctenters_in_camera)  # 4x4
+        # =========== 得到相机到base的转换矩阵 ==========
+        print("===========bTc===========:")
+        print(bTc)
+        # 【发现一个nparray强大的写文件函数】 将转换矩阵 写入本地文件 （会自动创建文件）
+        np.savetxt(calibration_results_path, bTc, delimiter=',')  # 牛逼！直接不用 with open()as f了！
+        print("===========精度验证===========:")
+
+        centers_in_base_used_bTc=bTc@centers_in_camera
+
+        delta=centers_in_base-centers_in_base_used_bTc
+        print("===========标定点误差===========:")
+        print("===========分别表示xyz的误差===========")
+        print("===========每个数字应尽量接近于0===========")
+
+        print(delta)
+        
+        # R_end2cam4, T_end2cam4 = cv2.calibrateHandEye(
+        #     R_arm, 
+        #     T_arm, 
+        #     R_cam2target, 
+        #     T_cam2target, 
+        #     method=self.calibrate_method)
+
+        self.R_result = R_end2cam3
+        self.T_result = T_end2cam3.reshape(3, 1)
+        # R_cam2end=R_end2cam.T
+        # T_cam2end=-R_cam2end@T_end2cam+T_end2cam
+        # print("R_cam2end:", R_cam2end)
+        # print("T_cam2end:", T_cam2end)
+
+        # TODO 保存标定结果到文件
+
+        # with open(calibration_results_path_Matrix, 'w') as f:
+        #     f.write('R_end2base:\n')
+        #     for i, r in enumerate(R_arm):
+        #         f.write(f'{i}: {r}\n')
+        #     f.write('\nT_end2base:\n')
+        #     for i, t in enumerate(T_arm):
+        #         f.write(f'{i}: {t}\n')
+        #     f.write('\nR_cam2target:\n')
+        #     for i, r in enumerate(R_cam2target):
+        #         f.write(f'{i}: {r}\n')
+        #     f.write('\nT_cam2target:\n')
+        #     for i, t in enumerate(T_cam2target):
+        #         f.write(f'{i}: {t}\n')
+
+        # # 保存 R_end2cam, T_end2cam 到文件
+        # with open(calibration_results_path, 'w') as f:
+        #     f.write('R_end2cam:\n')
+        #     # 逐行保存R_end2cam数据，不使用默认格式
+        #     for i in range(R_end2cam.shape[0]):
+        #         row_str = ' '.join([f'{val:12.8f}' for val in R_end2cam[i]])
+        #         f.write(row_str + '\n')
+            
+        #     f.write('\nT_end2cam:\n')
+        #     # 逐行保存T_end2cam数据，不使用默认格式
+        #     for i in range(T_end2cam.shape[0]):
+        #         f.write(f'{T_end2cam[i, 0]:12.8f}\n')
+        
+        self.get_logger().info(f'手眼标定完成，结果已保存到 {calibration_results_path}')
+        
+        # self.get_logger().info('标定结果已保存到文件')
+        self.val_precision()
+    
+    def quaternion_to_rotation_matrix(self, quaternion):
+        """
+        将四元数(xyzw格式)转换为3x3旋转矩阵
+        """
+        x, y, z, w = quaternion.x, quaternion.y, quaternion.z, quaternion.w
+        
+        # 计算旋转矩阵
+        R = np.array([
+            [1 - 2*y*y - 2*z*z, 2*x*y - 2*z*w, 2*x*z + 2*y*w],
+            [2*x*y + 2*z*w, 1 - 2*x*x - 2*z*z, 2*y*z - 2*x*w],
+            [2*x*z - 2*y*w, 2*y*z + 2*x*w, 1 - 2*x*x - 2*y*y]
+        ])
+        
+        return R
+    
+    def quat_to_pos_matrix_hm(self, p_x, p_y, p_z, w, x, y, z):
+        # 创建位姿矩阵，写入位置
+        T = np.matrix([[0, 0, 0, p_x], [0, 0, 0, p_y], [0, 0, 0, p_z], [0, 0, 0, 1]])
+        T[0, 0] = 1 - 2 * pow(y, 2) - 2 * pow(z, 2)
+        T[0, 1] = 2 * (x * y - w * z)
+        T[0, 2] = 2 * (x * z + w * y)
+
+        T[1, 0] = 2 * (x * y + w * z)
+        T[1, 1] = 1 - 2 * pow(x, 2) - 2 * pow(z, 2)
+        T[1, 2] = 2 * (y * z - w * x)
+
+        T[2, 0] = 2 * (x * z - w * y)
+        T[2, 1] = 2 * (y * z + w * x)
+        T[2, 2] = 1 - 2 * pow(x, 2) - 2 * pow(y, 2)
+        return T
+        # return T.tolist()
+    def val_precision(self):
+        T_cam2target = [tvec.reshape(3, 1) for tvec in self.T_cam2target]  # 相机→标定板的平移向量
+        T_arm = [np.array(pos).reshape(3, 1) for pos in self.T_end2base]
+
+        for i in range(len(self.R_end2base_Euler)):
+
+            #末端到机械臂底座的变换矩阵
+            rot = R.from_euler('xyz', [self.R_end2base_Euler[i][0], self.R_end2base_Euler[i][1], self.R_end2base_Euler[i][2]])
+            R_temp_vec4Euler=rot.as_rotvec()
+            val_temp_R_end2base=cv2.Rodrigues(R_temp_vec4Euler)[0]
+            val_temp_T_end2base=T_arm[i] #3行1列
+
+            #末端到机械臂底座的变换矩阵4*4
+            val_temp_M_end2base=np.eye(4)
+            val_temp_M_end2base[:3,:3]=val_temp_R_end2base
+            val_temp_M_end2base[:3,3]=val_temp_T_end2base.flatten()
+            val_temp_M_end2base[3,3]=1.0
+            
+
+            # 目标到相机的变换矩阵
+            val_temp_R_target2cam=cv2.Rodrigues(self.R_cam2target[i])[0]
+            val_temp_T_target2cam=T_cam2target[i] #3行1列
+            #目标到相机的变换矩阵4*4
+            val_temp_M_target2cam=np.eye(4)
+            val_temp_M_target2cam[:3,:3]=val_temp_R_target2cam
+            val_temp_M_target2cam[:3,3]=val_temp_T_target2cam.flatten()
+            val_temp_M_target2cam[3,3]=1.0
+
+            #计算结果
+            val_temp_R_result=self.R_result
+            val_temp_T_result=self.T_result
+
+            val_temp_M_result=np.eye(4)
+            val_temp_M_result[:3,:3]=val_temp_R_result
+            val_temp_M_result[:3,3]=val_temp_T_result.flatten() # 相机→机械臂底座的变换矩阵
+            val_temp_M_result[3,3]=1.0
+
+            val_temp_M_base2end=np.linalg.pinv(val_temp_M_end2base) # 机械臂底座→末端的变换矩阵
+
+
+            # val_temp_M_target2end=val_temp_M_base2end@val_temp_M_result@val_temp_M_target2cam # 机械臂底座→相机的变换矩阵 眼在手外方式
+            val_temp_M_target2end=val_temp_M_end2base@val_temp_M_result@val_temp_M_target2cam # 机械臂底座→相机的变换矩阵 眼在手上方式
+            
+            val_temp_T_target2end=val_temp_M_target2end[:3,3].reshape(3,1) # 目标→末端的变换矩阵
+            print("val_temp_T_target2end:", val_temp_T_target2end)
+            print("-"*40) 
+def main(args=None):
+    rclpy.init(args=args)
+    
+    # 创建节点
+    node = HandEyeCalibrationNode()
+    
+    # 使用多线程执行器以更好地处理订阅和服务
+    executor = MultiThreadedExecutor(num_threads=4)
+    executor.add_node(node)
+    print("主线程号为：",threading.current_thread().ident)
+    
+    try:
+        executor.spin()
+    except KeyboardInterrupt:
+        node.get_logger().info('接收到键盘中断，正在关闭')
+    finally:
+        # 保存标定结果        
+        executor.shutdown()
+        node.destroy_node()
+        rclpy.shutdown()
+    
+if __name__ == '__main__':
+    main()

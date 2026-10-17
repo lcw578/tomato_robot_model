@@ -1,0 +1,6 @@
+ 14/03 09:23:42,770 DEBUG [126175732131712] (context.cpp:109) Librealsense VERSION: 2.51.1
+ 14/03 09:23:42,780 INFO [126175732131712] (context.cpp:382) Found 1 RealSense devices (mask 0xfe)
+ 14/03 09:23:42,780 DEBUG [126175732131712] (rsusb-backend.cpp:34) Creating UVC Device from path: 2-1-2
+ 14/03 09:23:42,783 ERROR [126175594669632] (handle-libusb.h:51) failed to open usb interface: 0, error: RS2_USB_STATUS_ACCESS
+ 14/03 09:23:42,783 ERROR [126175732131712] (sensor.cpp:576) acquire_power failed: failed to set power state
+ 14/03 09:23:44,783 WARNING [126175732131712] (rs.cpp:310) null pointer passed for argument "device"

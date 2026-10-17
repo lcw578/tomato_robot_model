@@ -1,0 +1,14 @@
+[Unit]
+Description=Configure CAN interface for gripper
+After=multi-user.target
+Documentation=man:slcand(8)
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/bin/bash -c 'sleep 2 && TTY_DEV=$(ls /dev/ttyACM* 2>/dev/null | head -n 1) && /usr/sbin/slcand -o -c -s8 $TTY_DEV can0'
+ExecStartPost=/bin/bash -c 'sleep 1 && /sbin/ip link set can0 type can bitrate 1000000'
+ExecStartPost=/bin/bash -c '/sbin/ip link set can0 up'
+
+[Install]
+WantedBy=multi-user.target

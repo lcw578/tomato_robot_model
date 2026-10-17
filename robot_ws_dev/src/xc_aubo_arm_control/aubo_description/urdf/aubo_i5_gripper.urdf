@@ -1,0 +1,348 @@
+<?xml version="1.0"?>
+<!-- 
+  整合URDF文件：aubo_i5机械臂 + gripper_cam夹爪相机
+  ============================================================
+  文件说明：
+  - 整合了aubo_i5机械臂和gripper_cam夹爪相机模型
+  - gripper_base通过固定连接（fixed joint）安装在wrist3_Link末端
+  - 连接后，夹爪会随机械臂末端同步运动
+  ============================================================
+  连接说明：
+  - 连接点：wrist3_Link (机械臂末端) -> gripper_base (夹爪底座)
+  - 连接类型：固定连接（fixed joint）
+  - 连接位置：在wrist3_Link的末端（z轴方向偏移0.012m）
+  - 连接姿态：保持原有姿态，无旋转
+  ============================================================
+  -->
+<robot name="aubo_i5_gripper">
+
+  <!-- =========================================
+       aubo_i5机械臂部分
+       ========================================= -->
+  <dh_type type="modified"/>
+  <safety_para singularity_consistent="0.02 0.01 10 0.2 0.045 10"/>
+  <friction_coeff value="0.65"/>
+  
+  <!-- Link 0: base_link -->
+  <link name="base_link">
+    <inertial>
+      <origin xyz="0.000129 0.001249 0.016678" rpy="0 0 0" />
+      <mass value="1.53902" />
+      <inertia ixx="0.003278" ixy="-0.000001" ixz="-0.000001" iyy="0.003017" iyz="-0.000048" izz="0.005841" />
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://aubo_description/mesh/visual/link0.DAE" />
+      </geometry>
+      <material name="">
+        <color rgba="1 1 1 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://aubo_description/mesh/collision/link0.STL" />
+      </geometry>
+    </collision>
+  </link>
+
+  <!-- Joint 0: shoulder_joint -->
+  <joint name="shoulder_joint" type="revolute">
+    <origin xyz="0 0 0.122" rpy="0 0 3.1415926535897932384626433832795" />
+    <parent link="base_link" />
+    <child link="shoulder_Link" />
+    <axis xyz="0 0 1" />
+    <limit lower="-6.283185307179586476925286766559" upper="6.283185307179586476925286766559" effort="133" start_stop="207" velocity="2.5964" />
+    <property inertia="2.027236783" damping="0" stiffness="0" offset="0" motor_constant="8.72" ratio="121" protect_max_torque="80.0" equa_inertia="1.5" collision_detection_para = "50 50 30 20"/>
+  </joint>
+
+  <!-- Link 1: shoulder_Link -->
+  <link name="shoulder_Link">
+    <inertial>
+      <origin xyz="-0.00001 0.001807 -0.013854" rpy="0 0 0" />
+      <mass value="4.848581" />
+      <inertia ixx="0.011842" ixy="0" ixz="0.000004" iyy="0.0118" iyz="-0.000103" izz="0.008103" />
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://aubo_description/mesh/visual/link1.DAE" />
+      </geometry>
+      <material name="">
+        <color rgba="1 1 1 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://aubo_description/mesh/collision/link1.STL" />
+      </geometry>
+    </collision>
+  </link>
+
+  <!-- Joint 1: upperArm_joint -->
+  <joint name="upperArm_joint" type="revolute">
+    <origin xyz="0 0.1215 0" rpy="-1.5707963267948966192313216916398 -1.5707963267948966192313216916398 0" />
+    <parent link="shoulder_Link" />
+    <child link="upperArm_Link" />
+    <axis xyz="0 0 1" />
+    <limit lower="-6.283185307179586476925286766559" upper="6.283185307179586476925286766559" effort="133" start_stop="207" velocity="2.5964" />
+    <property inertia="2.027236783" damping="0" stiffness="0" offset="0" motor_constant="8.72" ratio="121" protect_max_torque="80.0" equa_inertia="1.5" collision_detection_para = "50 50 30 20"/>
+  </joint>
+
+  <!-- Link 2: upperArm_Link -->
+  <link name="upperArm_Link">
+    <inertial>
+      <origin xyz="0.2040 0 0.006603" rpy="0 0 0" />
+      <mass value="10.836261" />
+      <inertia ixx="0.026024" ixy="0.00002" ixz="0" iyy="0.432805" iyz="0" izz="0.425155" />
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://aubo_description/mesh/visual/link2.DAE" />
+      </geometry>
+      <material name="">
+        <color rgba="1 1 1 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://aubo_description/mesh/collision/link2.STL" />
+      </geometry>
+    </collision>
+  </link>
+
+  <!-- Joint 2: foreArm_joint -->
+  <joint name="foreArm_joint" type="revolute">
+    <origin xyz="0.408 0 0" rpy="-3.1415926535897932384626433832795 0 0" />
+    <parent link="upperArm_Link" />
+    <child link="foreArm_Link" />
+    <axis xyz="0 0 1" />
+    <limit lower="-6.283185307179586476925286766559" upper="6.283185307179586476925286766559" effort="133" start_stop="207" velocity="2.5964" />
+    <property inertia="2.027236783" damping="0" stiffness="0" offset="0" motor_constant="8.72" ratio="121" protect_max_torque="60.0" equa_inertia="1.2" collision_detection_para = "50 50 30 20"/>
+  </joint>
+
+  <!-- Link 3: foreArm_Link -->
+  <link name="foreArm_Link">
+    <inertial>
+      <origin xyz="0.264626 -0.00002 0.093611" rpy="0 0 0" />
+      <mass value="2.849168" />
+      <inertia ixx="0.003634" ixy="0.000007" ixz="0.000168" iyy="0.065327" iyz="0.000002" izz="0.064676" />
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://aubo_description/mesh/visual/link3.DAE" />
+      </geometry>
+      <material name="">
+        <color rgba="1 1 1 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://aubo_description/mesh/collision/link3.STL" />
+      </geometry>
+    </collision>
+  </link>
+
+  <!-- Joint 3: wrist1_joint -->
+  <joint name="wrist1_joint" type="revolute">
+    <origin xyz="0.376 0 0" rpy="3.1415926535897932384626433832795 0 1.5707963267948966192313216916398" />
+    <parent link="foreArm_Link" />
+    <child link="wrist1_Link" />
+    <axis xyz="0 0 1" />
+    <limit lower="-6.283185307179586476925286766559" upper="6.283185307179586476925286766559" effort="13.5" start_stop="34" velocity="3.1105" />
+    <property inertia="0.219280696" damping="0" stiffness="0" offset="0" motor_constant="7.092" ratio="101" protect_max_torque="16.0" equa_inertia="0.05" collision_detection_para = "50 50 30 20"/>
+  </joint>
+
+  <!-- Link 4: wrist1_Link -->
+  <link name="wrist1_Link">
+    <inertial>
+      <origin xyz="0.000038 0.011278 -0.001539" rpy="0 0 0" />
+      <mass value="1.628022" />
+      <inertia ixx="0.001951" ixy="0.000003" ixz="0.000001" iyy="0.001154" iyz="-0.000042" izz="0.001931" />
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://aubo_description/mesh/visual/link4.DAE" />
+      </geometry>
+      <material name="">
+        <color rgba="1 1 1 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://aubo_description/mesh/collision/link4.STL" />
+      </geometry>
+    </collision>
+  </link>
+
+  <!-- Joint 4: wrist2_joint -->
+  <joint name="wrist2_joint" type="revolute">
+    <origin xyz="0 0.1025 0" rpy="-1.5707963267948966192313216916398 0 0" />
+    <parent link="wrist1_Link" />
+    <child link="wrist2_Link" />
+    <axis xyz="0 0 1" />
+    <limit lower="-6.283185307179586476925286766559" upper="6.283185307179586476925286766559" effort="13.5" start_stop="34" velocity="3.1105" />
+    <property inertia="0.219280696" damping="0" stiffness="0" offset="0" motor_constant="7.092" ratio="101" protect_max_torque="16.0" equa_inertia="0.05" collision_detection_para = "50 50 30 20"/>
+  </joint>
+
+  <!-- Link 5: wrist2_Link -->
+  <link name="wrist2_Link">
+    <inertial>
+      <origin xyz="-0.000038 -0.011278 -0.001539" rpy="0 0 0" />
+      <mass value="1.628022" />
+      <inertia ixx="0.001951" ixy="0.000003" ixz="-0.000001" iyy="0.001154" iyz="0.000042" izz="0.001931" />
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://aubo_description/mesh/visual/link5.DAE" />
+      </geometry>
+      <material name="">
+        <color rgba="1 1 1 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://aubo_description/mesh/collision/link5.STL" />
+      </geometry>
+    </collision>
+  </link>
+
+  <!-- Joint 5: wrist3_joint -->
+  <joint name="wrist3_joint" type="revolute">
+    <origin xyz="0 -0.094 0" rpy="1.5707963267948966192313216916398 0 0" />
+    <parent link="wrist2_Link" />
+    <child link="wrist3_Link" />
+    <axis xyz="0 0 1" />
+    <limit lower="-6.283185307179586476925286766559" upper="6.283185307179586476925286766559" effort="13.5" start_stop="34" velocity="3.1105" />
+    <property inertia="0.219280696" damping="0" stiffness="0" offset="0" motor_constant="7.092" ratio="101" protect_max_torque="10.0" equa_inertia="0.01" collision_detection_para = "50 50 30 20"/>
+  </joint>
+
+  <!-- Link 6: wrist3_Link (机械臂末端) -->
+  <link name="wrist3_Link">
+    <inertial>
+      <origin xyz="0.000022 0.0006 -0.017081" rpy="0 0 0" />
+      <mass value="0.1978" />
+      <inertia ixx="0.000118" ixy="0.0" ixz="0" iyy="0.000112" iyz="0.000001" izz="0.000184" />
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://aubo_description/mesh/visual/link6.DAE" />
+      </geometry>
+      <material name="">
+        <color rgba="1 1 1 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://aubo_description/mesh/collision/link6.STL" />
+      </geometry>
+    </collision>
+  </link>
+
+  <!-- =========================================
+       gripper_cam夹爪相机部分
+       ========================================= -->
+  <!-- Link: gripper_base (夹爪底座) -->
+  <link name="gripper_base">
+    <inertial>
+      <origin xyz="2.94902990916057E-17 -0.00347593609793756 0.0804749588726825" rpy="0 0 0" />
+      <mass value="1.18556264669111" />
+      <inertia ixx="0.00315856893081404" ixy="3.91328257794873E-20" ixz="-7.67804847961664E-19" iyy="0.00384483981491747" iyz="-0.000344401757016793" izz="0.00248878874951792" />
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://aubo_description/mesh/collision/gripper_base.STL" />
+      </geometry>
+      <material name="">
+        <color rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://aubo_description/mesh/collision/gripper_base.STL" />
+      </geometry>
+    </collision>
+  </link>
+
+  <!-- Link: gripper_cam (相机部分) -->
+  <link name="gripper_cam">
+    <inertial>
+      <origin xyz="1.90819582357449E-17 -0.00361047640408486 0.0833963083414522" rpy="0 0 0" />
+      <mass value="1.141384" />
+      <inertia ixx="0.00288071158391885" ixy="1.94349640956511E-19" ixz="-3.54277854626553E-19" iyy="0.0035675369005515" iyz="-0.000356440462896624" izz="0.00245717120603402" />
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://aubo_description/mesh/collision/gripper_cam.STL" />
+      </geometry>
+      <material name="">
+        <color rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://aubo_description/mesh/collision/gripper_cam.STL" />
+      </geometry>
+    </collision>
+  </link>
+
+  <!-- Joint: gripper_joint (夹爪内部固定连接) -->
+  <joint name="gripper_joint" type="fixed">
+    <origin xyz="0 0 0" rpy="0 0 0" />
+    <parent link="gripper_base" />
+    <child link="gripper_cam" />
+    <axis xyz="0 0 0" />
+  </joint>
+
+  <!-- =========================================
+       机械臂与夹爪的连接部分
+       ========================================= -->
+  <!-- 
+    Joint: wrist3_to_gripper (机械臂末端与夹爪的连接)
+    
+    连接说明：
+    - parent: wrist3_Link (机械臂末端)
+    - child: gripper_base (夹爪底座)
+    - type: fixed (固定连接，无自由度)
+    - origin: 
+      * xyz="0 0 0" - 在wrist3_Link的Z轴方向偏移0m
+      * rpy="0 0 0" - 保持原有姿态，无旋转
+    
+    注意：这个偏移量需要根据实际安装情况进行调整
+    如果发现夹爪位置不正确，请调整xyz参数
+  -->
+  <joint name="wrist3_to_gripper" type="fixed">
+    <origin xyz="0 0 0" rpy="0 0 3.14" />
+    <parent link="wrist3_Link" />
+    <child link="gripper_base" />
+    <axis xyz="0 0 0" />
+  </joint>
+
+  <!-- =========================================
+       世界连接
+       ========================================= -->
+  <link name="world" />
+
+  <joint name="world_joint" type="fixed">
+    <parent link="world" />
+    <child link="base_link" />
+    <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
+  </joint>
+
+</robot>

@@ -1,0 +1,55 @@
+from setuptools import find_packages, setup
+
+package_name = 'xc_robot_main_control'
+
+setup(
+    name=package_name,
+    version='0.0.0',
+    packages=find_packages(exclude=['test']),
+    data_files=[
+        ('share/ament_index/resource_index/packages',
+            ['resource/' + package_name]),
+        ('share/' + package_name, ['package.xml']),
+        ('share/' + package_name + '/weights', ['weights/tomato_20260726_xiongAn_more.pt',
+                                                'weights/best.pt',
+                                                # 'weights/fake_tomato_hand.pt',
+                                                # 'weights/moge-2-vits-normal.pt',
+                                                # 'weights/moge-2-vitl.pt',
+                                                ]),
+        ('share/' + package_name + '/launch', ['launch/robot_launch.py',
+                                               'launch/robot_2_launch.py',
+                                               'launch/fake_robot_launch.py',
+                                               'launch/vis_robot_launch.py',
+                                               'launch/realsense_hot_switch_1_launch.py',
+                                               'launch/realsense_hot_switch_2_launch.py',
+                                               'launch/realsense_hot_switch_3_launch.py']),
+        # ('share/' + package_name + '/launch', ['launch/fake_robot_launch.py']),
+        # ('share/' + package_name + '/launch', ['launch/vis_robot_launch.py']),
+        # ('share/' + package_name + '/launch', ['launch/realsense_hot_switch_1_launch.py']), 
+        # ('share/' + package_name + '/launch', ['launch/realsense_hot_switch_2_launch.py']),                                  
+    ],
+    install_requires=['setuptools','xc_interfaces'],
+    zip_safe=True,
+    maintainer='xc',
+    maintainer_email='1312629819@qq.com',
+    description='TODO: Package description',
+    license='TODO: License declaration',
+    tests_require=['pytest'],
+    entry_points={
+        'console_scripts': [
+            'xc_robot_main_control_node = xc_robot_main_control.xc_robot_main_control_node:main',
+            'xc_robot_main_control_node_only = xc_robot_main_control.xc_robot_main_control_node_only:main',
+            'yolov8_service = xc_robot_main_control.yolov8_service:main',
+            'close_yolov8_service = xc_robot_main_control.close_yolov8_service:main',
+            'close_service_test_node = xc_robot_main_control.close_service_test_node:main',
+            'image_publisher_node = xc_robot_main_control.image_publisher_node:main',
+            'fake_continuous_yolo_detection_node = xc_robot_main_control.fake_continuous_yolo_detection_node:main', 
+            'depth_visualizer_node = xc_robot_main_control.depth_visualizer_node:main',
+            'read_and_move_node = xc_robot_main_control.read_and_move_node:main',
+            'pick_log_record_node = xc_robot_main_control.pick_log_record:main',
+            'test_node = xc_robot_main_control.test:main',
+            'pick_pose_service_node = xc_robot_main_control.pick_pose_service_node:main',
+
+        ],
+    },
+)

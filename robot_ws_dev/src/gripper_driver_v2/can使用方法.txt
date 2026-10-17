@@ -1,0 +1,32 @@
+1.ls /dev/ttyACM*
+比如找到的是ttyACM0
+
+2 sudo slcand -o -c -s8 /dev/ttyACM0 can0
+
+3 配置CAN接口，波特率1Mbps(ubuntu2004不要使用这个指令，直接进入第四步即可)
+sudo ip link set can0 type can bitrate 1000000
+
+4 启用CAN接口
+sudo ip link set can0 up #ubuntu2204
+sudo ifconfig can0 up  #ubuntu2004使用这个指令即可
+
+
+5 终端发送数据
+cansend can0 001#FFFFFFFFFFFFFFFD
+cansend can0 001#FFFFFFFFFFFFFFFC
+
+6 监控can通讯
+sudo candump can0 -t a -x -e
+
+ros2指令：
+ros2 service call /gripper/control xc_interfaces/srv/GripperControl "{command: 'open'}"
+
+ros1指令：
+rosservice call /gripper/control "command: 'close'"
+
+
+
+[1768790736.955444729] [gripper_control_node]: 收到抓取器控制命令: open
+设置目标位置: -2599
+写入寄存器: 数据=<built-in method hex of bytearray object at 0x7ba299140230>
+发送CAN帧: ID=1, 数据=140204d9f5ffff

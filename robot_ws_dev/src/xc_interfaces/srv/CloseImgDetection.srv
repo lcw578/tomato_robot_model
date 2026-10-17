@@ -1,0 +1,14 @@
+# 请求: 远端相机识别的番茄中心位置(机械臂底座坐标系), 来自request_old
+float64 x
+float64 y
+float64 z
+---
+# 响应: 最终采摘点(果柄采摘点)在机械臂底座坐标系下的位姿
+bool success
+string message
+float64 x
+float64 y
+float64 z
+float64 rx
+float64 ry
+float64 rz

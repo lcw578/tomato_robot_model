@@ -1,0 +1,9 @@
+sensor_msgs/Image color_image
+sensor_msgs/Image depth_image
+sensor_msgs/CameraInfo camera_info
+InstanceMask[] instances
+---
+bool success
+PickPoseCandidate best
+sensor_msgs/Image debug_image
+string message

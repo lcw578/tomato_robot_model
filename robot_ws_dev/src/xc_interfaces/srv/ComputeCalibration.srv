@@ -1,0 +1,8 @@
+# 请求部分
+# 无参数，只需调用服务即可计算
+---
+# 响应部分
+bool success          # 标定是否成功
+string message        # 详细信息
+geometry_msgs/Vector3 rotation_vector  # 旋转向量 (轴角表示)
+geometry_msgs/Vector3 translation      # 平移向量 (单位: 米)

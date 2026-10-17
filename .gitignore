@@ -5,4 +5,3 @@ observations/
 *.npz
 
 docs/cams_*/
-robot_ws_dev

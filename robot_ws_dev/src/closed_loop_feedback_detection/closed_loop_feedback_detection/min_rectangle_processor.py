@@ -1,0 +1,300 @@
+#!/usr/bin/env python3
+"""
+果梗直径计算处理器 (纯骨架法版)
+强制使用骨架提取+距离变换算法计算直径，不再区分直/弯果梗
+"""
+
+import numpy as np
+import cv2
+import rclpy
+from rclpy.node import Node
+from xc_interfaces.srv import YoloDetection
+from cv_bridge import CvBridge
+import time
+import os
+from datetime import datetime
+
+# 性能与算法配置
+CONFIG = {
+    'enable_downsampling': False,      # 启用下采样 (加速大图处理)
+    'downsample_ratio': 1.0,          # 下采样比例 (0.5表示长宽各缩小一半)
+    'max_image_size': 400,            # 触发下采样的最小边长阈值
+    'min_skeleton_points': 6,         # 最小骨架点数 (设置较低以适应短果梗)
+    'trim_ratio': 0.15,               # 统计直径时，去除两端极大/极小值的比例 (15%)
+}
+
+
+class StemDiameterProcessor():
+    """ROS2 节点封装"""
+    
+    def __init__(self):
+        # super().__init__('stem_diameter_processor_skeleton_only')
+        self.bridge = CvBridge()
+        print('果梗直径处理器 (纯骨架法) 已启动')
+    
+    def process_yolo_response(self, yolo_response):
+        """处理检测结果"""
+        results = []
+        
+        for i, mask_msg in enumerate(yolo_response.masks):
+            result_item = {
+                'id': i,
+                'class_name': mask_msg.class_names,
+                'confidence': mask_msg.confidence,
+                'success': False,
+                'final_diameter': 0.0,
+                'method': 'none',
+                'points': [],
+                'bbox_offset': (0, 0)
+            }
+            
+            try:
+                # 1. 转换图像
+                mask_cv = self.bridge.imgmsg_to_cv2(mask_msg.mask, "mono8")
+                
+                # 2. 获取 BBox 偏移量 (重要：用于在原图正确位置画图)
+                if hasattr(yolo_response, 'bboxes') and len(yolo_response.bboxes) >= (i+1)*4:
+                    box = yolo_response.bboxes[i*4 : (i+1)*4]
+                    result_item['bbox_offset'] = (box[0], box[1]) # x1, y1
+                
+                # 3. === 执行纯骨架法计算 ===
+                skel_res = self.calculate_skeleton_diameter_pure(mask_cv)
+                
+                if skel_res['success']:
+                    # 成功：直接使用骨架法数据
+                    result_item['success'] = True
+                    result_item['final_diameter'] = skel_res['diameter']
+                    result_item['method'] = 'skeleton'
+                    result_item['points'] = skel_res['valid_points']
+                    result_item['debug_info'] = f"StdDev:{skel_res['std']:.2f}"
+                else:
+                    # 失败：尝试最小矩形法保底 (Fallback)
+                    fallback_dia, _ = self.calculate_min_rectangle_fallback(mask_cv)
+                    if fallback_dia is not None and fallback_dia > 0:
+                        result_item['success'] = True
+                        result_item['final_diameter'] = fallback_dia
+                        result_item['method'] = 'rect_fallback'
+                        result_item['debug_info'] = f"骨架法失败({skel_res.get('msg')})，使用矩形保底"
+                    else:
+                        result_item['debug_info'] = f"全部失败: {skel_res.get('msg')}"
+
+                # 日志输出
+                if result_item['success']:
+                    print(
+                        f"ID:{i} | {mask_msg.class_names} | "
+                        f"直径: {result_item['final_diameter']:.2f} px | "
+                        f"模式: {result_item['method']}"
+                    )
+                else:
+                    print(f"ID:{i} 计算失败: {result_item['debug_info']}")
+
+            except Exception as e:
+                print(f"处理异常 ID {i}: {e}")
+            
+            results.append(result_item)
+            
+        return results
+
+    def visualize_results(self, color_image, results, save_dir=None):
+        """可视化结果"""
+        vis_img = color_image.copy()
+        
+        for res in results:
+            if not res['success']: continue
+            
+            offset_x, offset_y = res['bbox_offset']
+            
+            # --- 绘制逻辑 ---
+            if res['method'] == 'skeleton':
+                # 绘制骨架路径和直径
+                points = res['points']
+                # 1. 绘制骨架点 (黄色)
+                for px, py, dia in points:
+                    gx = int(px + offset_x)
+                    gy = int(py + offset_y)
+                    cv2.circle(vis_img, (gx, gy), 1, (0, 255, 255), -1)
+                
+                # 2. 在骨架中点绘制一个代表直径的圆 (红色空心)
+                if len(points) > 0:
+                    mid_idx = len(points) // 2
+                    mx, my, mdia = points[mid_idx]
+                    center_pt = (int(mx + offset_x), int(my + offset_y))
+                    radius = int(res['final_diameter'] / 2)
+                    cv2.circle(vis_img, center_pt, radius, (0, 0, 255), 2)
+                    
+                    # 绘制文字
+                    text = f"{res['final_diameter']:.1f}px"
+                    cv2.putText(vis_img, text, (center_pt[0]+10, center_pt[1]), 
+                               cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
+                               
+            elif res['method'] == 'rect_fallback':
+                # 绘制简单的矩形框 (紫色)
+                text = f"{res['final_diameter']:.1f} (Fallback)"
+                cv2.putText(vis_img, text, (int(offset_x), int(offset_y)-5), 
+                           cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 255), 1)
+
+        # 保存图片
+        if save_dir:
+            os.makedirs(save_dir, exist_ok=True)
+            ts = datetime.now().strftime('%M%S%f')
+            path = os.path.join(save_dir, f"skeleton_{ts}.jpg")
+            cv2.imwrite(path, vis_img)
+            
+        return vis_img
+
+    def calculate_skeleton_diameter_pure(self,mask_data, sampling_step=1):
+        """
+        纯粹的骨架直径计算核心函数
+        
+        流程:
+        1. 预处理 (下采样 + 形态学闭运算)
+        2. 距离变换 (计算内部每个点到背景的距离)
+        3. 骨架提取 (细化算法)
+        4. 采样与还原 (沿骨架采样距离值，并还原为原始尺度)
+        """
+        start_time = time.time()
+        
+        try:
+            # --- 1. 预处理 ---
+            if len(mask_data.shape) > 2:
+                mask_data = mask_data[:, :, 0]
+                
+            original_shape = mask_data.shape
+            scale_factor = 1.0
+            
+            # 智能下采样：如果图像够大，则缩小以加速计算
+            if (CONFIG['enable_downsampling'] and 
+                max(original_shape) > CONFIG['max_image_size']):
+                
+                scale_factor = CONFIG['downsample_ratio']
+                new_w = int(original_shape[1] * scale_factor)
+                new_h = int(original_shape[0] * scale_factor)
+                # 使用最近邻插值保持二值特性（0或255）
+                mask_working = cv2.resize(mask_data, (new_w, new_h), interpolation=cv2.INTER_NEAREST)
+            else:
+                mask_working = mask_data.copy()
+
+            # 形态学操作：平滑边缘，填充内部小孔
+            kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3))
+            # 先闭运算(连通断开区域) 再开运算(去噪)
+            mask_cleaned = cv2.morphologyEx(mask_working.astype(np.uint8), cv2.MORPH_CLOSE, kernel)
+            mask_cleaned = cv2.morphologyEx(mask_cleaned, cv2.MORPH_OPEN, kernel)
+            
+            # 安全检查
+            if np.count_nonzero(mask_cleaned) < 10:
+                return {'success': False, 'msg': '有效像素过少'}
+
+            # --- 2. 距离变换 & 3. 骨架化 ---
+            # 距离变换：计算每个白色像素到最近黑色像素的距离 (即半径)
+            dist_transform = cv2.distanceTransform(mask_cleaned, cv2.DIST_L2, 3)
+            
+            # 骨架化：提取单像素宽度的中心线
+            skeleton = cv2.ximgproc.thinning(mask_cleaned, thinningType=cv2.ximgproc.THINNING_GUOHALL)
+            
+            # 清理骨架：只保留最大的连通分支，去除毛刺
+            skeleton = self._keep_largest_skeleton(skeleton)
+            
+            # 获取骨架坐标点 (y, x)
+            skeleton_points = np.column_stack(np.where(skeleton > 0))
+            
+            if len(skeleton_points) < CONFIG['min_skeleton_points']:
+                return {'success': False, 'msg': f'骨架点不足({len(skeleton_points)})'}
+
+            # --- 4. 采样与计算 ---
+            diameters = []
+            valid_points = [] # 用于可视化
+            
+            # 动态步长：点多则步长大，点少则步长小
+            if len(skeleton_points) > 150:
+                step = max(2, len(skeleton_points) // 50)
+            else:
+                step = 1
+                
+            for i in range(0, len(skeleton_points), step):
+                y, x = skeleton_points[i]
+                
+                # 读取半径值
+                radius = dist_transform[y, x]
+                
+                # === 核心修正：还原真实直径 ===
+                # 半径 * 2 = 直径
+                # 直径 / scale_factor = 原始图像中的真实像素直径
+                real_diameter = (radius * 2.0) / scale_factor
+                
+                # 还原坐标 (用于可视化)
+                real_x = (x + 0.5) / scale_factor
+                real_y = (y + 0.5) / scale_factor
+                
+                # 简单过滤：直径必须大于0.5像素且小于100像素(防止异常)
+                if 0.5 < real_diameter < 200:
+                    diameters.append(real_diameter)
+                    valid_points.append((real_x, real_y, real_diameter))
+
+            if not diameters:
+                return {'success': False, 'msg': '无有效直径数据'}
+
+            # --- 5. 统计分析 (鲁棒性处理) ---
+            diameters_arr = np.array(diameters)
+            
+            # 截断均值法：去除最大的15%和最小的15%，取中间的平均值
+            # 这能有效抵抗骨架端点处通常较细或较粗的干扰
+            if len(diameters) >= 5:
+                sorted_d = np.sort(diameters_arr)
+                trim_cnt = int(len(diameters) * CONFIG['trim_ratio'])
+                if trim_cnt > 0:
+                    # 切片去除首尾
+                    trimmed_data = sorted_d[trim_cnt : -trim_cnt]
+                    final_diameter = np.mean(trimmed_data) if len(trimmed_data) > 0 else np.median(diameters_arr)
+                else:
+                    final_diameter = np.median(diameters_arr)
+            else:
+                final_diameter = np.mean(diameters_arr)
+
+            return {
+                'success': True,
+                'diameter': final_diameter,
+                'min': np.min(diameters_arr),
+                'max': np.max(diameters_arr),
+                'std': np.std(diameters_arr),
+                'valid_points': valid_points,
+                'time': time.time() - start_time
+            }
+
+        except Exception as e:
+            return {'success': False, 'msg': str(e)}
+
+    def _keep_largest_skeleton(self,skel_img):
+        """清理骨架，只保留最大连通域"""
+        num, labels = cv2.connectedComponents(skel_img)
+        if num <= 2: return skel_img # 0是背景，1是骨架，若只有1个或没有则直接返回
+        
+        max_area = 0
+        max_idx = 1
+        for i in range(1, num):
+            area = np.sum(labels == i)
+            if area > max_area:
+                max_area = area
+                max_idx = i
+                
+        res = np.zeros_like(skel_img)
+        res[labels == max_idx] = 255
+        return res
+
+    def calculate_min_rectangle_fallback(self,mask_data):
+        """
+        最小矩形法 (仅作为骨架法失败时的最后保底)
+        """
+        try:
+            points = cv2.findNonZero(mask_data)
+            if points is None or len(points) < 5: return None
+            
+            rect = cv2.minAreaRect(points)
+            w, h = rect[1]
+            return min(w, h), cv2.boxPoints(rect)
+        except:
+            return None, None
+
+# 独立测试入口
+if __name__ == '__main__':
+    print("StemDiameterProcessor (Pure Skeleton) Module Loaded.")
+    print("使用方法: 创建 Node 并调用 process_yolo_response(detection_msg)")

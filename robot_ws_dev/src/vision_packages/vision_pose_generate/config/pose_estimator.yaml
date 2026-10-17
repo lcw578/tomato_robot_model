@@ -1,0 +1,17 @@
+pose_estimator_service:
+  ros__parameters:
+    min_depth_m: 0.15
+    max_depth_m: 1.2
+    depth_windows: [7, 11, 15, 21]
+    min_peduncle_area_px: 20
+    min_skeleton_points: 8
+    pick_offset_px: 10
+    pick_point_mode: skeleton_midpoint
+    tangent_fit_radius_px: 18
+    min_tangent_fit_points: 4
+    crop_border_margin_px: 5
+    enable_maturity: true
+    hand_eye_enabled: false
+    hand_eye_matrix_file: ""
+    camera_frame: camera_color_optical_frame
+    base_frame: base_link
