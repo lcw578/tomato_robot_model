@@ -49,6 +49,9 @@ class Picker:
         self.wheel_l = m.actuator('act_left_servo').id
         self.wheel_r = m.actuator('act_right_servo').id
         self.tcp = m.body('gear_link').id
+        self.tool_frame = m.body('base_link').id  # 固定工具框架，不随夹爪电机开闭转动
+        self.arm_dofs = [m.jnt_dofadr[m.joint(n).id] for n in ARM]
+        self._last_path = None
         # TCP = 指尖中点: 沿工具轴 (gear 系 +z, 即腕部相机光轴方向) 偏 0.10m
         self.tcp_off = np.array([0.0, 0.0, 0.10])
         self.home_ctrl = np.array([-0.474, 0, 0, -1.59, -0.0611, 1.5, -1.59, -1.65, 3.05, 0.0, 0.0])
@@ -96,6 +99,7 @@ class Picker:
         d.ctrl[self.lift_a] = lift
         d.ctrl[self.machine_a] = x_keep
         self.cmd = None                            # 复位后命令重锚到实测 (断流重锚语义)
+        self._last_path = None
         mujoco.mj_forward(m, d)
 
     def _steps(self, n, every=2):
@@ -212,7 +216,7 @@ class Picker:
 
     # ---------- 碰撞检测与规划 (关节空间 RRT, 直线优先) ----------
     def penetration(self, q):
-        """scratch FK 下 臂几何 vs 禁碰集 (主茎/车体) 的最大穿透深度 (m, 0=无碰)。"""
+        """scratch FK 下臂-环境及模型启用的臂自碰撞最大穿透 (m)。"""
         fd = self._fk
         fd.qpos[:] = self.d.qpos
         fd.qpos[self.qadr] = q
@@ -222,8 +226,7 @@ class Picker:
             if fd.contact[c].dist >= 0:
                 continue
             g1, g2 = fd.contact[c].geom1, fd.contact[c].geom2
-            if (g1 in self.arm_geoms and g2 in self.forbid_geoms) or \
-               (g2 in self.arm_geoms and g1 in self.forbid_geoms):
+            if self._forbidden_pair(g1, g2):
                 worst = max(worst, -fd.contact[c].dist)
         return worst
 
@@ -242,8 +245,13 @@ class Picker:
                 return True
         return False
 
+    def _forbidden_pair(self, g1, g2):
+        return ((g1 in self.arm_geoms and g2 in self.forbid_geoms) or
+                (g2 in self.arm_geoms and g1 in self.forbid_geoms) or
+                (g1 in self.arm_geoms and g2 in self.arm_geoms))
+
     def collision_free(self, q, pen=0.003):
-        """禁碰集与臂的穿透超过 pen 视为碰撞 (轻触允许: 真机也轻触植株)。"""
+        """臂-环境及模型启用的臂自碰撞；允许的穿透上限为 pen。"""
         fd = self._fk
         fd.qpos[:] = self.d.qpos
         fd.qpos[self.qadr] = q
@@ -252,25 +260,27 @@ class Picker:
             if fd.contact[c].dist > -pen:
                 continue
             g1, g2 = fd.contact[c].geom1, fd.contact[c].geom2
-            if (g1 in self.arm_geoms and g2 in self.forbid_geoms) or \
-               (g2 in self.arm_geoms and g1 in self.forbid_geoms):
+            if self._forbidden_pair(g1, g2):
                 return False
         return True
 
     def _seg_free(self, qa, qb, n=8, pen=0.003):
-        # 排除 t=0 端点: 抓取位姿允许轻微贴碰, 路径应从该状态可退出
+        # 按关节变化加密；插值与执行端使用同一条关节线段。
+        n = max(n, int(np.ceil(np.max(np.abs(qb - qa)) / 0.02)))
         for t in np.linspace(0, 1, n + 1)[1:]:
             if not self.collision_free(qa * (1 - t) + qb * t, pen=pen):
                 return False
         return True
 
     def plan_path(self, q_goal, max_iter=15000, step=0.15, time_budget=20.0):
-        """RRT-Connect (双向树): 从当前 cmd 与目标各长一棵, 窄走廊两头对穿。
-        路径段检查 8 点 (薄壁不可漏检); 目标连接段容差 32mm。"""
+        """RRT-Connect；返回包含起点、终点的路径，所有边使用同一碰撞容差。"""
         q0 = self.cmd.copy()
+        self._last_path = None
+        if not self.collision_free(q_goal):
+            return None
         if self._seg_free(q0, q_goal):
-            self._last_path = [q_goal]
-            return [q_goal]
+            self._last_path = [q0, q_goal.copy()]
+            return self._last_path
         import time as _time
         _t0 = _time.time()
         rng = np.random.default_rng(0)
@@ -314,16 +324,16 @@ class Picker:
             nodesA[nA] = q_a; parA.append(ia); nA += 1
             # B 树朝 A 新点贪心连接
             ib = nearest(nodesB, nB, q_a)
-            while True:
+            while nB < cap:
                 q_b = step_from(nodesB[ib], q_a, step)
-                if not self._seg_free(nodesB[ib], q_b, n=8, pen=0.032):
+                if not self._seg_free(nodesB[ib], q_b, n=8):
                     break
                 nodesB[nB] = q_b; parB.append(ib); nB += 1
                 if np.linalg.norm(q_b - q_a) < 1e-6 or \
-                        self._seg_free(q_b, q_a, n=8, pen=0.032):
-                    # 连通: 路径 = A 根->q_a + q_b->B 根(反序)
-                    path = path_from(nodesA, parA, nA - 1) + \
-                           path_from(nodesB, parB, nB - 1, reverse=True)[1:]
+                        self._seg_free(q_b, q_a, n=8):
+                    # A: 根->叶，B: 叶->根。保留两树连接边，不能跳过 q_b。
+                    path = path_from(nodesA, parA, nA - 1, reverse=True) + \
+                           path_from(nodesB, parB, nB - 1)
                     self._last_path = path
                     return path
                 ib = nB - 1
@@ -333,6 +343,89 @@ class Picker:
     def tcp_pos(self):
         R = self.d.xmat[self.tcp].reshape(3, 3)
         return self.d.xpos[self.tcp] + R @ self.tcp_off
+
+    def _pose_at(self, q):
+        fd = self._fk
+        fd.qpos[:] = self.d.qpos
+        fd.qpos[self.qadr] = q
+        mujoco.mj_forward(self.m, fd)
+        R = fd.xmat[self.tcp].reshape(3, 3)
+        return (fd.xpos[self.tcp] + R @ self.tcp_off,
+                fd.xmat[self.tool_frame].reshape(3, 3).copy())
+
+    @staticmethod
+    def _rotation_error(target, actual):
+        quat, rotvec = np.zeros(4), np.zeros(3)
+        mujoco.mju_mat2Quat(quat, (target @ actual.T).reshape(9))
+        if quat[0] < 0:
+            quat *= -1
+        mujoco.mju_quat2Vel(rotvec, quat, 1.0)
+        return rotvec
+
+    def solve_pose(self, target, rotation, seed):
+        """连续局部 IK：约束 TCP 位置与固定工具框架完整姿态，不切换随机分支。"""
+        q = seed.copy()
+        jp, jr = np.zeros((3, self.m.nv)), np.zeros((3, self.m.nv))
+        for _ in range(100):
+            p, R = self._pose_at(q)
+            ep, er = target - p, self._rotation_error(rotation, R)
+            if np.linalg.norm(ep) < 0.0001 and np.linalg.norm(er) < 0.001:
+                return q
+            mujoco.mj_jacBody(self.m, self._fk, jp, jr, self.tcp)
+            off = self._fk.xmat[self.tcp].reshape(3, 3) @ self.tcp_off
+            Jv = jp[:, self.arm_dofs] + np.cross(jr[:, self.arm_dofs].T, off).T
+            J = np.vstack([Jv, 0.15 * jr[:, self.arm_dofs]])
+            err = np.r_[ep, 0.15 * er]
+            dq = J.T @ np.linalg.solve(J @ J.T + 1e-5 * np.eye(6), err)
+            q = np.clip(q + np.clip(dq, -0.08, 0.08),
+                        -(3.0543 - JOINT_MARGIN), 3.0543 - JOINT_MARGIN)
+        return None
+
+    def plan_cut(self, cut, approach, axis, attach):
+        """先选剪切完整姿态，再反向求同姿态直线；最后检查从当前状态到外侧的路径。"""
+        q_b0 = self.solve_ik(cut, iters=800, axis_target=axis)
+        if q_b0 is None:
+            return None
+        candidates = []
+        bound = 3.0543 - JOINT_MARGIN
+        for deg in (0, -15, 15, -30, 30, -45, 45, -60, 60, -75, 75,
+                    -90, 90, -105, 105, -120, 120, -135, 135, -150, 150, -165, 165, -180):
+            q = q_b0.copy()
+            q[5] += np.radians(deg)
+            if abs(q[5]) > bound:
+                continue  # 限位不是角度取模，不能把不可行 roll 截断成另一候选
+            _, rotation = self._pose_at(q)
+            q = self.solve_pose(cut, rotation, q)
+            if q is None or not self.shear_hit_at(q, cut, attach):
+                continue
+            self._pose_at(q)
+            tool_axis = self._fk.xmat[self.tcp].reshape(3, 3)[:, 2]
+            if np.arccos(np.clip(tool_axis @ axis, -1, 1)) > 0.06:
+                continue
+            path, worst = [q.copy()], self.penetration(q)
+            if worst > 0.003:
+                continue
+            for s in np.linspace(0, 1, 21)[1:]:
+                qn = self.solve_pose(cut + s * (approach - cut), rotation, path[-1])
+                if qn is None or np.max(np.abs(qn - path[-1])) > 0.10 or \
+                        not self._seg_free(path[-1], qn):
+                    break
+                worst = max(worst, self.penetration(qn))
+                path.append(qn)
+            if len(path) != 21:
+                continue
+            insertion = path[::-1]
+            # 1mm 以内穿透近似等价；再偏好较小的总关节变化与末轴变化。
+            score = (1000 * max(0.0, worst - 0.001) +
+                     np.linalg.norm(insertion[0] - self.cmd) +
+                     0.25 * abs(insertion[0][5] - self.cmd[5]))
+            candidates.append((score, deg, worst, insertion, rotation))
+        for _, deg, worst, insertion, rotation in sorted(candidates, key=lambda c: c[0]):
+            approach_path = self.plan_path(insertion[0], time_budget=2.0, max_iter=3000)
+            if approach_path is not None:
+                return dict(approach=approach_path, insertion=insertion,
+                            rotation=rotation, roll_deg=deg, penetration=worst)
+        return None
 
     def point_tool_down(self, iters=80):
         """转动 j5/j6 使工具轴 (gear +z) 竖直向下, 其余关节不动 (果串随之垂挂)."""
@@ -367,44 +460,104 @@ class Picker:
         self._steps(200)
         return float(np.linalg.norm(tgt - axis()))
 
-    def _walk_to(self, q_target, speed=0.8):
-        """关节空间匀速插值走 cmd (积分语义, 伺服跟踪)。"""
-        guard = 0
-        while True:
-            guard += 1
-            if guard > 60000:      # 看门狗: 防死循环 (NaN 目标等)
-                print('  [walk] 看门狗中止 tgt=%s' % np.round(q_target, 2), flush=True)
-                break
-            remain = q_target - self.cmd
-            if not np.all(np.isfinite(remain)):
-                print('  [walk] 目标非法(NaN/inf), 中止', flush=True)
-                break
-            if np.max(np.abs(remain)) < 1e-3:
-                break
-            step = np.clip(remain, -VMAX * self.m.opt.timestep * speed,
-                           VMAX * self.m.opt.timestep * speed)
-            self.cmd = np.clip(self.cmd + step,
-                               -(3.0543 - JOINT_MARGIN), 3.0543 - JOINT_MARGIN)
+    def _walk_to(self, q_target, speed=0.8, observe=None):
+        """共同进度的五次插值；两次物理步/命令，保持旧执行器的有效速度上限。"""
+        q_target = np.asarray(q_target, dtype=float)
+        if (not np.isfinite(speed) or speed <= 0 or q_target.shape != (6,) or
+                not np.all(np.isfinite(q_target)) or np.any(np.abs(q_target) > 3.0543)):
+            raise ValueError('非法关节目标或速度')
+        if self.cmd is None:
+            self.cmd = self.d.qpos[self.qadr].copy()
+        q0 = self.cmd.copy()
+        delta = q_target - q0
+        if np.max(np.abs(delta)) < 1e-9:
+            return True
+        dt = 2 * self.m.opt.timestep
+        # 五次进度曲线最大导数 1.875；关节保持相同比例，不逐关节截断。
+        duration = max(0.06, 1.875 * np.max(np.abs(delta) / (VMAX * speed * 0.5)))
+        n = int(np.ceil(duration / dt))
+        for i in range(n):
+            u = (i + 1) / n
+            s = 10*u**3 - 15*u**4 + 6*u**5
+            self.cmd = q0 + s * delta
             self.d.ctrl[self.aadr] = self.cmd
             mujoco.mj_step(self.m, self.d)
             mujoco.mj_step(self.m, self.d)
+            if observe is not None and not observe():
+                # 异常停止：保持当前测量位置，避免继续追赶后续命令。
+                self.cmd = self.d.qpos[self.qadr].copy()
+                self.d.ctrl[self.aadr] = self.cmd
+                return False
             if self.tick:
                 self.tick()
+        return True
+
+    def execute_insertion(self, plan, approach, cut, log):
+        """执行同姿态进刀，逐命令检查真实轨迹；失败不进入闭爪状态。"""
+        self.stage = 'STRAIGHT INSERT'
+        self._last_path = [q.copy() for q in plan['insertion']]
+        axis = (cut - approach) / np.linalg.norm(cut - approach)
+        samples, deviations, rotations, penetrations = [], [], [], []
+
+        def observe():
+            p = self.tcp_pos().copy()
+            v = p - approach
+            off = np.linalg.norm(v - (v @ axis) * axis)
+            R = self.d.xmat[self.tool_frame].reshape(3, 3)
+            angle = np.linalg.norm(self._rotation_error(plan['rotation'], R))
+            pen = max((max(0.0, -float(c.dist)) for c in self.d.contact[:self.d.ncon]
+                       if self._forbidden_pair(c.geom1, c.geom2)), default=0.0)
+            samples.append(p); deviations.append(off); rotations.append(angle); penetrations.append(pen)
+            return (off <= 0.01 and angle <= 0.05 and pen <= 0.003 and
+                    np.max(np.abs(self.d.qpos[self.qadr] - self.cmd)) <= 0.08)
+
+        ok = observe()
+        if ok:
+            for q in plan['insertion'][1:]:
+                if not self._walk_to(q, speed=0.5, observe=observe):
+                    ok = False
+                    break
+        if ok:
+            for i in range(100):
+                mujoco.mj_step(self.m, self.d)
+                if i % 2 == 0:
+                    if not observe():
+                        ok = False
+                        break
+                    if self.tick:
+                        self.tick()
+        e = float(np.linalg.norm(self.tcp_pos() - cut))
+        log.update(reach_err=round(e, 4),
+                   insertion_path_mm=round(float(np.linalg.norm(np.diff(samples, axis=0), axis=1).sum()) * 1000, 2),
+                   insertion_deviation_mm=round(max(deviations) * 1000, 2),
+                   insertion_rotation_deg=round(float(np.degrees(max(rotations))), 2),
+                   insertion_penetration_mm=round(max(penetrations) * 1000, 2))
+        ok = ok and e <= 0.005 and rotations[-1] <= 0.03
+        if not ok:
+            self._last_path = None  # 未走完的路径不能冒充可原路回撤的历史。
+            self.cmd = self.d.qpos[self.qadr].copy()
+            self.d.ctrl[self.aadr] = self.cmd
+        return ok
 
     def goto_reverse(self, speed=0.8):
         """沿上一条规划路径反向退回 (抓取位姿常在自己植株茎秆的包围袋里, 原路是唯一通道)。"""
         path = getattr(self, '_last_path', None)
         if not path:
             return False
-        for wp in path[::-1]:
+        # 当前负载可能改变接触，退出前重新核对臂自碰撞/环境碰撞。
+        previous = self.cmd
+        for wp in path[-2::-1]:
+            if not self._seg_free(previous, wp):
+                self._last_path = None
+                return False
+            previous = wp
+        for wp in path[-2::-1]:
             self._walk_to(wp, speed=speed)
         self._last_path = None
         return True
 
-    def goto(self, target, iters=300, axis_target=None, speed=0.8, q6_target=None):
-        """规划-执行: 离线解算 -> RRT 无碰规划 (直线优先) -> 沿航点关节空间插值。
-        q6_target: 轴对齐模式下 wrist3 (工具绕轴 roll) 的绝对目标角 [rad] ——
-        剪切判据对 roll 不变量, 用来把指部凸包转离主茎 (2026-10-17)。"""
+    def goto(self, target, iters=300, axis_target=None, speed=0.8):
+        """离线解算 -> 碰撞规划 -> 同步关节插值；直线进刀由 plan_cut 单独处理。"""
         target = np.asarray(target, dtype=float)
         if self.cmd is None:
             self.cmd = self.d.qpos[self.qadr].copy()   # 命令重锚到实测
@@ -428,10 +581,6 @@ class Picker:
                     break
                 tgt = tgt + e_vec              # 补偿: 下轮目标加上残差
             q_t = q_best
-            if q_t is not None and q6_target is not None:
-                q_t = q_t.copy()
-                q_t[5] = np.clip(q6_target, -(3.0543 - JOINT_MARGIN),
-                                 3.0543 - JOINT_MARGIN)
         else:
             q_t = self.solve_ik(target, iters=iters)
         if q_t is None:
@@ -461,14 +610,18 @@ class Picker:
         grip = self.m.equality(f'grip_{truss}').id
         return hold, grip
 
-    def harvest(self, truss, snap=None, axis_grasp=False):
-        """对一串果执行完整采集. truss 形如 '7_1'."""
+    def harvest(self, truss, snap=None, cut_override=None):
+        """对一串果执行完整采集. truss 形如 '7_1'.
+        cut_override: 感知给出的世界系剪切点 (混合方案); None 时用真值 site."""
         m, d = self.m, self.d
         site = f'cut_p{truss.split("_")[0]}_t{truss.split("_")[1]}'
         sid = m.site(site).id
         # 目标点先在 home/lift=0 下读一次世界坐标, 升降只影响臂不影响目标
         mujoco.mj_forward(m, d)
-        cut = d.site_xpos[sid].copy()
+        if cut_override is not None:
+            cut = np.asarray(cut_override, dtype=float).copy()
+        else:
+            cut = d.site_xpos[sid].copy()
         # 接近点: 从果串质心指向 cut 的水平方向外推 8cm (背离主茎朝走道)
         tr_body = m.body(f'truss_{truss.split("_")[0]}_{truss.split("_")[1]}').id
         mujoco.mj_forward(m, d)
@@ -527,59 +680,34 @@ class Picker:
         self.reset(lift=lift)
         self.set_lift(lift)
 
-        self.stage = 'LIFT & APPROACH'
-        # 工具 roll 搜索 (2026-10-17): 剪切判据是绕工具轴 roll 的不变量, 而指部凸包
-        # 相对主茎的穿透随 roll 变化 —— 用 wrist3 旋转选"穿透最小且判据仍命中"的
-        # roll 偏置, 从根上消除下扎段指-主茎接触 (它是闭合前抖动的激励源)。
+        self.stage = 'PLAN CUT'
+        self.cmd = d.qpos[self.qadr].copy()
         _pp, _kk = truss.split('_')
         att_w = d.site_xpos[m.site(f'attach_p{_pp}_t{_kk}').id].copy()
-        q_b0 = self.solve_ik(cut, iters=800, axis_target=to_robot)
-        roll_deg, roll_pen = 0.0, float('inf')
-        if q_b0 is not None:
-            for deg in (0, -105, -90, -120, -75, -60, -135, -45, -150, -165, -180,
-                        15, 30, 45, 60, 75, 90, 105, 120, 135, 150, 165):
-                qt = q_b0.copy()
-                qt[5] = np.clip(q_b0[5] + np.radians(deg),
-                                -(3.0543 - JOINT_MARGIN), 3.0543 - JOINT_MARGIN)
-                pen = self.penetration(qt)
-                if pen < roll_pen and self.shear_hit_at(qt, cut, att_w):
-                    roll_pen, roll_deg = pen, float(deg)
-        log['b_roll_deg'] = roll_deg
-        log['b_stem_pen_mm'] = round(roll_pen * 1000, 1)
-        q6_tgt = None
-        if q_b0 is not None and roll_deg:
-            q6_tgt = float(np.clip(q_b0[5] + np.radians(roll_deg),
-                                   -(3.0543 - JOINT_MARGIN), 3.0543 - JOINT_MARGIN))
-        print('  [roll] wrist3 目标 %s rad (偏置 %.0f°), 静态穿透 %.1f mm' % (
-            '%.2f' % q6_tgt if q6_tgt is not None else 'n/a', roll_deg,
-            roll_pen * 1000), flush=True)
-        # approach = 开放空间路点 (纯位置); B = 横剪抓取位姿 (工具轴水平指向走道侧,
-        # TCP 停在剪切点 —— 与 approach 位姿同族, 过渡小, 腕部不进口果堆)
-        okC, eC = self.goto(approach, iters=600)
-        if q6_tgt is not None:
-            # 先滚: 在接近点 (离植株 10cm 的开放空间) 完成工具 roll, 再直线下扎 ——
-            # 否则 90° 旋转会在果簇旁扫过手指, 动态接触反而增加 (2026-10-17 实测)
-            q_ap = self.solve_ik(approach, iters=600)
-            if q_ap is not None:
-                q_ap[5] = q6_tgt
-                self._walk_to(q_ap, speed=0.6)
-        if axis_grasp:
-            okB, eB = self.goto(cut, iters=800, axis_target=to_robot,
-                                q6_target=q6_tgt)
-            if not okB:
-                # 轴对齐对该株几何无解 (可达性约束) -> 回退纯位置, 记录标注
-                print('  [harvest] 轴对齐抓取无解, 回退纯位置 B', flush=True)
-                okB, eB = self.goto(cut, iters=800)
-                log['axis_grasp'] = False
-        else:
-            okB, eB = self.goto(cut, iters=800)
+        plan = self.plan_cut(cut, approach, to_robot, att_w)
+        if plan is None:
+            log['result'] = 'cut_path_unavailable'
+            self.stage = 'CUT PATH UNAVAILABLE'
+            return log
+        log.update(axis_grasp=True, b_roll_deg=float(plan['roll_deg']),
+                   b_stem_pen_mm=round(plan['penetration'] * 1000, 2))
+        print('  [cut plan] roll=%d°, 直线进刀=%d点, 最大静态穿透=%.2fmm' % (
+            plan['roll_deg'], len(plan['insertion']), plan['penetration'] * 1000), flush=True)
+        self.stage = 'PREPARE CUT POSE'
+        for q in plan['approach'][1:]:
+            self._walk_to(q, speed=0.6)
+        self._steps(100)
+        mujoco.mj_forward(m, d)
+        eC = float(np.linalg.norm(self.tcp_pos() - approach))
         log['approach_err'] = round(eC, 4)
-        log['reach_err'] = round(eB, 4)
-        # B 点成败由任务判据决定 (果柄是否落入剪切区), 而非毫米级 TCP 误差 ——
-        # 最后进冠层的物理接触会顶偏爪子 (真实机器同样接触植株)
-        if not okC:
-            log['result'] = 'unreachable'
-            self.stage = 'UNREACHABLE'
+        R = d.xmat[self.tool_frame].reshape(3, 3)
+        if eC > 0.005 or np.linalg.norm(self._rotation_error(plan['rotation'], R)) > 0.03:
+            log['result'] = 'approach_tracking_failed'
+            self.stage = 'APPROACH TRACKING FAILED'
+            return log
+        if not self.execute_insertion(plan, approach, cut, log):
+            log['result'] = 'insertion_tracking_failed'
+            self.stage = 'INSERTION TRACKING FAILED'
             return log
         self.stage = 'CLOSE & CUT'
         # 剪切判据 (确定性几何): 果柄线段 (attach->cut, 即要剪的那段) 与夹爪剪切区盒相交
@@ -679,11 +807,20 @@ class Picker:
         log['result'] = 'cut'
         if snap:
             self._snap('_cut')
-        # 剪断后果串垂挂在爪下 (论文 Figure 18d-e): 运输全程保持工具竖直向上
+        # 完整进刀路径倒序退出冠层，再进入筐上方的自由空间运动。
+        self.stage = 'RETRACT FROM PLANT'
+        retract_start = self.tcp_pos().copy()
+        if not self.goto_reverse(speed=0.5):
+            log['result'] = 'retract_blocked'
+            self.stage = 'RETRACT BLOCKED'
+            return log
+        self._steps(100)
+        log['retract_distance_mm'] = round(float(np.linalg.norm(self.tcp_pos() - retract_start)) * 1000, 2)
+        if np.linalg.norm(self.tcp_pos() - approach) > 0.005:
+            log['result'] = 'retract_tracking_failed'
+            self.stage = 'RETRACT TRACKING FAILED'
+            return log
         self.stage = 'TRANSPORT TO BASKET'
-        DOWN = np.array([0.0, 0.0, -1.0])
-        UP = np.array([0.0, 0.0, 1.0])
-        self.goto_reverse()   # 沿原规划路径倒回 (唯一通道)
         bw = self.basket_above()
         # 高空绕行路点: 先到筐上方 30cm (从上方越过筐口), 再降落到筐口上方 —— 把
         # 一次性大跨度的规划拆成两个小问题 (车体真实碰撞后直连规划易失败)
@@ -800,9 +937,10 @@ class Picker:
             pass
 
 
-def run_chain(pk, z_lo=1.0, z_hi=1.55, target=None):
+def run_chain(pk, z_lo=1.0, z_hi=1.55, target=None, percept=False, weights=None):
     """链路验证: 真值挑最好摘的一串 -> 驶到最佳站点 -> 有碰撞环境下完成采摘。
-    target 指定时跳过选串 (用于演示特定目标, 仍会驶到其站点)。"""
+    target 指定时跳过选串 (用于演示特定目标, 仍会驶到其站点)。
+    percept=True: 混合方案 (stem=分割真值, tomato/trunk=真机 YOLO), 用感知剪切点替代真值。"""
     if target:
         pk.reset()
         cut = pk.cut_site_pos(f'cut_p{target.split("_")[0]}_t{target.split("_")[1]}')
@@ -831,7 +969,18 @@ def run_chain(pk, z_lo=1.0, z_hi=1.55, target=None):
     pk.stage = 'DRIVE TO STATION'
     x = pk.drive_to(station)
     print('已到站 x=%.3f' % x)
-    log = pk.harvest(name, axis_grasp=True)
+    cut_use, pr = None, None
+    if percept:
+        import sim_perception
+        pr = sim_perception.perceive(name, station, weights, gt_cut=cut)
+        print('  [percept] ' + json.dumps(pr, ensure_ascii=False))
+        if not pr.get('ok'):
+            print('  [percept] 感知失败, 链路中止 (不降级到真值)')
+            return pr
+        cut_use = pr['world_xyz']
+    log = pk.harvest(name, cut_override=cut_use)
+    if pr is not None:
+        log['percept'] = pr
     log['station'] = round(station, 3)
     log['stem_clearance'] = round(c0, 3)
     print(json.dumps(log, ensure_ascii=False, indent=1))
@@ -870,6 +1019,9 @@ def main():
     ap.add_argument('--target', default=None, help='果串名, 如 7_1; 默认挑最近成熟串')
     ap.add_argument('--reach', action='store_true')
     ap.add_argument('--chain', action='store_true', help='链路验证: 驶到最佳站点摘一串')
+    ap.add_argument('--percept', action='store_true',
+                    help='混合方案: stem=渲染分割真值, tomato/trunk=真机 YOLO')
+    ap.add_argument('--weights', default='/home/lcw/robot_ws_dev/tomato-seg2025063018-yolov8-xucan.pt')
     args = ap.parse_args()
     if args.reach:
         reachability()
@@ -877,7 +1029,7 @@ def main():
     pk = Picker()
     mujoco.mj_resetDataKeyframe(pk.m, pk.d, 0)
     if args.chain:
-        run_chain(pk, target=args.target)
+        run_chain(pk, target=args.target, percept=args.percept, weights=args.weights)
         return
     mujoco.mj_forward(pk.m, pk.d)
     base = pk.d.xpos[pk.m.body('arm_base_mount').id]

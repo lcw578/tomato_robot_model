@@ -38,6 +38,26 @@ CAM_TITLES = {
 }
 
 
+class YoloOverlay:
+    """相机窗口的 YOLO 实时标注 (按相机缓存, 限频)."""
+    def __init__(self, weights, fps=5.0):
+        from ultralytics import YOLO
+        self.model = YOLO(weights)
+        self.period = 1.0 / max(fps, 0.5)
+        self.last = {}
+
+    def annotate(self, cam, bgr):
+        now = time.time()
+        hit = self.last.get(cam)
+        if hit is not None and now - hit[0] < self.period:
+            return hit[1]
+        res = self.model.predict(bgr, imgsz=640, conf=0.35, iou=0.5,
+                                 device='cuda', verbose=False)[0]
+        ann = res.plot()
+        self.last[cam] = (now, ann)
+        return ann
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--target', default=None)
@@ -46,11 +66,18 @@ def main():
     ap.add_argument('--follow', action='store_true', help='MP4 也用跟随视角 (默认固定机位)')
     ap.add_argument('--mp4', default=None, help='导出 MP4 (无显示器模式, 默认垄道端点固定机位)')
     ap.add_argument('--chain', action='store_true', help='链路模式: 驶到最佳站点摘一串 (含底盘移动)')
+    ap.add_argument('--percept', action='store_true',
+                    help='混合感知: stem=分割真值, tomato/trunk=真机 YOLO (需 conda env tomato_sim)')
+    ap.add_argument('--weights', default='/home/lcw/robot_ws_dev/tomato-seg2025063018-yolov8-xucan.pt')
     ap.add_argument('--cams', action='store_true', help='另开三路 RealSense 相机实时窗口 (仅实时模式, ESC 退出)')
     ap.add_argument('--cam-scale', type=float, default=0.5, help='相机窗口渲染缩放 (1.0=原生分辨率)')
     ap.add_argument('--cam-fps', type=float, default=10.0, help='相机窗口刷新率上限 (Hz)')
     ap.add_argument('--no-cam-record', action='store_true',
                     help='--cams 时不录制三路相机 MP4 (默认录制到 docs/cams_<target>/)')
+    ap.add_argument('--yolo-overlay', action='store_true',
+                    help='--cams 时在相机画面上叠加真机 YOLO 的框/掩码')
+    ap.add_argument('--yolo-fps', type=float, default=5.0,
+                    help='YOLO 叠加推理频率上限 (Hz)')
     ap.add_argument('--sync-every', type=int, default=2, help='查看器同步间隔 (步; 调大可加快实时模式)')
     ap.add_argument('--azim', type=float, default=0.0)
     ap.add_argument('--elev', type=float, default=-14.0)
@@ -101,7 +128,7 @@ def main():
             vw.write(img)
         tick.n = 0
         pk.tick = tick
-        log = run_chain(pk, target=args.target) if args.chain else pk.harvest(target)
+        log = run_chain(pk, target=args.target, percept=args.percept, weights=args.weights) if args.chain else pk.harvest(target)
         r.close()
         vw.release()
         print('MP4 已保存:', args.mp4)
@@ -129,6 +156,13 @@ def main():
                     os.path.join(cam_out, fn), cv2.VideoWriter_fourcc(*'mp4v'),
                     max(1.0, float(args.cam_fps)), (ww, hh))
             print('三路相机录制 ->', cam_out)
+    overlay = None
+    if args.cams and args.yolo_overlay:
+        try:
+            overlay = YoloOverlay(args.weights, fps=args.yolo_fps)
+            print('YOLO 实时标注已启用 (weights=%s, %.1f Hz)' % (args.weights, args.yolo_fps))
+        except Exception as exc:
+            print('YOLO 标注启用失败 (需要 conda env tomato_sim):', exc)
 
     try:
         with mujoco.viewer.launch_passive(pk.m, pk.d) as v:
@@ -137,9 +171,16 @@ def main():
             last_cam = [0.0]
 
             def show_cams():
+                nonlocal overlay
                 for c, r in renderers.items():
                     r.update_scene(pk.d, camera=c)
                     frame = cv2.cvtColor(r.render(), cv2.COLOR_RGB2BGR)
+                    if overlay is not None:
+                        try:
+                            frame = overlay.annotate(c, frame)
+                        except Exception as exc:
+                            print('YOLO 标注失败:', exc)
+                            overlay = None
                     if c in cam_writers:
                         cam_writers[c].write(frame)     # 与窗口同帧录制
                     cv2.imshow(CAM_TITLES[c], frame)
@@ -171,7 +212,7 @@ def main():
             pk.tick = tick
             aborted = False
             try:
-                log = run_chain(pk, target=args.target) if args.chain else pk.harvest(target)
+                log = run_chain(pk, target=args.target, percept=args.percept, weights=args.weights) if args.chain else pk.harvest(target)
                 print('log:', log)
             except KeyboardInterrupt:
                 aborted = True

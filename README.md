@@ -1,7 +1,7 @@
 # 番茄采摘机器人整机 MuJoCo 模型
 
 AUBO i5 机械臂 + 自研夹爪 + 轨道底盘的整机 MuJoCo 模型，含三台 RealSense 相机传感器帧、
-温室环境与采摘闭环（真值选串 → 沿轨道行驶到站点 → 剪切 → 搬运 → 进筐，路径零穿透已验证）。
+温室环境与采摘闭环（真值选串 → 沿轨道行驶到站点 → 剪切 → 搬运 → 进筐，含碰撞规划与轨迹执行检查）。
 主模型：[`model/tomato_picker.xml`](model/tomato_picker.xml)。
 
 ## 快速开始
@@ -21,9 +21,17 @@ python3 observe_cameras.py
 
 # 采摘链路：真值选最好摘的一串 → 驶到站点 → 剪切 → 搬运 → 进筐
 python3 tools/harvest_demo.py --chain
+
+# 指定 9_1：外侧完成剪切姿态准备 → 固定姿态直线进刀 → 原路回撤
+python3 tools/harvest_view.py --chain --target 9_1
+
+# 运动执行与规划回归测试
+python3 -m unittest discover -s tools -p 'test_harvest_motion.py' -v
 ```
 
 依赖：`mujoco>=3.3`、`opencv-python`（观测/可视化脚本用）。
+
+2026-10-17 进刀轨迹修复、误差与碰撞容差见 [模型记录](docs/model_notes.md)。
 
 ## 项目结构
 
@@ -87,6 +95,8 @@ robot_assembly/
 python3 tools/harvest_demo.py                  # 自动挑最近成熟串: 接近→剪切→搬运→筐上释放→进筐判定
 python3 tools/harvest_demo.py --target 6_1     # 指定果串
 python3 tools/harvest_demo.py --chain          # 链路: 真值选最好摘的串 → 驶到站点 → 采摘进筐
+python3 tools/harvest_demo.py --chain --target 9_1 --percept   # P0-2 试点: stem=分割真值, tomato/trunk=真机 YOLO
+                                                               # (需 /home/lcw/anaconda3/envs/tomato_sim/bin/python)
 python3 tools/harvest_demo.py --chain --target 9_1   # 链路 + 指定目标 (驶到其站点; 前排目标动作更直接)
 python3 tools/harvest_demo.py --reach          # 全部果串 IK 可达性抽检
 ```
@@ -112,6 +122,8 @@ python3 tools/harvest_view.py                    # 实时查看器, 相机跟随
 python3 tools/harvest_view.py --chain            # 链路模式 (含底盘行驶)
 python3 tools/harvest_view.py --chain --cams     # 链路 + 三路 RealSense 相机窗口同屏 (ESC 退出)
 python3 tools/harvest_view.py --chain --target 9_1 --cams   # 指定目标链路 (演示推荐: 前排, 无跨车回转)
+python3 tools/harvest_view.py --chain --target 9_1 --percept --cams --yolo-overlay
+                                                 # 相机窗口叠加真机 YOLO 框/掩码 (conda env tomato_sim)
 python3 tools/harvest_view.py --mp4 docs/x.mp4   # 无显示器导出 MP4 (带阶段标签)
 ```
 效果样例：[`docs/harvest_demo.mp4`](docs/harvest_demo.mp4)（单串 20 s）、

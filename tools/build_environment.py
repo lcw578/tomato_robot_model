@@ -20,6 +20,7 @@
 """
 import json, os, re, shutil, struct, subprocess, sys
 import numpy as np
+from scipy.spatial import cKDTree
 
 sys.path.insert(0, '/data/robot_assembly/tools')
 from geomlib import load_stl
@@ -187,6 +188,62 @@ def pick_cut(markers, faces, vs, cane, px, py, cut_legacy):
     return cut_legacy, 'legacy55', float('nan')          # 顶果贴茎 (资产受限)
 
 
+def pick_stalk(vine_cent, start_pt, stem_r, taken, blocked, d_cane,
+               max_len=0.30, step=0.05, tube_r=0.008):
+    """单条果柄枝选取 (2026-10-17): 以 cut 为种子做测地 Dijkstra (主干面视为墙,
+    果簇侧屏蔽), 取最远可达面为枝端; 只保留"种子->枝端"路径的管状邻域。
+    与测地球版本相比, 不会把附近花梗/侧枝一起吞进来。"""
+    n = len(vine_cent)
+    if n == 0:
+        return None
+    tree = cKDTree(vine_cent)
+    seeds = [i for i in tree.query_ball_point(start_pt, 0.06)
+             if i not in taken and not blocked[i]]
+    if not seeds:
+        seeds = [i for i in tree.query_ball_point(start_pt, 0.10)
+                 if i not in taken and not blocked[i]]
+    if not seeds:
+        return None
+    import heapq
+    dist = np.full(n, np.inf)
+    parent = np.full(n, -1, dtype=int)
+    heap = [(0.0, int(s)) for s in seeds]
+    for s in seeds:
+        dist[s] = 0.0
+    heapq.heapify(heap)
+    wall = d_cane < stem_r + 0.004
+    while heap:
+        du, u = heapq.heappop(heap)
+        if du > dist[u] or du > max_len:
+            continue
+        for v in tree.query_ball_point(vine_cent[u], step):
+            v = int(v)
+            if v == u or blocked[v] or wall[v]:
+                continue
+            nd = du + float(np.linalg.norm(vine_cent[v] - vine_cent[u]))
+            if nd <= max_len and nd < dist[v]:
+                dist[v] = nd
+                parent[v] = u
+                heapq.heappush(heap, (nd, v))
+    cand = [i for i in range(n) if np.isfinite(dist[i]) and i not in taken]
+    if not cand:
+        return None
+    end_idx = max(cand, key=lambda i: dist[i])
+    tube = set()
+    u = end_idx
+    while u != -1:
+        for v in tree.query_ball_point(vine_cent[u], tube_r):
+            v = int(v)
+            if v in taken or blocked[v] or wall[v]:
+                continue
+            tube.add(v)
+        u = parent[u]
+    if os.environ.get('STALKDBG'):
+        print('    [stalkdbg] seeds=%d tube=%d len=%.3f' % (
+            len(seeds), len(tube), float(dist[end_idx])))
+    return tube, float(dist[end_idx])
+
+
 # ---------------------------------------------------------------- 单株处理
 def prep_variant(vname, px, py):
     vdir = f'{FARM}/asset_extract/out/variants/{vname}'
@@ -269,6 +326,15 @@ def prep_variant(vname, px, py):
         tt = np.clip((vc - a_o) @ ab / (ab @ ab), 0, 1)
         d_cane = np.linalg.norm(vc - (a_o + np.outer(tt, ab)), axis=1)
         cane_blocked = d_cane < STEM_R + 0.006
+        # 面的最近顶点到藤轴距离 (主干面是长三角形, 质心会偏大)
+        Vv = vs[face_verts_idx(vine_faces)]
+        relV = Vv - a_o
+        ttV = np.clip(relV @ ab / (ab @ ab), 0, 1)
+        dV = np.linalg.norm(relV - ttV[..., None] * ab, axis=2)
+        d_cane_face = dV.min(axis=1)
+    else:
+        d_cane_face = None
+        a_o = b_o = None
     for ki, k in enumerate(sorted(trusses)):
         t = trusses[k]
         sel = tr_of_face == ki
@@ -295,9 +361,38 @@ def prep_variant(vname, px, py):
         # 形全排除; 也无需邻接图泛洪 (vine 顶点按面复制, 索引邻接本就为空)。
         n_rachis = 0
         rmax_val = None
+        n_stalk = 0
+        stalk_len = None
         if cane_blocked is not None:
+            # 1) 真实果柄枝先选 (2026-10-17, 用户确认): 从 cut 沿 vine 面空间图
+            # 走到主茎表面; 果簇侧屏蔽 (防路径钻进果堆)。先选它, 是因为穗轴门
+            # (簇半径+2cm) 会先把簇顶附近的果柄枝条收走。
+            cluster_side = ((vc - cut) @ (ctr - cut) > 0) & (
+                np.linalg.norm(vc - ctr, axis=1) < t['radius'] + 0.02)
+            # legacy55 的 cut 在果簇内部, 种子取"簇顶果实上方 5cm", 沿枝条向上生长
+            start_pt = cut
+            if cut_mode == 'legacy55':
+                start_pt = np.array(t['markers'][np.argmax(t['markers'][:, 1])]) + np.array([0, 0.05, 0])
+            if os.environ.get('STALKDBG'):
+                print('    [stalkdbg] %s_t%d' % (vname, k))
+            res = pick_stalk(vc, start_pt, STEM_R, vine_sel_all,
+                             cluster_side, d_cane_face)
+            if res is not None:
+                tube, path_len = res
+                tube = {i for i in tube if i not in vine_sel_all}
+                if tube:
+                    vine_sel_all.update(tube)
+                    emit_obj(f'{PLANT_DIR}/{vname}_stalk_{k}.obj', vs, vts,
+                             [vine_faces[i] for i in tube])
+                    n_stalk = len(tube)
+                    stalk_len = round(path_len, 3)
+            # 2) 簇内穗轴面选取 (方案 B 修正版 2, 2026-10-17 用户反馈): 硬空间门按
+            # 面的**全部顶点**判 —— 顶点到簇心距离全部 < 簇半径+2cm 才收。
+            # 教训链: 首版泛洪无空间门, 沿侧枝把整段枝条搬进筐; 二版按"质心"设门,
+            # 被细长连接三角形泄漏 (两顶点在簇内、一顶点在 1.2m 外主干上, 质心仍能
+            # 过门) —— 横在筐上的长杆即此。顶点门下穗轴/果蒂全收, 侧枝/主干/长三角
+            # 形全排除; 也无需邻接图泛洪 (vine 顶点按面复制, 索引邻接本就为空)。
             R_cl = t['radius']
-            ctr = t['centroid']
             Vd = np.linalg.norm(vs[face_verts_idx(vine_faces)] - ctr, axis=2)
             vmax = Vd.max(axis=1)                       # 面的最远顶点到簇心
             sel = np.where((vmax < R_cl + 0.02) & ~cane_blocked)[0]
@@ -319,13 +414,14 @@ def prep_variant(vname, px, py):
                                    spheres=spheres, cut=cut, attach=attach, dirc=dirc,
                                    ctr_rel=ctr - cut, cut_mode=cut_mode,
                                    cut_clear=cut_clear, rachis=n_rachis,
-                                   rachis_rmax=rmax_val))
+                                   rachis_rmax=rmax_val, stalk=n_stalk,
+                                   stalk_len=stalk_len))
     if vine_sel_all:
         keep = [f for i, f in enumerate(vine_faces) if i not in vine_sel_all]
         emit_obj(f'{PLANT_DIR}/{vname}_vine.obj', vs, vts, keep)
-        print(f'  {vname}: 簇内穗轴面迁出 {len(vine_sel_all)}/{len(vine_faces)} ('
-              + ', '.join(f"t{t['k']}:{t['rachis']}面,顶点半径≤{t['rachis_rmax']:.2f}m"
-                          for t in out['trusses'] if t['rachis'])
+        print(f'  {vname}: 穗轴/果柄面迁出 {len(vine_sel_all)}/{len(vine_faces)} ('
+              + ', '.join(f"t{t['k']}:穗轴{t['rachis']}+柄{t['stalk']}面"
+                          for t in out['trusses'] if t['rachis'] or t['stalk'])
               + ')')
     return out
 
@@ -343,6 +439,18 @@ assets += mat_block('mat_green', 'frt4', RIP_RGBA['green'])
 assets += mat_block('mat_vine', 'brn1', '0.36 0.25 0.12 1')
 assets += mat_block('mat_leaf', 'lef1', '0.22 0.45 0.15 1')
 assets += mat_block('mat_blossom', 'blo1', '0.95 0.85 0.30 1')
+# 绿色果柄贴图 (2026-10-17 视觉测试): 由枝干贴图 brn1 调色 —— 贴图比纯色更接近
+# 真机果柄; 只用于穗轴/果柄视觉, 不参与碰撞
+try:
+    from PIL import Image as _Image
+    _a = np.asarray(_Image.open(f'{TEX_DIR}/brn1.png').convert('RGB')).astype(np.float32)
+    _a[..., 0] *= 0.62
+    _a[..., 1] *= 1.12
+    _a[..., 2] *= 0.55
+    _Image.fromarray(np.clip(_a, 0, 255).astype(np.uint8)).save(f'{TEX_DIR}/ped1.png')
+except Exception as _e:
+    print('果柄贴图生成失败, 用纯色:', _e)
+assets += mat_block('mat_peduncle', 'ped1', '0.33 0.50 0.16 1')
 
 # ---------------------------------------------------------------- 植株/果串
 plant_bodies, truss_bodies, welds, truss_qpos = [], [], [], []
@@ -396,8 +504,15 @@ for p, vname in enumerate(VARIANTS):
             assets.append(f'    <mesh name="m_{vname}_rachis{t["k"]}" '
                           f'file="meshes/env/plants/{vname}_rachis{t["k"]}.obj"/>')
         rachis_geom = (f'    <geom name="g_tr{truss_idx}_rachis" type="mesh" '
-                       f'mesh="m_{vname}_rachis{t["k"]}" material="mat_vine" '
+                       f'mesh="m_{vname}_rachis{t["k"]}" material="mat_peduncle" '
                        f'contype="0" conaffinity="0"/>\n') if t.get('rachis') else ''
+        # 真实果柄枝 (2026-10-17): 单独 geom, 供分割渲染给出逐像素 stem 真值掩码
+        if t.get('stalk'):
+            assets.append(f'    <mesh name="m_{vname}_stalk_{t["k"]}" '
+                          f'file="meshes/env/plants/{vname}_stalk_{t["k"]}.obj"/>')
+            body_lines.append(f'    <geom name="g_{vname}_stalk_{t["k"]}" type="mesh" '
+                              f'mesh="m_{vname}_stalk_{t["k"]}" material="mat_peduncle" '
+                              f'contype="0" conaffinity="0"/>')
         tx, ty, tz = t['pos']
         # freejoint 必须是顶层 body: 世界位姿 = plant_pos + R@obj_pos, 姿态 = R
         truss_bodies.append(
@@ -429,6 +544,8 @@ for p, vname in enumerate(VARIANTS):
                           f'fromto="{qa[0]:.3f} {qa[1]:.3f} {qa[2]:.3f} '
                           f'{qb[0]:.3f} {qb[1]:.3f} {qb[2]:.3f}" size="0.003" '
                           f'rgba="0 0 0 0" contype="0" conaffinity="0"/>')
+        # 果柄掩码改由真实果柄枝 stalk geom 提供 (2026-10-17) —— 此前的
+        # attach->cut 直线胶囊 g_*_pedvis_* 位置错误, 已删除
         welds.append(f'  <weld name="hold_{p}_{t["k"]}" body1="plant_{p}" body2="truss_{p}_{t["k"]}" '
                      f'active="true" solref="0.005 1"/>')
         welds.append(f'  <weld name="grip_{p}_{t["k"]}" body1="base_link" body2="truss_{p}_{t["k"]}" '

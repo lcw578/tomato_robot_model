@@ -3,6 +3,61 @@
 > 生成日期：2026-09-28。由三路资产拼接而成，生成脚本在 `/data/robot_assembly/`。
 > 快速预览：`python3 -m mujoco.viewer --mjcf=/data/robot_assembly/model/tomato_picker.xml`
 
+## 2026-10-17：9_1 剪切前转腕与绕行修复（当前控制行为）
+
+本节覆盖下文历史记录中的“纯位置接近 → 单独转腕 → 下扎”和“目标连接段允许 32mm 穿透”。
+XML、长柄/穗轴网格、site 透明度和执行器增益均未改动。
+
+- 根因：`_seg_free()` 检查共同进度的关节直线，旧 `_walk_to()` 却逐关节限速、先到先停。
+  9_1 最后约 10cm 进刀实际走 316mm，最大偏离连线 134mm，向下绕行约 90mm。
+  接近点仅约束位置，单独转腕后工具完整姿态仍与剪切姿态相差约 27.9°。
+- 执行：改成六关节共同进度的五次曲线，按 2 个物理步/命令计算持续时间，保持旧有效速度上限
+  `VMAX * speed / 2`。此速度是兼容设置，尚未作真机速度/加速度辨识。
+- 进刀：`plan_cut()` 搜索 roll，先确定剪切完整姿态，再每 5mm 向外连续求解 10cm，
+  同时检查关节连续性、臂-环境及模型启用的自碰撞。候选还必须能从当前状态到达外侧预接近点；
+  在穿透符合容差的候选中兼顾关节变化。姿态使用固定 `base_link`，不使用随夹爪电机转动的
+  `gear_link` 作为完整姿态参考。外侧准备好姿态后才执行直线进刀，无纯位置强行回退。
+- 碰撞：臂自碰撞纳入检查，分段按关节变化加密（最少 8 点、每关节采样间隔不超过 0.02rad）；
+  RRT 两树均使用现有 3mm 容差。修正 A/B 树路径方向和连接点遗漏，路径保存完整起终点。
+  此检查覆盖 XML 启用的接触，不恢复已 exclude 的碰撞对，也不是连续碰撞认证。
+- 执行验收：进刀及到位等待期间按命令周期采样；横向偏差 >10mm、完整姿态误差 >0.05rad、
+  禁碰对穿透 >3mm 或关节跟踪误差 >0.08rad 时停止；最终位置须 ≤5mm、姿态误差 ≤0.03rad
+  才进入闭爪。失败返回 `cut_path_unavailable` / `approach_tracking_failed` /
+  `insertion_tracking_failed`，不执行剪切切换。
+- 回撤：保存完整进刀轨迹，剪切后检查并倒序回到外侧 10cm；失败返回 `retract_blocked` /
+  `retract_tracking_failed`。尚未增加携带果串的独立负载包络规划，果串接触仍按原物理掩码处理。
+
+验证命令（项目目录执行）：
+
+```bash
+python3 -m unittest discover -s tools -p 'test_harvest_motion.py' -v
+python3 tools/harvest_demo.py --chain --target 9_1
+python3 tools/harvest_demo.py --chain
+python3 tools/harvest_demo.py --chain --target 1_2
+python3 tools/harvest_demo.py --chain --target 6_1
+python3 tools/harvest_view.py --chain --target 9_1
+```
+
+11 项自动测试通过，包含同步比例/速度、两树拼接、目标碰撞、回撤起点、异常保持、连续姿态 IK、
+进刀越界拒绝、规划失败不闭爪/不切 weld。
+
+| 目标 | lift | 最大进刀横向偏差 | 最大工具姿态误差 | 实际回撤 | 结果 |
+| --- | --- | --- | --- | --- | --- |
+| 9_1 | 0 | 1.77mm | 0.11° | 100.04mm | shear_hit / in_basket |
+| 0_2（默认） | 0 | 1.30mm | 0.22° | 99.97mm | shear_hit / in_basket |
+| 1_2 | 0.25m | 0.66mm | 0.15° | 100.01mm | shear_hit / in_basket |
+| 6_1 | 0 | 1.27mm | 0.10° | 99.99mm | shear_hit / in_basket |
+
+9_1 进刀含到位等待实际路径 107.05mm，最终残差约 0.2mm，最大记录穿透 1.04mm；
+另一次完整逐 tick 记录中，姿态准备/进刀/闭爪/回撤/搬运/释放各阶段均未检出启用的臂自碰撞。
+允许轻微穿透，不宣称零接触。`in_basket` 沿用原质心与筐足迹判据，未升级为整串容纳判定；
+1_2 的入筐对准残差仍较大（约 143mm），归置质量是独立待完善项。
+
+轨迹对照见 [harvest_motion_9_1.png](harvest_motion_9_1.png)。新增日志
+`insertion_path_mm / insertion_deviation_mm / insertion_rotation_deg / insertion_penetration_mm /
+retract_distance_mm`。旧字段 `b_stem_pen_mm` 为兼容保留，现表示入选路径采样点的臂-环境/自碰撞
+最大穿透，不限于主茎。
+
 ## 2026-10-01 增补：升降平台 + 温室环境 + 采摘闭环
 
 **升降平台（`tools/patch_lift_body.py`，对 XML 行级手术，幂等性靠先 git checkout）**
@@ -358,6 +413,26 @@
 - 备注: `jaw_clearance_mm` 数值随 roll 变化 (9_1 −5.45→−17.4, 0_2 −13.0) —— 它是
   stemq 代理胶囊与夹爪碰撞几何的最小表面距离, 指部朝向改变会改变重叠量; 语义 (bite/
   不参与成败) 不变。纯位置回退路径 (axis_grasp=False) 不会应用 roll。
+
+**P0-2 试点：9_1 混合感知闭环 (2026-10-17)**
+- 方案: stem 掩码 = 真实果柄枝 stalk geom 的几何投影 (真值几何); tomato/trunk = 真机权重
+  `tomato-seg2025063018-yolov8-xucan.pt` (YOLOv8m-seg, stem/tomato/trunk) 实时推理;
+  下游 = 真机老路径 `stemGrowthAndPoints` (骨架/生长方向/中线采摘点) + 渲染深度 + 仿真外参
+  → 世界剪切点; 真值 site 只用于误差表。
+- 工具: `tools/sim_perception.py` (conda env `tomato_sim`: mujoco 3.3.5 + ultralytics 8.4.179)。
+  三个实测坑: ① ultralytics 的 numpy 输入按 BGR (渲染 RGB 需转换, 否则 tomato 零检出);
+  ② MuJoCo 深度缓冲的"无命中"哨兵 = 459.8 (不是米制), 采摘点需吸附到掩码内有效深度像素;
+  ③ 该 mujoco 版本分割渲染对多 geom 场景抛 `IndexError: segid2output`, 改用 mesh 三角面
+  几何投影生成 stem 掩码 (stalk 是独立 mesh, 投影即精确)。
+- 实测 (9_1, 工位 x=2.0, -y 相机): tomato 0.889; stem_box 305-333 / 346-403; 采摘点
+  (316,376); 深度 0.640m; 感知世界点 (2.397, -0.737, 1.200); 真值 site (2.381, -0.785, 1.160);
+  **误差 65.1mm** (Δx 16.7 / Δy 48.0 / Δz 40.6) —— 主要是"老算法取果柄中点"与
+  "site 在簇顶"的语义差 + 枝条倾斜, 不是深度/像素粗差。
+- 链路 (`--chain --target 9_1 --percept`): **shear_hit ✓ + in_basket ✓**, lift=0,
+  approach/reach 0.0, transport 3.0mm, align 17.6mm; `jaw_clearance=39.25mm` (未咬合;
+  stemq 仍是 attach→真值 cut, 感知点在柄中段, 属预期)。
+- 范围: legacy55/3_1 的建模问题暂不纳入试点; 上部串/花叶在真实采收时不存在, 场景保真
+  后续可做"采收带变体"。
 
 ## 模型结构
 
