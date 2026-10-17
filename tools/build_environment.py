@@ -387,10 +387,12 @@ for p, vname in enumerate(VARIANTS):
             f'<geom name="g_tr{truss_idx}_s{s}" type="sphere" pos="{o[0]:.3f} {o[1]:.3f} {o[2]:.3f}" '
             f'size="{r:.3f}" contype="2" conaffinity="2" rgba="0 0 0 0"/>'
             for s, (o, r) in enumerate(t['spheres']))
+        # 合成果柄 (2026-10-17 定稿): 只保留剪切点向簇内 3cm 的一小截 (r=3mm),
+        # 作用 = 夹爪握持处的视觉衔接 + 接近度日志查询体。植株侧长棒
+        # (attach->cut) 已删: 它是"投影点->剪切点"的直线抽象, 与真实弯曲侧枝/
+        # 果簇不重合 (用户截图确认观感错误); 剪后植株留真实侧枝断口。
         ped_a = np.zeros(3)                     # 柄根 = 剪切点 (body 原点)
-        ped_b = t['ctr_rel']                    # 柄梢: 果簇质心方向
-        if np.linalg.norm(ped_a - ped_b) < 0.02:   # 极短果柄: 保证胶囊最小长度
-            ped_a = -t['dirc'] * 0.02
+        ped_b = t['dirc'] * max(0.012, min(0.03, float(np.linalg.norm(t['ctr_rel']))))
         assets.append(f'    <mesh name="m_{t["mesh"]}" file="meshes/env/plants/{t["mesh"]}.obj"/>')
         # 簇内穗轴网格 (方案 B): 随果串剪走, 纯视觉 (mat_vine), 不参与碰撞
         if t.get('rachis'):
@@ -412,7 +414,7 @@ for p, vname in enumerate(VARIANTS):
             f'contype="0" conaffinity="0"/>\n'
             + rachis_geom +
             f'    {sp}\n'
-            f'    <geom name="g_tr{truss_idx}_ped" type="capsule" '
+            f'    <geom name="g_truss_{p}_{t["k"]}_ped" type="capsule" '
             f'fromto="{ped_a[0]:.3f} {ped_a[1]:.3f} {ped_a[2]:.3f} '
             f'{ped_b[0]:.3f} {ped_b[1]:.3f} {ped_b[2]:.3f}" size="0.004" '
             f'rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>\n'
@@ -423,12 +425,15 @@ for p, vname in enumerate(VARIANTS):
         att = t['attach']
         body_lines.append(f'    <site name="attach_p{p}_t{t["k"]}" pos="{att[0]:.4f} {att[1]:.4f} '
                           f'{att[2]:.4f}" size="0.008" rgba="0 1 1 0.25"/>')
-        aa = t['attach'] - t['dirc'] * 0.015
-        ab2 = t['cut'] + t['dirc'] * 0.005
-        body_lines.append(f'    <geom name="g_{vname}_stub_{t["k"]}" type="capsule" '
-                          f'fromto="{aa[0]:.3f} {aa[1]:.3f} {aa[2]:.3f} '
-                          f'{ab2[0]:.3f} {ab2[1]:.3f} {ab2[2]:.3f}" size="0.004" '
-                          f'rgba="0.36 0.25 0.12 1" contype="4" conaffinity="1"/>')
+        # 隐形查询体 (alpha=0, 不渲染不碰撞): attach->cut 果柄线段的胶囊化身,
+        # 仅供 harvest_demo 闭合时刻接近度日志使用 —— 果串侧短柄在闭合的 500 步里
+        # 已随垂挂插值下放 5cm, 不能再当"爪缝里的果柄" (2026-10-17)
+        qa = t['attach'] - t['dirc'] * 0.015
+        qb = t['cut'] + t['dirc'] * 0.005
+        body_lines.append(f'    <geom name="g_truss_{p}_{t["k"]}_stemq" type="capsule" '
+                          f'fromto="{qa[0]:.3f} {qa[1]:.3f} {qa[2]:.3f} '
+                          f'{qb[0]:.3f} {qb[1]:.3f} {qb[2]:.3f}" size="0.003" '
+                          f'rgba="0 0 0 0" contype="0" conaffinity="0"/>')
         welds.append(f'  <weld name="hold_{p}_{t["k"]}" body1="plant_{p}" body2="truss_{p}_{t["k"]}" '
                      f'active="true" solref="0.005 1"/>')
         welds.append(f'  <weld name="grip_{p}_{t["k"]}" body1="base_link" body2="truss_{p}_{t["k"]}" '

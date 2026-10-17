@@ -574,12 +574,11 @@ class Picker:
             mujoco.mj_step(m, d)
             if self.tick and i % 2 == 0:
                 self.tick()
-        # 闭合时刻接近度 (2026-10-17): 果柄胶囊 (stub, r=4mm=真果柄 Ø8mm) 与夹爪
-        # 碰撞几何的最小表面距离 —— 为"闭合包络判据"提供物理量纲交叉验证。
-        # 纯几何查询 (mj_geomDistance), 不参与成败判定; 理论咬合间隙 ~2.25mm
-        # (全闭开口 12.5mm - 果柄 Ø8mm), <=3mm 记 jaw_bite (咬合)。
+        # 闭合时刻接近度 (2026-10-17): 果柄线段 (attach->cut) 的隐形查询胶囊
+        # (不随垂挂下放移动) 与夹爪碰撞几何的最小表面距离 —— 为"闭合包络判据"
+        # 提供物理量纲交叉验证。纯几何查询, 不参与成败判定; <=3mm 记 jaw_bite。
         mujoco.mj_forward(m, d)
-        stub_id = m.geom(f'g_v{truss.split("_")[0]}_stub_{truss.split("_")[1]}').id
+        stub_id = m.geom(f'g_truss_{truss}_stemq').id
         jaw_d = []
         for gn in ['gear_link_mesh_1'] + [f'{s}_finger_link_mesh_{i}'
                                           for s in ('left', 'right') for i in range(1, 6)]:
