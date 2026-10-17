@@ -381,72 +381,112 @@
     <mesh name="m_v0_leaf" file="meshes/env/plants/v0_leaf.obj"/>
     <mesh name="m_v0_blossom" file="meshes/env/plants/v0_blossom.obj"/>
     <mesh name="m_v0_truss0" file="meshes/env/plants/v0_truss0.obj"/>
+    <mesh name="m_v0_rachis0" file="meshes/env/plants/v0_rachis0.obj"/>
     <mesh name="m_v0_truss1" file="meshes/env/plants/v0_truss1.obj"/>
+    <mesh name="m_v0_rachis1" file="meshes/env/plants/v0_rachis1.obj"/>
     <mesh name="m_v0_truss2" file="meshes/env/plants/v0_truss2.obj"/>
+    <mesh name="m_v0_rachis2" file="meshes/env/plants/v0_rachis2.obj"/>
     <mesh name="m_v0_truss3" file="meshes/env/plants/v0_truss3.obj"/>
+    <mesh name="m_v0_rachis3" file="meshes/env/plants/v0_rachis3.obj"/>
     <mesh name="m_v1_vine" file="meshes/env/plants/v1_vine.obj"/>
     <mesh name="m_v1_leaf" file="meshes/env/plants/v1_leaf.obj"/>
     <mesh name="m_v1_blossom" file="meshes/env/plants/v1_blossom.obj"/>
     <mesh name="m_v1_truss0" file="meshes/env/plants/v1_truss0.obj"/>
+    <mesh name="m_v1_rachis0" file="meshes/env/plants/v1_rachis0.obj"/>
     <mesh name="m_v1_truss1" file="meshes/env/plants/v1_truss1.obj"/>
+    <mesh name="m_v1_rachis1" file="meshes/env/plants/v1_rachis1.obj"/>
     <mesh name="m_v1_truss2" file="meshes/env/plants/v1_truss2.obj"/>
+    <mesh name="m_v1_rachis2" file="meshes/env/plants/v1_rachis2.obj"/>
     <mesh name="m_v1_truss3" file="meshes/env/plants/v1_truss3.obj"/>
+    <mesh name="m_v1_rachis3" file="meshes/env/plants/v1_rachis3.obj"/>
     <mesh name="m_v2_vine" file="meshes/env/plants/v2_vine.obj"/>
     <mesh name="m_v2_leaf" file="meshes/env/plants/v2_leaf.obj"/>
     <mesh name="m_v2_blossom" file="meshes/env/plants/v2_blossom.obj"/>
     <mesh name="m_v2_truss0" file="meshes/env/plants/v2_truss0.obj"/>
+    <mesh name="m_v2_rachis0" file="meshes/env/plants/v2_rachis0.obj"/>
     <mesh name="m_v2_truss1" file="meshes/env/plants/v2_truss1.obj"/>
+    <mesh name="m_v2_rachis1" file="meshes/env/plants/v2_rachis1.obj"/>
     <mesh name="m_v2_truss2" file="meshes/env/plants/v2_truss2.obj"/>
+    <mesh name="m_v2_rachis2" file="meshes/env/plants/v2_rachis2.obj"/>
     <mesh name="m_v2_truss3" file="meshes/env/plants/v2_truss3.obj"/>
+    <mesh name="m_v2_rachis3" file="meshes/env/plants/v2_rachis3.obj"/>
     <mesh name="m_v3_vine" file="meshes/env/plants/v3_vine.obj"/>
     <mesh name="m_v3_leaf" file="meshes/env/plants/v3_leaf.obj"/>
     <mesh name="m_v3_blossom" file="meshes/env/plants/v3_blossom.obj"/>
     <mesh name="m_v3_truss0" file="meshes/env/plants/v3_truss0.obj"/>
+    <mesh name="m_v3_rachis0" file="meshes/env/plants/v3_rachis0.obj"/>
     <mesh name="m_v3_truss1" file="meshes/env/plants/v3_truss1.obj"/>
+    <mesh name="m_v3_rachis1" file="meshes/env/plants/v3_rachis1.obj"/>
     <mesh name="m_v3_truss2" file="meshes/env/plants/v3_truss2.obj"/>
+    <mesh name="m_v3_rachis2" file="meshes/env/plants/v3_rachis2.obj"/>
     <mesh name="m_v3_truss3" file="meshes/env/plants/v3_truss3.obj"/>
+    <mesh name="m_v3_rachis3" file="meshes/env/plants/v3_rachis3.obj"/>
     <mesh name="m_v4_vine" file="meshes/env/plants/v4_vine.obj"/>
     <mesh name="m_v4_leaf" file="meshes/env/plants/v4_leaf.obj"/>
     <mesh name="m_v4_blossom" file="meshes/env/plants/v4_blossom.obj"/>
     <mesh name="m_v4_truss0" file="meshes/env/plants/v4_truss0.obj"/>
+    <mesh name="m_v4_rachis0" file="meshes/env/plants/v4_rachis0.obj"/>
     <mesh name="m_v4_truss1" file="meshes/env/plants/v4_truss1.obj"/>
+    <mesh name="m_v4_rachis1" file="meshes/env/plants/v4_rachis1.obj"/>
     <mesh name="m_v4_truss2" file="meshes/env/plants/v4_truss2.obj"/>
+    <mesh name="m_v4_rachis2" file="meshes/env/plants/v4_rachis2.obj"/>
     <mesh name="m_v4_truss3" file="meshes/env/plants/v4_truss3.obj"/>
+    <mesh name="m_v4_rachis3" file="meshes/env/plants/v4_rachis3.obj"/>
     <mesh name="m_v5_vine" file="meshes/env/plants/v5_vine.obj"/>
     <mesh name="m_v5_leaf" file="meshes/env/plants/v5_leaf.obj"/>
     <mesh name="m_v5_blossom" file="meshes/env/plants/v5_blossom.obj"/>
     <mesh name="m_v5_truss0" file="meshes/env/plants/v5_truss0.obj"/>
+    <mesh name="m_v5_rachis0" file="meshes/env/plants/v5_rachis0.obj"/>
     <mesh name="m_v5_truss1" file="meshes/env/plants/v5_truss1.obj"/>
+    <mesh name="m_v5_rachis1" file="meshes/env/plants/v5_rachis1.obj"/>
     <mesh name="m_v5_truss2" file="meshes/env/plants/v5_truss2.obj"/>
+    <mesh name="m_v5_rachis2" file="meshes/env/plants/v5_rachis2.obj"/>
     <mesh name="m_v5_truss3" file="meshes/env/plants/v5_truss3.obj"/>
+    <mesh name="m_v5_rachis3" file="meshes/env/plants/v5_rachis3.obj"/>
     <mesh name="m_v6_vine" file="meshes/env/plants/v6_vine.obj"/>
     <mesh name="m_v6_leaf" file="meshes/env/plants/v6_leaf.obj"/>
     <mesh name="m_v6_blossom" file="meshes/env/plants/v6_blossom.obj"/>
     <mesh name="m_v6_truss0" file="meshes/env/plants/v6_truss0.obj"/>
+    <mesh name="m_v6_rachis0" file="meshes/env/plants/v6_rachis0.obj"/>
     <mesh name="m_v6_truss1" file="meshes/env/plants/v6_truss1.obj"/>
+    <mesh name="m_v6_rachis1" file="meshes/env/plants/v6_rachis1.obj"/>
     <mesh name="m_v6_truss2" file="meshes/env/plants/v6_truss2.obj"/>
+    <mesh name="m_v6_rachis2" file="meshes/env/plants/v6_rachis2.obj"/>
     <mesh name="m_v6_truss3" file="meshes/env/plants/v6_truss3.obj"/>
+    <mesh name="m_v6_rachis3" file="meshes/env/plants/v6_rachis3.obj"/>
     <mesh name="m_v7_vine" file="meshes/env/plants/v7_vine.obj"/>
     <mesh name="m_v7_leaf" file="meshes/env/plants/v7_leaf.obj"/>
     <mesh name="m_v7_blossom" file="meshes/env/plants/v7_blossom.obj"/>
     <mesh name="m_v7_truss0" file="meshes/env/plants/v7_truss0.obj"/>
+    <mesh name="m_v7_rachis0" file="meshes/env/plants/v7_rachis0.obj"/>
     <mesh name="m_v7_truss1" file="meshes/env/plants/v7_truss1.obj"/>
+    <mesh name="m_v7_rachis1" file="meshes/env/plants/v7_rachis1.obj"/>
     <mesh name="m_v7_truss2" file="meshes/env/plants/v7_truss2.obj"/>
+    <mesh name="m_v7_rachis2" file="meshes/env/plants/v7_rachis2.obj"/>
     <mesh name="m_v7_truss3" file="meshes/env/plants/v7_truss3.obj"/>
+    <mesh name="m_v7_rachis3" file="meshes/env/plants/v7_rachis3.obj"/>
     <mesh name="m_v8_vine" file="meshes/env/plants/v8_vine.obj"/>
     <mesh name="m_v8_leaf" file="meshes/env/plants/v8_leaf.obj"/>
     <mesh name="m_v8_blossom" file="meshes/env/plants/v8_blossom.obj"/>
     <mesh name="m_v8_truss0" file="meshes/env/plants/v8_truss0.obj"/>
+    <mesh name="m_v8_rachis0" file="meshes/env/plants/v8_rachis0.obj"/>
     <mesh name="m_v8_truss1" file="meshes/env/plants/v8_truss1.obj"/>
+    <mesh name="m_v8_rachis1" file="meshes/env/plants/v8_rachis1.obj"/>
     <mesh name="m_v8_truss2" file="meshes/env/plants/v8_truss2.obj"/>
+    <mesh name="m_v8_rachis2" file="meshes/env/plants/v8_rachis2.obj"/>
     <mesh name="m_v8_truss3" file="meshes/env/plants/v8_truss3.obj"/>
+    <mesh name="m_v8_rachis3" file="meshes/env/plants/v8_rachis3.obj"/>
     <mesh name="m_v9_vine" file="meshes/env/plants/v9_vine.obj"/>
     <mesh name="m_v9_leaf" file="meshes/env/plants/v9_leaf.obj"/>
     <mesh name="m_v9_blossom" file="meshes/env/plants/v9_blossom.obj"/>
     <mesh name="m_v9_truss0" file="meshes/env/plants/v9_truss0.obj"/>
+    <mesh name="m_v9_rachis0" file="meshes/env/plants/v9_rachis0.obj"/>
     <mesh name="m_v9_truss1" file="meshes/env/plants/v9_truss1.obj"/>
+    <mesh name="m_v9_rachis1" file="meshes/env/plants/v9_rachis1.obj"/>
     <mesh name="m_v9_truss2" file="meshes/env/plants/v9_truss2.obj"/>
+    <mesh name="m_v9_rachis2" file="meshes/env/plants/v9_rachis2.obj"/>
     <mesh name="m_v9_truss3" file="meshes/env/plants/v9_truss3.obj"/>
+    <mesh name="m_v9_rachis3" file="meshes/env/plants/v9_rachis3.obj"/>
     <mesh name="m_pipe_a" file="meshes/env/pipe_a.stl" scale="0.001 0.001 0.001"/>
     <mesh name="m_pipe_b" file="meshes/env/pipe_b.stl" scale="0.001 0.001 0.001"/>
 <!-- ENV-ASSET-END -->
@@ -652,6 +692,7 @@
     <joint name="j_truss_0_0" type="free" damping="0.02"/>
     <inertial pos="0.0309 -0.0536 0.0334" mass="0.3" diaginertia="0.0015 0.0015 0.0008"/>
     <geom name="g_tr0_mesh" type="mesh" mesh="m_v0_truss0" material="mat_red" contype="0" conaffinity="0"/>
+    <geom name="g_tr0_rachis" type="mesh" mesh="m_v0_rachis0" material="mat_vine" contype="0" conaffinity="0"/>
     <geom name="g_tr0_s0" type="sphere" pos="0.054 0.049 0.030" size="0.020" contype="2" conaffinity="2" rgba="0 0 0 0"/>
       <geom name="g_tr0_s1" type="sphere" pos="0.027 0.010 0.008" size="0.020" contype="2" conaffinity="2" rgba="0 0 0 0"/>
       <geom name="g_tr0_s2" type="sphere" pos="0.024 0.054 0.013" size="0.020" contype="2" conaffinity="2" rgba="0 0 0 0"/>
@@ -670,6 +711,7 @@
     <joint name="j_truss_0_1" type="free" damping="0.02"/>
     <inertial pos="-0.0087 0.0209 -0.0217" mass="0.3" diaginertia="0.0015 0.0015 0.0008"/>
     <geom name="g_tr1_mesh" type="mesh" mesh="m_v0_truss1" material="mat_red" contype="0" conaffinity="0"/>
+    <geom name="g_tr1_rachis" type="mesh" mesh="m_v0_rachis1" material="mat_vine" contype="0" conaffinity="0"/>
     <geom name="g_tr1_s0" type="sphere" pos="-0.011 -0.002 -0.001" size="0.020" contype="2" conaffinity="2" rgba="0 0 0 0"/>
       <geom name="g_tr1_s1" type="sphere" pos="0.003 -0.078 -0.035" size="0.020" contype="2" conaffinity="2" rgba="0 0 0 0"/>
       <geom name="g_tr1_s2" type="sphere" pos="0.014 -0.038 -0.025" size="0.020" contype="2" conaffinity="2" rgba="0 0 0 0"/>
@@ -688,6 +730,7 @@
     <joint name="j_truss_0_2" type="free" damping="0.02"/>
     <inertial pos="0.0417 -0.1051 0.0183" mass="0.3" diaginertia="0.0015 0.0015 0.0008"/>
     <geom name="g_tr2_mesh" type="mesh" mesh="m_v0_truss2" material="mat_red" contype="0" conaffinity="0"/>
+    <geom name="g_tr2_rachis" type="mesh" mesh="m_v0_rachis2" material="mat_vine" contype="0" conaffinity="0"/>
     <geom name="g_tr2_s0" type="sphere" pos="0.062 -0.128 0.019" size="0.020" contype="2" conaffinity="2" rgba="0 0 0 0"/>
       <geom name="g_tr2_s1" type="sphere" pos="0.028 -0.203 0.007" size="0.020" contype="2" conaffinity="2" rgba="0 0 0 0"/>
       <geom name="g_tr2_s2" type="sphere" pos="0.037 -0.164 -0.004" size="0.020" contype="2" conaffinity="2" rgba="0 0 0 0"/>
@@ -706,6 +749,7 @@
     <joint name="j_truss_0_3" type="free" damping="0.02"/>
     <inertial pos="0.0059 -0.1015 0.0274" mass="0.3" diaginertia="0.0015 0.0015 0.0008"/>
     <geom name="g_tr3_mesh" type="mesh" mesh="m_v0_truss3" material="mat_orange" contype="0" conaffinity="0"/>
+    <geom name="g_tr3_rachis" type="mesh" mesh="m_v0_rachis3" material="mat_vine" contype="0" conaffinity="0"/>
     <geom name="g_tr3_s0" type="sphere" pos="-0.005 -0.125 0.010" size="0.020" contype="2" conaffinity="2" rgba="0 0 0 0"/>
       <geom name="g_tr3_s1" type="sphere" pos="0.005 -0.200 0.045" size="0.020" contype="2" conaffinity="2" rgba="0 0 0 0"/>
       <geom name="g_tr3_s2" type="sphere" pos="-0.010 -0.161 0.044" size="0.020" contype="2" conaffinity="2" rgba="0 0 0 0"/>
@@ -724,6 +768,7 @@
     <joint name="j_truss_1_0" type="free" damping="0.02"/>
     <inertial pos="0.0638 -0.0626 -0.0077" mass="0.3" diaginertia="0.0015 0.0015 0.0008"/>
     <geom name="g_tr4_mesh" type="mesh" mesh="m_v1_truss0" material="mat_red" contype="0" conaffinity="0"/>
+    <geom name="g_tr4_rachis" type="mesh" mesh="m_v1_rachis0" material="mat_vine" contype="0" conaffinity="0"/>
     <geom name="g_tr4_s0" type="sphere" pos="0.074 0.057 -0.034" size="0.020" contype="2" conaffinity="2" rgba="0 0 0 0"/>
       <geom name="g_tr4_s1" type="sphere" pos="0.036 0.011 -0.019" size="0.020" contype="2" conaffinity="2" rgba="0 0 0 0"/>
       <geom name="g_tr4_s2" type="sphere" pos="0.039 0.062 -0.013" size="0.020" contype="2" conaffinity="2" rgba="0 0 0 0"/>
@@ -742,6 +787,7 @@
     <joint name="j_truss_1_1" type="free" damping="0.02"/>
     <inertial pos="0.0095 -0.1236 -0.0178" mass="0.3" diaginertia="0.0015 0.0015 0.0008"/>
     <geom name="g_tr5_mesh" type="mesh" mesh="m_v1_truss1" material="mat_red" contype="0" conaffinity="0"/>
+    <geom name="g_tr5_rachis" type="mesh" mesh="m_v1_rachis1" material="mat_vine" contype="0" conaffinity="0"/>
     <geom name="g_tr5_s0" type="sphere" pos="0.027 -0.150 -0.002" size="0.020" contype="2" conaffinity="2" rgba="0 0 0 0"/>
       <geom name="g_tr5_s1" type="sphere" pos="0.005 -0.238 -0.038" size="0.020" contype="2" conaffinity="2" rgba="0 0 0 0"/>
       <geom name="g_tr5_s2" type="sphere" pos="0.022 -0.192 -0.041" size="0.020" contype="2" conaffinity="2" rgba="0 0 0 0"/>
@@ -760,6 +806,7 @@
     <joint name="j_truss_1_2" type="free" damping="0.02"/>
     <inertial pos="0.0475 -0.1335 0.0009" mass="0.3" diaginertia="0.0015 0.0015 0.0008"/>
     <geom name="g_tr6_mesh" type="mesh" mesh="m_v1_truss2" material="mat_red" contype="0" conaffinity="0"/>
+    <geom name="g_tr6_rachis" type="mesh" mesh="m_v1_rachis2" material="mat_vine" contype="0" conaffinity="0"/>
     <geom name="g_tr6_s0" type="sphere" pos="0.070 -0.160 -0.007" size="0.020" contype="2" conaffinity="2" rgba="0 0 0 0"/>
       <geom name="g_tr6_s1" type="sphere" pos="0.027 -0.248 -0.005" size="0.020" contype="2" conaffinity="2" rgba="0 0 0 0"/>
       <geom name="g_tr6_s2" type="sphere" pos="0.033 -0.202 -0.021" size="0.020" contype="2" conaffinity="2" rgba="0 0 0 0"/>
@@ -778,6 +825,7 @@
     <joint name="j_truss_1_3" type="free" damping="0.02"/>
     <inertial pos="-0.0015 -0.1148 0.0060" mass="0.3" diaginertia="0.0015 0.0015 0.0008"/>
     <geom name="g_tr7_mesh" type="mesh" mesh="m_v1_truss3" material="mat_orange" contype="0" conaffinity="0"/>
+    <geom name="g_tr7_rachis" type="mesh" mesh="m_v1_rachis3" material="mat_vine" contype="0" conaffinity="0"/>
     <geom name="g_tr7_s0" type="sphere" pos="-0.002 -0.142 -0.018" size="0.020" contype="2" conaffinity="2" rgba="0 0 0 0"/>
       <geom name="g_tr7_s1" type="sphere" pos="-0.013 -0.229 0.023" size="0.020" contype="2" conaffinity="2" rgba="0 0 0 0"/>
       <geom name="g_tr7_s2" type="sphere" pos="-0.027 -0.184 0.012" size="0.020" contype="2" conaffinity="2" rgba="0 0 0 0"/>
@@ -796,6 +844,7 @@
     <joint name="j_truss_2_0" type="free" damping="0.02"/>
     <inertial pos="0.0441 -0.0610 0.0429" mass="0.3" diaginertia="0.0015 0.0015 0.0008"/>
     <geom name="g_tr8_mesh" type="mesh" mesh="m_v2_truss0" material="mat_red" contype="0" conaffinity="0"/>
+    <geom name="g_tr8_rachis" type="mesh" mesh="m_v2_rachis0" material="mat_vine" contype="0" conaffinity="0"/>
     <geom name="g_tr8_s0" type="sphere" pos="0.062 0.054 0.063" size="0.020" contype="2" conaffinity="2" rgba="0 0 0 0"/>
       <geom name="g_tr8_s1" type="sphere" pos="0.066 0.011 0.024" size="0.020" contype="2" conaffinity="2" rgba="0 0 0 0"/>
       <geom name="g_tr8_s2" type="sphere" pos="0.059 0.060 0.024" size="0.020" contype="2" conaffinity="2" rgba="0 0 0 0"/>
@@ -814,6 +863,7 @@
     <joint name="j_truss_2_1" type="free" damping="0.02"/>
     <inertial pos="0.0043 -0.0040 -0.0049" mass="0.3" diaginertia="0.0015 0.0015 0.0008"/>
     <geom name="g_tr9_mesh" type="mesh" mesh="m_v2_truss1" material="mat_red" contype="0" conaffinity="0"/>
+    <geom name="g_tr9_rachis" type="mesh" mesh="m_v2_rachis1" material="mat_vine" contype="0" conaffinity="0"/>
     <geom name="g_tr9_s0" type="sphere" pos="-0.007 -0.030 0.015" size="0.020" contype="2" conaffinity="2" rgba="0 0 0 0"/>
       <geom name="g_tr9_s1" type="sphere" pos="0.023 -0.115 -0.013" size="0.020" contype="2" conaffinity="2" rgba="0 0 0 0"/>
       <geom name="g_tr9_s2" type="sphere" pos="0.028 -0.071 0.003" size="0.020" contype="2" conaffinity="2" rgba="0 0 0 0"/>
@@ -832,6 +882,7 @@
     <joint name="j_truss_2_2" type="free" damping="0.02"/>
     <inertial pos="0.0317 -0.1325 -0.0123" mass="0.3" diaginertia="0.0015 0.0015 0.0008"/>
     <geom name="g_tr10_mesh" type="mesh" mesh="m_v2_truss2" material="mat_red" contype="0" conaffinity="0"/>
+    <geom name="g_tr10_rachis" type="mesh" mesh="m_v2_rachis2" material="mat_vine" contype="0" conaffinity="0"/>
     <geom name="g_tr10_s0" type="sphere" pos="0.049 -0.159 0.002" size="0.020" contype="2" conaffinity="2" rgba="0 0 0 0"/>
       <geom name="g_tr10_s1" type="sphere" pos="0.027 -0.243 -0.032" size="0.020" contype="2" conaffinity="2" rgba="0 0 0 0"/>
       <geom name="g_tr10_s2" type="sphere" pos="0.043 -0.199 -0.035" size="0.020" contype="2" conaffinity="2" rgba="0 0 0 0"/>
@@ -850,6 +901,7 @@
     <joint name="j_truss_2_3" type="free" damping="0.02"/>
     <inertial pos="0.0400 -0.1171 0.0018" mass="0.3" diaginertia="0.0015 0.0015 0.0008"/>
     <geom name="g_tr11_mesh" type="mesh" mesh="m_v2_truss3" material="mat_orange" contype="0" conaffinity="0"/>
+    <geom name="g_tr11_rachis" type="mesh" mesh="m_v2_rachis3" material="mat_vine" contype="0" conaffinity="0"/>
     <geom name="g_tr11_s0" type="sphere" pos="0.059 -0.143 -0.010" size="0.020" contype="2" conaffinity="2" rgba="0 0 0 0"/>
       <geom name="g_tr11_s1" type="sphere" pos="0.020 -0.228 0.001" size="0.020" contype="2" conaffinity="2" rgba="0 0 0 0"/>
       <geom name="g_tr11_s2" type="sphere" pos="0.022 -0.184 -0.016" size="0.020" contype="2" conaffinity="2" rgba="0 0 0 0"/>
@@ -868,6 +920,7 @@
     <joint name="j_truss_3_0" type="free" damping="0.02"/>
     <inertial pos="0.0621 -0.0727 0.0079" mass="0.3" diaginertia="0.0015 0.0015 0.0008"/>
     <geom name="g_tr12_mesh" type="mesh" mesh="m_v3_truss0" material="mat_red" contype="0" conaffinity="0"/>
+    <geom name="g_tr12_rachis" type="mesh" mesh="m_v3_rachis0" material="mat_vine" contype="0" conaffinity="0"/>
     <geom name="g_tr12_s0" type="sphere" pos="0.079 0.041 0.028" size="0.020" contype="2" conaffinity="2" rgba="0 0 0 0"/>
       <geom name="g_tr12_s1" type="sphere" pos="0.084 -0.002 -0.010" size="0.020" contype="2" conaffinity="2" rgba="0 0 0 0"/>
       <geom name="g_tr12_s2" type="sphere" pos="0.078 0.047 -0.010" size="0.020" contype="2" conaffinity="2" rgba="0 0 0 0"/>
@@ -886,6 +939,7 @@
     <joint name="j_truss_3_1" type="free" damping="0.02"/>
     <inertial pos="-0.0173 0.0202 -0.0051" mass="0.3" diaginertia="0.0015 0.0015 0.0008"/>
     <geom name="g_tr13_mesh" type="mesh" mesh="m_v3_truss1" material="mat_orange" contype="0" conaffinity="0"/>
+    <geom name="g_tr13_rachis" type="mesh" mesh="m_v3_rachis1" material="mat_vine" contype="0" conaffinity="0"/>
     <geom name="g_tr13_s0" type="sphere" pos="-0.036 -0.005 0.007" size="0.020" contype="2" conaffinity="2" rgba="0 0 0 0"/>
       <geom name="g_tr13_s1" type="sphere" pos="0.003 -0.089 -0.004" size="0.020" contype="2" conaffinity="2" rgba="0 0 0 0"/>
       <geom name="g_tr13_s2" type="sphere" pos="0.001 -0.046 0.012" size="0.020" contype="2" conaffinity="2" rgba="0 0 0 0"/>
@@ -904,6 +958,7 @@
     <joint name="j_truss_3_2" type="free" damping="0.02"/>
     <inertial pos="0.0505 -0.1189 -0.0133" mass="0.3" diaginertia="0.0015 0.0015 0.0008"/>
     <geom name="g_tr14_mesh" type="mesh" mesh="m_v3_truss2" material="mat_green" contype="0" conaffinity="0"/>
+    <geom name="g_tr14_rachis" type="mesh" mesh="m_v3_rachis2" material="mat_vine" contype="0" conaffinity="0"/>
     <geom name="g_tr14_s0" type="sphere" pos="0.058 -0.145 0.008" size="0.020" contype="2" conaffinity="2" rgba="0 0 0 0"/>
       <geom name="g_tr14_s1" type="sphere" pos="0.056 -0.228 -0.032" size="0.020" contype="2" conaffinity="2" rgba="0 0 0 0"/>
       <geom name="g_tr14_s2" type="sphere" pos="0.072 -0.185 -0.027" size="0.020" contype="2" conaffinity="2" rgba="0 0 0 0"/>
@@ -922,6 +977,7 @@
     <joint name="j_truss_3_3" type="free" damping="0.02"/>
     <inertial pos="0.0442 -0.0982 -0.0103" mass="0.3" diaginertia="0.0015 0.0015 0.0008"/>
     <geom name="g_tr15_mesh" type="mesh" mesh="m_v3_truss3" material="mat_green" contype="0" conaffinity="0"/>
+    <geom name="g_tr15_rachis" type="mesh" mesh="m_v3_rachis3" material="mat_vine" contype="0" conaffinity="0"/>
     <geom name="g_tr15_s0" type="sphere" pos="0.066 -0.124 -0.016" size="0.020" contype="2" conaffinity="2" rgba="0 0 0 0"/>
       <geom name="g_tr15_s1" type="sphere" pos="0.026 -0.208 -0.017" size="0.020" contype="2" conaffinity="2" rgba="0 0 0 0"/>
       <geom name="g_tr15_s2" type="sphere" pos="0.032 -0.164 -0.032" size="0.020" contype="2" conaffinity="2" rgba="0 0 0 0"/>
@@ -940,6 +996,7 @@
     <joint name="j_truss_4_0" type="free" damping="0.02"/>
     <inertial pos="0.0054 -0.1202 0.0215" mass="0.3" diaginertia="0.0015 0.0015 0.0008"/>
     <geom name="g_tr16_mesh" type="mesh" mesh="m_v4_truss0" material="mat_red" contype="0" conaffinity="0"/>
+    <geom name="g_tr16_rachis" type="mesh" mesh="m_v4_rachis0" material="mat_vine" contype="0" conaffinity="0"/>
     <geom name="g_tr16_s0" type="sphere" pos="0.031 -0.008 0.024" size="0.020" contype="2" conaffinity="2" rgba="0 0 0 0"/>
       <geom name="g_tr16_s1" type="sphere" pos="0.008 -0.051 -0.006" size="0.020" contype="2" conaffinity="2" rgba="0 0 0 0"/>
       <geom name="g_tr16_s2" type="sphere" pos="0.004 -0.003 -0.002" size="0.020" contype="2" conaffinity="2" rgba="0 0 0 0"/>
@@ -958,6 +1015,7 @@
     <joint name="j_truss_4_1" type="free" damping="0.02"/>
     <inertial pos="0.0079 -0.0016 0.0209" mass="0.3" diaginertia="0.0015 0.0015 0.0008"/>
     <geom name="g_tr17_mesh" type="mesh" mesh="m_v4_truss1" material="mat_orange" contype="0" conaffinity="0"/>
+    <geom name="g_tr17_rachis" type="mesh" mesh="m_v4_rachis1" material="mat_vine" contype="0" conaffinity="0"/>
     <geom name="g_tr17_s0" type="sphere" pos="0.013 -0.027 0.043" size="0.020" contype="2" conaffinity="2" rgba="0 0 0 0"/>
       <geom name="g_tr17_s1" type="sphere" pos="0.015 -0.109 0.003" size="0.020" contype="2" conaffinity="2" rgba="0 0 0 0"/>
       <geom name="g_tr17_s2" type="sphere" pos="0.030 -0.066 0.010" size="0.020" contype="2" conaffinity="2" rgba="0 0 0 0"/>
@@ -976,6 +1034,7 @@
     <joint name="j_truss_4_2" type="free" damping="0.02"/>
     <inertial pos="0.0028 0.0031 0.0225" mass="0.3" diaginertia="0.0015 0.0015 0.0008"/>
     <geom name="g_tr18_mesh" type="mesh" mesh="m_v4_truss2" material="mat_green" contype="0" conaffinity="0"/>
+    <geom name="g_tr18_rachis" type="mesh" mesh="m_v4_rachis2" material="mat_vine" contype="0" conaffinity="0"/>
     <geom name="g_tr18_s0" type="sphere" pos="0.024 -0.022 0.017" size="0.020" contype="2" conaffinity="2" rgba="0 0 0 0"/>
       <geom name="g_tr18_s1" type="sphere" pos="-0.015 -0.104 0.015" size="0.020" contype="2" conaffinity="2" rgba="0 0 0 0"/>
       <geom name="g_tr18_s2" type="sphere" pos="-0.008 -0.061 0.000" size="0.020" contype="2" conaffinity="2" rgba="0 0 0 0"/>
@@ -994,6 +1053,7 @@
     <joint name="j_truss_4_3" type="free" damping="0.02"/>
     <inertial pos="0.0013 -0.1356 -0.0307" mass="0.3" diaginertia="0.0015 0.0015 0.0008"/>
     <geom name="g_tr19_mesh" type="mesh" mesh="m_v4_truss3" material="mat_green" contype="0" conaffinity="0"/>
+    <geom name="g_tr19_rachis" type="mesh" mesh="m_v4_rachis3" material="mat_vine" contype="0" conaffinity="0"/>
     <geom name="g_tr19_s0" type="sphere" pos="-0.004 -0.161 -0.052" size="0.020" contype="2" conaffinity="2" rgba="0 0 0 0"/>
       <geom name="g_tr19_s1" type="sphere" pos="-0.006 -0.243 -0.012" size="0.020" contype="2" conaffinity="2" rgba="0 0 0 0"/>
       <geom name="g_tr19_s2" type="sphere" pos="-0.020 -0.200 -0.019" size="0.020" contype="2" conaffinity="2" rgba="0 0 0 0"/>
@@ -1012,6 +1072,7 @@
     <joint name="j_truss_5_0" type="free" damping="0.02"/>
     <inertial pos="-0.0072 -0.1198 0.0177" mass="0.3" diaginertia="0.0015 0.0015 0.0008"/>
     <geom name="g_tr20_mesh" type="mesh" mesh="m_v5_truss0" material="mat_red" contype="0" conaffinity="0"/>
+    <geom name="g_tr20_rachis" type="mesh" mesh="m_v5_rachis0" material="mat_vine" contype="0" conaffinity="0"/>
     <geom name="g_tr20_s0" type="sphere" pos="0.014 -0.007 0.033" size="0.020" contype="2" conaffinity="2" rgba="0 0 0 0"/>
       <geom name="g_tr20_s1" type="sphere" pos="0.009 -0.050 -0.005" size="0.020" contype="2" conaffinity="2" rgba="0 0 0 0"/>
       <geom name="g_tr20_s2" type="sphere" pos="0.003 -0.002 -0.003" size="0.020" contype="2" conaffinity="2" rgba="0 0 0 0"/>
@@ -1030,6 +1091,7 @@
     <joint name="j_truss_5_1" type="free" damping="0.02"/>
     <inertial pos="0.0210 -0.1173 0.0027" mass="0.3" diaginertia="0.0015 0.0015 0.0008"/>
     <geom name="g_tr21_mesh" type="mesh" mesh="m_v5_truss1" material="mat_orange" contype="0" conaffinity="0"/>
+    <geom name="g_tr21_rachis" type="mesh" mesh="m_v5_rachis1" material="mat_vine" contype="0" conaffinity="0"/>
     <geom name="g_tr21_s0" type="sphere" pos="0.010 -0.143 0.022" size="0.020" contype="2" conaffinity="2" rgba="0 0 0 0"/>
       <geom name="g_tr21_s1" type="sphere" pos="0.039 -0.225 -0.005" size="0.020" contype="2" conaffinity="2" rgba="0 0 0 0"/>
       <geom name="g_tr21_s2" type="sphere" pos="0.045 -0.182 0.010" size="0.020" contype="2" conaffinity="2" rgba="0 0 0 0"/>
@@ -1048,6 +1110,7 @@
     <joint name="j_truss_5_2" type="free" damping="0.02"/>
     <inertial pos="0.0112 -0.1181 -0.0155" mass="0.3" diaginertia="0.0015 0.0015 0.0008"/>
     <geom name="g_tr22_mesh" type="mesh" mesh="m_v5_truss2" material="mat_orange" contype="0" conaffinity="0"/>
+    <geom name="g_tr22_rachis" type="mesh" mesh="m_v5_rachis2" material="mat_vine" contype="0" conaffinity="0"/>
     <geom name="g_tr22_s0" type="sphere" pos="0.028 -0.143 -0.001" size="0.020" contype="2" conaffinity="2" rgba="0 0 0 0"/>
       <geom name="g_tr22_s1" type="sphere" pos="0.007 -0.226 -0.035" size="0.020" contype="2" conaffinity="2" rgba="0 0 0 0"/>
       <geom name="g_tr22_s2" type="sphere" pos="0.023 -0.183 -0.037" size="0.020" contype="2" conaffinity="2" rgba="0 0 0 0"/>
@@ -1066,6 +1129,7 @@
     <joint name="j_truss_5_3" type="free" damping="0.02"/>
     <inertial pos="0.0013 -0.1303 0.0050" mass="0.3" diaginertia="0.0015 0.0015 0.0008"/>
     <geom name="g_tr23_mesh" type="mesh" mesh="m_v5_truss3" material="mat_green" contype="0" conaffinity="0"/>
+    <geom name="g_tr23_rachis" type="mesh" mesh="m_v5_rachis3" material="mat_vine" contype="0" conaffinity="0"/>
     <geom name="g_tr23_s0" type="sphere" pos="0.016 -0.156 -0.012" size="0.020" contype="2" conaffinity="2" rgba="0 0 0 0"/>
       <geom name="g_tr23_s1" type="sphere" pos="-0.018 -0.238 0.009" size="0.020" contype="2" conaffinity="2" rgba="0 0 0 0"/>
       <geom name="g_tr23_s2" type="sphere" pos="-0.020 -0.195 -0.007" size="0.020" contype="2" conaffinity="2" rgba="0 0 0 0"/>
@@ -1084,6 +1148,7 @@
     <joint name="j_truss_6_0" type="free" damping="0.02"/>
     <inertial pos="0.0587 -0.0793 0.0147" mass="0.3" diaginertia="0.0015 0.0015 0.0008"/>
     <geom name="g_tr24_mesh" type="mesh" mesh="m_v6_truss0" material="mat_red" contype="0" conaffinity="0"/>
+    <geom name="g_tr24_rachis" type="mesh" mesh="m_v6_rachis0" material="mat_vine" contype="0" conaffinity="0"/>
     <geom name="g_tr24_s0" type="sphere" pos="0.082 0.026 0.022" size="0.020" contype="2" conaffinity="2" rgba="0 0 0 0"/>
       <geom name="g_tr24_s1" type="sphere" pos="0.067 -0.014 -0.010" size="0.020" contype="2" conaffinity="2" rgba="0 0 0 0"/>
       <geom name="g_tr24_s2" type="sphere" pos="0.062 0.031 -0.007" size="0.020" contype="2" conaffinity="2" rgba="0 0 0 0"/>
@@ -1102,6 +1167,7 @@
     <joint name="j_truss_6_1" type="free" damping="0.02"/>
     <inertial pos="0.0045 -0.0072 0.0097" mass="0.3" diaginertia="0.0015 0.0015 0.0008"/>
     <geom name="g_tr25_mesh" type="mesh" mesh="m_v6_truss1" material="mat_orange" contype="0" conaffinity="0"/>
+    <geom name="g_tr25_rachis" type="mesh" mesh="m_v6_rachis1" material="mat_vine" contype="0" conaffinity="0"/>
     <geom name="g_tr25_s0" type="sphere" pos="0.001 -0.031 0.030" size="0.020" contype="2" conaffinity="2" rgba="0 0 0 0"/>
       <geom name="g_tr25_s1" type="sphere" pos="0.018 -0.108 -0.003" size="0.020" contype="2" conaffinity="2" rgba="0 0 0 0"/>
       <geom name="g_tr25_s2" type="sphere" pos="0.028 -0.068 0.008" size="0.020" contype="2" conaffinity="2" rgba="0 0 0 0"/>
@@ -1120,6 +1186,7 @@
     <joint name="j_truss_6_2" type="free" damping="0.02"/>
     <inertial pos="0.0223 -0.1233 -0.0161" mass="0.3" diaginertia="0.0015 0.0015 0.0008"/>
     <geom name="g_tr26_mesh" type="mesh" mesh="m_v6_truss2" material="mat_green" contype="0" conaffinity="0"/>
+    <geom name="g_tr26_rachis" type="mesh" mesh="m_v6_rachis2" material="mat_vine" contype="0" conaffinity="0"/>
     <geom name="g_tr26_s0" type="sphere" pos="0.042 -0.147 -0.010" size="0.020" contype="2" conaffinity="2" rgba="0 0 0 0"/>
       <geom name="g_tr26_s1" type="sphere" pos="0.011 -0.224 -0.031" size="0.020" contype="2" conaffinity="2" rgba="0 0 0 0"/>
       <geom name="g_tr26_s2" type="sphere" pos="0.024 -0.184 -0.039" size="0.020" contype="2" conaffinity="2" rgba="0 0 0 0"/>
@@ -1138,6 +1205,7 @@
     <joint name="j_truss_6_3" type="free" damping="0.02"/>
     <inertial pos="-0.0210 -0.1099 -0.0027" mass="0.3" diaginertia="0.0015 0.0015 0.0008"/>
     <geom name="g_tr27_mesh" type="mesh" mesh="m_v6_truss3" material="mat_green" contype="0" conaffinity="0"/>
+    <geom name="g_tr27_rachis" type="mesh" mesh="m_v6_rachis3" material="mat_vine" contype="0" conaffinity="0"/>
     <geom name="g_tr27_s0" type="sphere" pos="-0.010 -0.134 -0.020" size="0.020" contype="2" conaffinity="2" rgba="0 0 0 0"/>
       <geom name="g_tr27_s1" type="sphere" pos="-0.038 -0.211 0.004" size="0.020" contype="2" conaffinity="2" rgba="0 0 0 0"/>
       <geom name="g_tr27_s2" type="sphere" pos="-0.043 -0.171 -0.010" size="0.020" contype="2" conaffinity="2" rgba="0 0 0 0"/>
@@ -1156,6 +1224,7 @@
     <joint name="j_truss_7_0" type="free" damping="0.02"/>
     <inertial pos="0.0197 -0.0197 -0.0332" mass="0.3" diaginertia="0.0015 0.0015 0.0008"/>
     <geom name="g_tr28_mesh" type="mesh" mesh="m_v7_truss0" material="mat_red" contype="0" conaffinity="0"/>
+    <geom name="g_tr28_rachis" type="mesh" mesh="m_v7_rachis0" material="mat_vine" contype="0" conaffinity="0"/>
     <geom name="g_tr28_s0" type="sphere" pos="0.039 0.092 -0.051" size="0.020" contype="2" conaffinity="2" rgba="0 0 0 0"/>
       <geom name="g_tr28_s1" type="sphere" pos="0.001 0.050 -0.054" size="0.020" contype="2" conaffinity="2" rgba="0 0 0 0"/>
       <geom name="g_tr28_s2" type="sphere" pos="0.001 0.098 -0.048" size="0.020" contype="2" conaffinity="2" rgba="0 0 0 0"/>
@@ -1174,6 +1243,7 @@
     <joint name="j_truss_7_1" type="free" damping="0.02"/>
     <inertial pos="0.0177 -0.1158 -0.0066" mass="0.3" diaginertia="0.0015 0.0015 0.0008"/>
     <geom name="g_tr29_mesh" type="mesh" mesh="m_v7_truss1" material="mat_red" contype="0" conaffinity="0"/>
+    <geom name="g_tr29_rachis" type="mesh" mesh="m_v7_rachis1" material="mat_vine" contype="0" conaffinity="0"/>
     <geom name="g_tr29_s0" type="sphere" pos="0.022 -0.141 0.015" size="0.020" contype="2" conaffinity="2" rgba="0 0 0 0"/>
       <geom name="g_tr29_s1" type="sphere" pos="0.026 -0.224 -0.025" size="0.020" contype="2" conaffinity="2" rgba="0 0 0 0"/>
       <geom name="g_tr29_s2" type="sphere" pos="0.040 -0.181 -0.017" size="0.020" contype="2" conaffinity="2" rgba="0 0 0 0"/>
@@ -1192,6 +1262,7 @@
     <joint name="j_truss_7_2" type="free" damping="0.02"/>
     <inertial pos="0.0196 -0.1259 -0.0396" mass="0.3" diaginertia="0.0015 0.0015 0.0008"/>
     <geom name="g_tr30_mesh" type="mesh" mesh="m_v7_truss2" material="mat_red" contype="0" conaffinity="0"/>
+    <geom name="g_tr30_rachis" type="mesh" mesh="m_v7_rachis2" material="mat_vine" contype="0" conaffinity="0"/>
     <geom name="g_tr30_s0" type="sphere" pos="0.041 -0.151 -0.033" size="0.020" contype="2" conaffinity="2" rgba="0 0 0 0"/>
       <geom name="g_tr30_s1" type="sphere" pos="0.008 -0.234 -0.055" size="0.020" contype="2" conaffinity="2" rgba="0 0 0 0"/>
       <geom name="g_tr30_s2" type="sphere" pos="0.022 -0.191 -0.064" size="0.020" contype="2" conaffinity="2" rgba="0 0 0 0"/>
@@ -1210,6 +1281,7 @@
     <joint name="j_truss_7_3" type="free" damping="0.02"/>
     <inertial pos="0.0053 -0.0938 -0.0186" mass="0.3" diaginertia="0.0015 0.0015 0.0008"/>
     <geom name="g_tr31_mesh" type="mesh" mesh="m_v7_truss3" material="mat_orange" contype="0" conaffinity="0"/>
+    <geom name="g_tr31_rachis" type="mesh" mesh="m_v7_rachis3" material="mat_vine" contype="0" conaffinity="0"/>
     <geom name="g_tr31_s0" type="sphere" pos="0.002 -0.119 -0.041" size="0.020" contype="2" conaffinity="2" rgba="0 0 0 0"/>
       <geom name="g_tr31_s1" type="sphere" pos="-0.004 -0.201 -0.001" size="0.020" contype="2" conaffinity="2" rgba="0 0 0 0"/>
       <geom name="g_tr31_s2" type="sphere" pos="-0.018 -0.158 -0.010" size="0.020" contype="2" conaffinity="2" rgba="0 0 0 0"/>
@@ -1228,6 +1300,7 @@
     <joint name="j_truss_8_0" type="free" damping="0.02"/>
     <inertial pos="0.0199 -0.0283 0.0346" mass="0.3" diaginertia="0.0015 0.0015 0.0008"/>
     <geom name="g_tr32_mesh" type="mesh" mesh="m_v8_truss0" material="mat_red" contype="0" conaffinity="0"/>
+    <geom name="g_tr32_rachis" type="mesh" mesh="m_v8_rachis0" material="mat_vine" contype="0" conaffinity="0"/>
     <geom name="g_tr32_s0" type="sphere" pos="0.039 0.080 0.051" size="0.020" contype="2" conaffinity="2" rgba="0 0 0 0"/>
       <geom name="g_tr32_s1" type="sphere" pos="0.038 0.039 0.014" size="0.020" contype="2" conaffinity="2" rgba="0 0 0 0"/>
       <geom name="g_tr32_s2" type="sphere" pos="0.032 0.086 0.015" size="0.020" contype="2" conaffinity="2" rgba="0 0 0 0"/>
@@ -1246,6 +1319,7 @@
     <joint name="j_truss_8_1" type="free" damping="0.02"/>
     <inertial pos="-0.0004 0.0036 -0.0096" mass="0.3" diaginertia="0.0015 0.0015 0.0008"/>
     <geom name="g_tr33_mesh" type="mesh" mesh="m_v8_truss1" material="mat_orange" contype="0" conaffinity="0"/>
+    <geom name="g_tr33_rachis" type="mesh" mesh="m_v8_rachis1" material="mat_vine" contype="0" conaffinity="0"/>
     <geom name="g_tr33_s0" type="sphere" pos="-0.019 -0.021 0.001" size="0.020" contype="2" conaffinity="2" rgba="0 0 0 0"/>
       <geom name="g_tr33_s1" type="sphere" pos="0.018 -0.101 -0.007" size="0.020" contype="2" conaffinity="2" rgba="0 0 0 0"/>
       <geom name="g_tr33_s2" type="sphere" pos="0.015 -0.059 0.008" size="0.020" contype="2" conaffinity="2" rgba="0 0 0 0"/>
@@ -1264,6 +1338,7 @@
     <joint name="j_truss_8_2" type="free" damping="0.02"/>
     <inertial pos="0.0241 -0.1275 0.0197" mass="0.3" diaginertia="0.0015 0.0015 0.0008"/>
     <geom name="g_tr34_mesh" type="mesh" mesh="m_v8_truss2" material="mat_orange" contype="0" conaffinity="0"/>
+    <geom name="g_tr34_rachis" type="mesh" mesh="m_v8_rachis2" material="mat_vine" contype="0" conaffinity="0"/>
     <geom name="g_tr34_s0" type="sphere" pos="0.045 -0.152 0.025" size="0.020" contype="2" conaffinity="2" rgba="0 0 0 0"/>
       <geom name="g_tr34_s1" type="sphere" pos="0.012 -0.232 0.005" size="0.020" contype="2" conaffinity="2" rgba="0 0 0 0"/>
       <geom name="g_tr34_s2" type="sphere" pos="0.025 -0.190 -0.004" size="0.020" contype="2" conaffinity="2" rgba="0 0 0 0"/>
@@ -1282,6 +1357,7 @@
     <joint name="j_truss_8_3" type="free" damping="0.02"/>
     <inertial pos="-0.0087 -0.1168 0.0214" mass="0.3" diaginertia="0.0015 0.0015 0.0008"/>
     <geom name="g_tr35_mesh" type="mesh" mesh="m_v8_truss3" material="mat_green" contype="0" conaffinity="0"/>
+    <geom name="g_tr35_rachis" type="mesh" mesh="m_v8_rachis3" material="mat_vine" contype="0" conaffinity="0"/>
     <geom name="g_tr35_s0" type="sphere" pos="0.000 -0.141 0.002" size="0.020" contype="2" conaffinity="2" rgba="0 0 0 0"/>
       <geom name="g_tr35_s1" type="sphere" pos="-0.025 -0.221 0.031" size="0.020" contype="2" conaffinity="2" rgba="0 0 0 0"/>
       <geom name="g_tr35_s2" type="sphere" pos="-0.032 -0.179 0.017" size="0.020" contype="2" conaffinity="2" rgba="0 0 0 0"/>
@@ -1300,6 +1376,7 @@
     <joint name="j_truss_9_0" type="free" damping="0.02"/>
     <inertial pos="-0.0088 -0.1216 0.0172" mass="0.3" diaginertia="0.0015 0.0015 0.0008"/>
     <geom name="g_tr36_mesh" type="mesh" mesh="m_v9_truss0" material="mat_red" contype="0" conaffinity="0"/>
+    <geom name="g_tr36_rachis" type="mesh" mesh="m_v9_rachis0" material="mat_vine" contype="0" conaffinity="0"/>
     <geom name="g_tr36_s0" type="sphere" pos="0.012 -0.007 0.034" size="0.020" contype="2" conaffinity="2" rgba="0 0 0 0"/>
       <geom name="g_tr36_s1" type="sphere" pos="0.010 -0.051 -0.004" size="0.020" contype="2" conaffinity="2" rgba="0 0 0 0"/>
       <geom name="g_tr36_s2" type="sphere" pos="0.003 -0.002 -0.003" size="0.020" contype="2" conaffinity="2" rgba="0 0 0 0"/>
@@ -1318,6 +1395,7 @@
     <joint name="j_truss_9_1" type="free" damping="0.02"/>
     <inertial pos="0.0176 -0.1184 -0.0152" mass="0.3" diaginertia="0.0015 0.0015 0.0008"/>
     <geom name="g_tr37_mesh" type="mesh" mesh="m_v9_truss1" material="mat_red" contype="0" conaffinity="0"/>
+    <geom name="g_tr37_rachis" type="mesh" mesh="m_v9_rachis1" material="mat_vine" contype="0" conaffinity="0"/>
     <geom name="g_tr37_s0" type="sphere" pos="0.000 -0.144 -0.000" size="0.020" contype="2" conaffinity="2" rgba="0 0 0 0"/>
       <geom name="g_tr37_s1" type="sphere" pos="0.038 -0.228 -0.017" size="0.020" contype="2" conaffinity="2" rgba="0 0 0 0"/>
       <geom name="g_tr37_s2" type="sphere" pos="0.038 -0.184 -0.000" size="0.020" contype="2" conaffinity="2" rgba="0 0 0 0"/>
@@ -1336,6 +1414,7 @@
     <joint name="j_truss_9_2" type="free" damping="0.02"/>
     <inertial pos="0.0187 -0.0079 -0.0122" mass="0.3" diaginertia="0.0015 0.0015 0.0008"/>
     <geom name="g_tr38_mesh" type="mesh" mesh="m_v9_truss2" material="mat_red" contype="0" conaffinity="0"/>
+    <geom name="g_tr38_rachis" type="mesh" mesh="m_v9_rachis2" material="mat_vine" contype="0" conaffinity="0"/>
     <geom name="g_tr38_s0" type="sphere" pos="0.030 -0.034 0.008" size="0.020" contype="2" conaffinity="2" rgba="0 0 0 0"/>
       <geom name="g_tr38_s1" type="sphere" pos="0.021 -0.118 -0.032" size="0.020" contype="2" conaffinity="2" rgba="0 0 0 0"/>
       <geom name="g_tr38_s2" type="sphere" pos="0.037 -0.074 -0.029" size="0.020" contype="2" conaffinity="2" rgba="0 0 0 0"/>
@@ -1354,6 +1433,7 @@
     <joint name="j_truss_9_3" type="free" damping="0.02"/>
     <inertial pos="-0.0197 -0.1216 -0.0037" mass="0.3" diaginertia="0.0015 0.0015 0.0008"/>
     <geom name="g_tr39_mesh" type="mesh" mesh="m_v9_truss3" material="mat_orange" contype="0" conaffinity="0"/>
+    <geom name="g_tr39_rachis" type="mesh" mesh="m_v9_rachis3" material="mat_vine" contype="0" conaffinity="0"/>
     <geom name="g_tr39_s0" type="sphere" pos="-0.009 -0.147 -0.024" size="0.020" contype="2" conaffinity="2" rgba="0 0 0 0"/>
       <geom name="g_tr39_s1" type="sphere" pos="-0.038 -0.231 0.005" size="0.020" contype="2" conaffinity="2" rgba="0 0 0 0"/>
       <geom name="g_tr39_s2" type="sphere" pos="-0.044 -0.188 -0.011" size="0.020" contype="2" conaffinity="2" rgba="0 0 0 0"/>
