@@ -145,9 +145,11 @@ class Picker:
             return np.clip(q + np.clip(dq, -clip, clip),
                            -(3.0543 - JOINT_MARGIN), 3.0543 - JOINT_MARGIN)
 
+        col_tries = 0
         for seed in range(10):
             q = base_q.copy() if seed == 0 else \
                 q_rest + np.random.default_rng(seed * 7 + 1).uniform(-0.6, 0.6, 6)
+            col_flag = False
             if tgt_ax is not None:
                 # Phase A: 纯旋转对齐 (150 迭代, 大步)
                 for _ in range(150):
@@ -190,13 +192,18 @@ class Picker:
                         return q.copy()
                     if best_col_q is None:
                         best_col_q = q.copy()      # 记录带碰解, 换下一颗种子
+                    col_flag = True
                     break
                 Jv, Jr = jac()
                 J = np.vstack([Jv, Jr]) if rot else Jv
                 q = step(q, J, err, 5e-3, 0.05)
-            if tgt_ax is not None and best_e < 0.02:
-                # 轴对齐解: 位置残差 <2cm 接受 (判据容差 26mm 内); 无无碰解时回退带碰
-                return best_col_q if best_col_q is not None else best_q
+            # 修复 (2026-10-17): 原实现在种子 0 收敛带碰后立即 return best_col_q,
+            # 其余种子从不尝试 ("多种子换无碰解"形同虚设)。现改为: 带碰则换下一颗
+            # 种子 (有界 4 颗, 控制解算耗时), 全部试完才回退带碰解。
+            if col_flag:
+                col_tries += 1
+                if col_tries >= 4:
+                    break
         if best_col_q is not None:
             return best_col_q
         if best_e > 0.05:
@@ -204,6 +211,37 @@ class Picker:
         return best_q
 
     # ---------- 碰撞检测与规划 (关节空间 RRT, 直线优先) ----------
+    def penetration(self, q):
+        """scratch FK 下 臂几何 vs 禁碰集 (主茎/车体) 的最大穿透深度 (m, 0=无碰)。"""
+        fd = self._fk
+        fd.qpos[:] = self.d.qpos
+        fd.qpos[self.qadr] = q
+        mujoco.mj_forward(self.m, fd)
+        worst = 0.0
+        for c in range(fd.ncon):
+            if fd.contact[c].dist >= 0:
+                continue
+            g1, g2 = fd.contact[c].geom1, fd.contact[c].geom2
+            if (g1 in self.arm_geoms and g2 in self.forbid_geoms) or \
+               (g2 in self.arm_geoms and g1 in self.forbid_geoms):
+                worst = max(worst, -fd.contact[c].dist)
+        return worst
+
+    def shear_hit_at(self, q, cut, att):
+        """在给定关节位姿下复算剪切判据 (果柄线段 attach->cut ∩ 剪切区盒)。"""
+        fd = self._fk
+        fd.qpos[:] = self.d.qpos
+        fd.qpos[self.qadr] = q
+        mujoco.mj_forward(self.m, fd)
+        R = fd.xmat[self.tcp].reshape(3, 3)
+        p = fd.xpos[self.tcp]
+        seg = (R.T @ (np.array([att, cut]) - p).T).T
+        for tt in np.linspace(0, 1, 25):
+            qq = seg[0] * (1 - tt) + seg[1] * tt
+            if 0.01 <= qq[2] <= 0.115 and np.hypot(qq[0], qq[1]) <= 0.026:
+                return True
+        return False
+
     def collision_free(self, q, pen=0.003):
         """禁碰集与臂的穿透超过 pen 视为碰撞 (轻触允许: 真机也轻触植株)。"""
         fd = self._fk
@@ -363,8 +401,10 @@ class Picker:
         self._last_path = None
         return True
 
-    def goto(self, target, iters=300, axis_target=None, speed=0.8):
-        """规划-执行: 离线解算 -> RRT 无碰规划 (直线优先) -> 沿航点关节空间插值。"""
+    def goto(self, target, iters=300, axis_target=None, speed=0.8, q6_target=None):
+        """规划-执行: 离线解算 -> RRT 无碰规划 (直线优先) -> 沿航点关节空间插值。
+        q6_target: 轴对齐模式下 wrist3 (工具绕轴 roll) 的绝对目标角 [rad] ——
+        剪切判据对 roll 不变量, 用来把指部凸包转离主茎 (2026-10-17)。"""
         target = np.asarray(target, dtype=float)
         if self.cmd is None:
             self.cmd = self.d.qpos[self.qadr].copy()   # 命令重锚到实测
@@ -388,6 +428,10 @@ class Picker:
                     break
                 tgt = tgt + e_vec              # 补偿: 下轮目标加上残差
             q_t = q_best
+            if q_t is not None and q6_target is not None:
+                q_t = q_t.copy()
+                q_t[5] = np.clip(q6_target, -(3.0543 - JOINT_MARGIN),
+                                 3.0543 - JOINT_MARGIN)
         else:
             q_t = self.solve_ik(target, iters=iters)
         if q_t is None:
@@ -484,11 +528,44 @@ class Picker:
         self.set_lift(lift)
 
         self.stage = 'LIFT & APPROACH'
+        # 工具 roll 搜索 (2026-10-17): 剪切判据是绕工具轴 roll 的不变量, 而指部凸包
+        # 相对主茎的穿透随 roll 变化 —— 用 wrist3 旋转选"穿透最小且判据仍命中"的
+        # roll 偏置, 从根上消除下扎段指-主茎接触 (它是闭合前抖动的激励源)。
+        _pp, _kk = truss.split('_')
+        att_w = d.site_xpos[m.site(f'attach_p{_pp}_t{_kk}').id].copy()
+        q_b0 = self.solve_ik(cut, iters=800, axis_target=to_robot)
+        roll_deg, roll_pen = 0.0, float('inf')
+        if q_b0 is not None:
+            for deg in (0, -105, -90, -120, -75, -60, -135, -45, -150, -165, -180,
+                        15, 30, 45, 60, 75, 90, 105, 120, 135, 150, 165):
+                qt = q_b0.copy()
+                qt[5] = np.clip(q_b0[5] + np.radians(deg),
+                                -(3.0543 - JOINT_MARGIN), 3.0543 - JOINT_MARGIN)
+                pen = self.penetration(qt)
+                if pen < roll_pen and self.shear_hit_at(qt, cut, att_w):
+                    roll_pen, roll_deg = pen, float(deg)
+        log['b_roll_deg'] = roll_deg
+        log['b_stem_pen_mm'] = round(roll_pen * 1000, 1)
+        q6_tgt = None
+        if q_b0 is not None and roll_deg:
+            q6_tgt = float(np.clip(q_b0[5] + np.radians(roll_deg),
+                                   -(3.0543 - JOINT_MARGIN), 3.0543 - JOINT_MARGIN))
+        print('  [roll] wrist3 目标 %s rad (偏置 %.0f°), 静态穿透 %.1f mm' % (
+            '%.2f' % q6_tgt if q6_tgt is not None else 'n/a', roll_deg,
+            roll_pen * 1000), flush=True)
         # approach = 开放空间路点 (纯位置); B = 横剪抓取位姿 (工具轴水平指向走道侧,
         # TCP 停在剪切点 —— 与 approach 位姿同族, 过渡小, 腕部不进口果堆)
         okC, eC = self.goto(approach, iters=600)
+        if q6_tgt is not None:
+            # 先滚: 在接近点 (离植株 10cm 的开放空间) 完成工具 roll, 再直线下扎 ——
+            # 否则 90° 旋转会在果簇旁扫过手指, 动态接触反而增加 (2026-10-17 实测)
+            q_ap = self.solve_ik(approach, iters=600)
+            if q_ap is not None:
+                q_ap[5] = q6_tgt
+                self._walk_to(q_ap, speed=0.6)
         if axis_grasp:
-            okB, eB = self.goto(cut, iters=800, axis_target=to_robot)
+            okB, eB = self.goto(cut, iters=800, axis_target=to_robot,
+                                q6_target=q6_tgt)
             if not okB:
                 # 轴对齐对该株几何无解 (可达性约束) -> 回退纯位置, 记录标注
                 print('  [harvest] 轴对齐抓取无解, 回退纯位置 B', flush=True)
