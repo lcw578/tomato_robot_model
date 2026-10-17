@@ -21,7 +21,7 @@ OUT = '/data/robot_assembly/observations'
 CAMS = {
     'cam_wrist_d405':   (720, 1280),   # D405  腕部, 朝下沿工具轴
     'cam_scene_yp_l515': (540, 960),   # L515  +y 侧 (半分辨率, fovy 不变)
-    'cam_scene_yn_d435i': (480, 640),  # D435i −y 侧
+    'cam_scene_yn_l515': (480, 640),  # L515 −y 侧
 }
 
 # 默认初始指令 (与 keyframe "home" 的 ctrl 一致)

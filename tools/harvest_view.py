@@ -26,12 +26,12 @@ from harvest_demo import Picker, GEAR_HOME, run_chain
 # --cams 三路相机: 名 -> 原生 (竖直, 水平) 分辨率 (与 live_monitor.py 同源)
 CAMS = {
     'cam_scene_yp_l515': (540, 960),
-    'cam_scene_yn_d435i': (480, 640),
+    'cam_scene_yn_l515': (480, 640),
     'cam_wrist_d405': (720, 1280),
 }
 CAM_TITLES = {
     'cam_scene_yp_l515': 'L515 (+y side)',
-    'cam_scene_yn_d435i': 'D435i (-y side)',
+    'cam_scene_yn_l515': 'L515 (-y side)',
     'cam_wrist_d405': 'D405 (wrist, down)',
 }
 
