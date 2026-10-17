@@ -570,7 +570,10 @@ class Picker:
             qi = q_cur * (1 - t) + q_new * t            # nlerp (同半球)
             qi /= max(np.linalg.norm(qi), 1e-9)
             m.eq_data[grip][6:10] = qi
-            d.ctrl[self.gear_a] = GEAR_CLOSED
+            # 闭爪命令斜坡 (2026-10-17): gear_servo 曾在 kv=0 下被阶跃命令激发
+            # 142 rad/s / +519mrad 过冲振荡 = 夹爪抖动; 300 步线性拉满, 配合 kv=0.05
+            ramp = min(1.0, (i + 1) / 300.0)
+            d.ctrl[self.gear_a] = GEAR_HOME + (GEAR_CLOSED - GEAR_HOME) * ramp
             mujoco.mj_step(m, d)
             if self.tick and i % 2 == 0:
                 self.tick()

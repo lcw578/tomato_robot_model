@@ -2007,7 +2007,7 @@
     <exclude body1="chassis" body2="lift"/>
   </contact>
   <actuator>
-    <position name="gear_servo" joint="gear_joint" kp="1.5" ctrlrange="-0.474409 0.463234" forcerange="-2 2" />
+    <position name="gear_servo" joint="gear_joint" kp="1.5" kv="0.05" ctrlrange="-0.474409 0.463234" forcerange="-2 2" />
     <velocity name="act_left_servo" joint="act_left_joint" kv="8" ctrlrange="-40 40"/>
     <velocity name="act_right_servo" joint="act_right_joint" kv="8" ctrlrange="-40 40"/>
     <position name="j1" joint="shoulder_joint" kp="25000" dampratio="1.0" ctrlrange="-3.0543 3.0543"/>
