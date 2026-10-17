@@ -392,7 +392,10 @@ for p, vname in enumerate(VARIANTS):
         # (attach->cut) 已删: 它是"投影点->剪切点"的直线抽象, 与真实弯曲侧枝/
         # 果簇不重合 (用户截图确认观感错误); 剪后植株留真实侧枝断口。
         ped_a = np.zeros(3)                     # 柄根 = 剪切点 (body 原点)
-        ped_b = t['dirc'] * max(0.012, min(0.03, float(np.linalg.norm(t['ctr_rel']))))
+        # 方向必须用 ctr_rel (剪切点->簇心) 而非 dirc (attach->簇心): v2 剪切点在
+        # 簇顶外侧, 两方向可近似反平行 (实测 40/40 串偏差>30°, 22 串短柄悬空反向戳出)
+        ped_dir = t['ctr_rel'] / max(float(np.linalg.norm(t['ctr_rel'])), 1e-9)
+        ped_b = ped_dir * max(0.012, min(0.03, float(np.linalg.norm(t['ctr_rel']))))
         assets.append(f'    <mesh name="m_{t["mesh"]}" file="meshes/env/plants/{t["mesh"]}.obj"/>')
         # 簇内穗轴网格 (方案 B): 随果串剪走, 纯视觉 (mat_vine), 不参与碰撞
         if t.get('rachis'):
