@@ -416,15 +416,17 @@ for p, vname in enumerate(VARIANTS):
             f'    {sp}\n'
             f'    <geom name="g_truss_{p}_{t["k"]}_ped" type="capsule" '
             f'fromto="{ped_a[0]:.3f} {ped_a[1]:.3f} {ped_a[2]:.3f} '
-            f'{ped_b[0]:.3f} {ped_b[1]:.3f} {ped_b[2]:.3f}" size="0.004" '
+            f'{ped_b[0]:.3f} {ped_b[1]:.3f} {ped_b[2]:.3f}" size="0.003" '
             f'rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>\n'
             f'  </body>')
         cut = t['cut']
+        # 真值 site: 剪切点/挂结点 (采摘定位 + 感知评价基准)。alpha=0 隐藏显示,
+        # site_xpos 查询不受影响; 感知真值目检时把两个 rgba 末位改回 0.25 即可。
         body_lines.append(f'    <site name="cut_p{p}_t{t["k"]}" pos="{cut[0]:.4f} {cut[1]:.4f} '
-                          f'{cut[2]:.4f}" size="0.01" rgba="1 0 1 0.25"/>')
+                          f'{cut[2]:.4f}" size="0.01" rgba="1 0 1 0"/>')
         att = t['attach']
         body_lines.append(f'    <site name="attach_p{p}_t{t["k"]}" pos="{att[0]:.4f} {att[1]:.4f} '
-                          f'{att[2]:.4f}" size="0.008" rgba="0 1 1 0.25"/>')
+                          f'{att[2]:.4f}" size="0.008" rgba="0 1 1 0"/>')
         # 隐形查询体 (alpha=0, 不渲染不碰撞): attach->cut 果柄线段的胶囊化身,
         # 仅供 harvest_demo 闭合时刻接近度日志使用 —— 果串侧短柄在闭合的 500 步里
         # 已随垂挂插值下放 5cm, 不能再当"爪缝里的果柄" (2026-10-17)
