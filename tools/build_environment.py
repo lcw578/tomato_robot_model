@@ -315,20 +315,11 @@ def prep_variant(vname, px, py):
         # 碰撞球 0.75x 果实尺寸: 减小指/果接触卡滞 (仿真标准: 碰撞体小于视觉体),
         # 真实果实柔性可让位; 全尺寸刚球会把夹爪卡在果簇外
         spheres = [(rel, FRUIT_R * 1.45) for rel in (t['markers'] - cut)]
-        # 合成短柄 (2026-10-17 修悬空): 指向**最近果面**而非簇心 —— legacy55 特例族
-        # 的剪切点在"挂结点->簇心"抽象直线上、可偏离真实果簇 3-6cm, 指向簇心会悬空;
-        # 指向最近果面并延伸到接触 (+6mm, 封顶 8cm), 每串必然与果串相接。
-        Vf = vs[face_verts_idx(faces)].reshape(-1, 3)
-        d_all = np.linalg.norm(Vf - cut, axis=1)
-        jn = int(np.argmin(d_all))
-        dmin = float(d_all[jn])
-        pedb_dir = (Vf[jn] - cut) / max(dmin, 1e-9)
-        ped_b_truss = pedb_dir * max(0.012, min(dmin + 0.006, 0.08))
         out['trusses'].append(dict(k=k, pos=cut, mesh=f'{vname}_truss{k}', rip=t['rip'],
                                    spheres=spheres, cut=cut, attach=attach, dirc=dirc,
                                    ctr_rel=ctr - cut, cut_mode=cut_mode,
                                    cut_clear=cut_clear, rachis=n_rachis,
-                                   rachis_rmax=rmax_val, ped_b=ped_b_truss))
+                                   rachis_rmax=rmax_val))
     if vine_sel_all:
         keep = [f for i, f in enumerate(vine_faces) if i not in vine_sel_all]
         emit_obj(f'{PLANT_DIR}/{vname}_vine.obj', vs, vts, keep)
@@ -396,12 +387,9 @@ for p, vname in enumerate(VARIANTS):
             f'<geom name="g_tr{truss_idx}_s{s}" type="sphere" pos="{o[0]:.3f} {o[1]:.3f} {o[2]:.3f}" '
             f'size="{r:.3f}" contype="2" conaffinity="2" rgba="0 0 0 0"/>'
             for s, (o, r) in enumerate(t['spheres']))
-        # 合成果柄 (2026-10-17 定稿): 只保留剪切点向簇内 3cm 的一小截 (r=3mm),
-        # 作用 = 夹爪握持处的视觉衔接 + 接近度日志查询体。植株侧长棒
-        # (attach->cut) 已删: 它是"投影点->剪切点"的直线抽象, 与真实弯曲侧枝/
-        # 果簇不重合 (用户截图确认观感错误); 剪后植株留真实侧枝断口。
-        ped_a = np.zeros(3)                     # 柄根 = 剪切点 (body 原点)
-        ped_b = t['ped_b']                      # 指向最近果面 (prep_variant 内计算)
+        # 合成短柄已彻底删除 (2026-10-17 第三轮): 直棍放在抽象剪切点处, 无论指向
+        # 簇心/最近果面都会长成"插进番茄的棍子" (用户连续截图确认). 真实侧枝在植株
+        # 侧、簇内穗轴随串, 已足够; 运输时夹爪与果串间的视觉空隙由 HANG_DROP 承担。
         assets.append(f'    <mesh name="m_{t["mesh"]}" file="meshes/env/plants/{t["mesh"]}.obj"/>')
         # 簇内穗轴网格 (方案 B): 随果串剪走, 纯视觉 (mat_vine), 不参与碰撞
         if t.get('rachis'):
@@ -423,10 +411,6 @@ for p, vname in enumerate(VARIANTS):
             f'contype="0" conaffinity="0"/>\n'
             + rachis_geom +
             f'    {sp}\n'
-            f'    <geom name="g_truss_{p}_{t["k"]}_ped" type="capsule" '
-            f'fromto="{ped_a[0]:.3f} {ped_a[1]:.3f} {ped_a[2]:.3f} '
-            f'{ped_b[0]:.3f} {ped_b[1]:.3f} {ped_b[2]:.3f}" size="0.003" '
-            f'rgba="0.36 0.25 0.12 1" contype="0" conaffinity="0"/>\n'
             f'  </body>')
         cut = t['cut']
         # 真值 site: 剪切点/挂结点 (采摘定位 + 感知评价基准)。alpha=0 隐藏显示,
