@@ -102,12 +102,9 @@ python3 tools/harvest_demo.py --reach          # 全部果串 IK 可达性抽检
   穿透 >3 mm 采样 = 0；单串 `--target` 视目标而定（低处果串需升到 lift=0.5，个别目标偶发
   `unreachable`，结果有 run-to-run 波动）。
 
-**三路相机独立录制**（链路全过程，每台相机一段原生分辨率视频）：
-```bash
-python3 tools/cam_record.py --chain --target 9_1        # 输出 docs/cams_9_1/{l515_yp,l515_yn,d405_wrist}.mp4
-python3 tools/cam_record.py --chain --target 9_1 --fps 30 --scale 1.0
-```
-规划段不产生帧（无运动），视频只含行驶/接近/剪切/搬运/释放的相机画面。
+**三路相机随演示自动录制**：`--cams` 运行时，三路相机窗口的画面会同步写成
+`docs/cams_<target>/{l515_yp,l515_yn,d405_wrist}.mp4`（与窗口同帧，`--no-cam-record` 可关闭；
+分辨率由 `--cam-scale` 决定，原生用 `--cam-scale 1.0`）。
 
 **可视化**：
 ```bash

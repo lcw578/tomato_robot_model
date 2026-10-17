@@ -6,7 +6,9 @@
        python3 tools/harvest_view.py --speed 0.5     # 0.5 倍速慢放
        python3 tools/harvest_view.py --chain --cams  # 链路演示 + 三路 RealSense 相机窗口同屏
      鼠标可自由旋转缩放, 相机 lookat 自动跟随夹爪 (--no-follow 关闭跟随);
-     --cams 另开三台相机实时窗口 (ESC 退出演示), 分辨率/刷新率用 --cam-scale/--cam-fps 调。
+     --cams 另开三台相机实时窗口 (ESC 退出演示), 分辨率/刷新率用 --cam-scale/--cam-fps 调;
+     运行的同时三路相机画面自动录制到 docs/cams_<target>/{l515_yp,l515_yn,d405_wrist}.mp4
+     (录的就是窗口里的画面, --no-cam-record 可关闭)。
 
   2. MP4 导出 (无显示器也能跑):
        python3 tools/harvest_view.py --mp4 docs/harvest.mp4
@@ -14,7 +16,7 @@
 
 流程与 tools/harvest_demo.py 完全同源 (直接调用 Picker.harvest, 仅注入可视化钩子)。
 """
-import argparse, sys, time
+import argparse, os, sys, time
 import numpy as np
 import cv2
 import mujoco
@@ -47,6 +49,8 @@ def main():
     ap.add_argument('--cams', action='store_true', help='另开三路 RealSense 相机实时窗口 (仅实时模式, ESC 退出)')
     ap.add_argument('--cam-scale', type=float, default=0.5, help='相机窗口渲染缩放 (1.0=原生分辨率)')
     ap.add_argument('--cam-fps', type=float, default=10.0, help='相机窗口刷新率上限 (Hz)')
+    ap.add_argument('--no-cam-record', action='store_true',
+                    help='--cams 时不录制三路相机 MP4 (默认录制到 docs/cams_<target>/)')
     ap.add_argument('--sync-every', type=int, default=2, help='查看器同步间隔 (步; 调大可加快实时模式)')
     ap.add_argument('--azim', type=float, default=0.0)
     ap.add_argument('--elev', type=float, default=-14.0)
@@ -107,10 +111,24 @@ def main():
     # 实时查看器模式
     # 相机 Renderer 必须在 launch_passive 之前创建 (GL 上下文顺序, 同 live_monitor.py)
     renderers = {}
+    cam_writers, cam_out = {}, None
     if args.cams:
         for c, (h, w) in CAMS.items():
             renderers[c] = mujoco.Renderer(
                 pk.m, max(1, int(h * args.cam_scale)), max(1, int(w * args.cam_scale)))
+        if not args.no_cam_record:
+            cam_out = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                                   'docs', 'cams_%s' % (target if args.target else 'best'))
+            os.makedirs(cam_out, exist_ok=True)
+            for c, (h, w) in CAMS.items():
+                fn = {'cam_scene_yp_l515': 'l515_yp.mp4',
+                      'cam_scene_yn_l515': 'l515_yn.mp4',
+                      'cam_wrist_d405': 'd405_wrist.mp4'}[c]
+                hh, ww = max(1, int(h * args.cam_scale)), max(1, int(w * args.cam_scale))
+                cam_writers[c] = cv2.VideoWriter(
+                    os.path.join(cam_out, fn), cv2.VideoWriter_fourcc(*'mp4v'),
+                    max(1.0, float(args.cam_fps)), (ww, hh))
+            print('三路相机录制 ->', cam_out)
 
     try:
         with mujoco.viewer.launch_passive(pk.m, pk.d) as v:
@@ -121,8 +139,10 @@ def main():
             def show_cams():
                 for c, r in renderers.items():
                     r.update_scene(pk.d, camera=c)
-                    cv2.imshow(CAM_TITLES[c],
-                               cv2.cvtColor(r.render(), cv2.COLOR_RGB2BGR))
+                    frame = cv2.cvtColor(r.render(), cv2.COLOR_RGB2BGR)
+                    if c in cam_writers:
+                        cam_writers[c].write(frame)     # 与窗口同帧录制
+                    cv2.imshow(CAM_TITLES[c], frame)
                 if cv2.waitKey(1) & 0xFF == 27:         # ESC: 退出演示
                     raise KeyboardInterrupt
 
@@ -168,6 +188,10 @@ def main():
     finally:
         for r in renderers.values():
             r.close()
+        if cam_writers:
+            for w_ in cam_writers.values():
+                w_.release()
+            print('三路相机视频已保存至:', cam_out)
         if renderers:
             cv2.destroyAllWindows()
 
