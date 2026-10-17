@@ -315,11 +315,20 @@ def prep_variant(vname, px, py):
         # 碰撞球 0.75x 果实尺寸: 减小指/果接触卡滞 (仿真标准: 碰撞体小于视觉体),
         # 真实果实柔性可让位; 全尺寸刚球会把夹爪卡在果簇外
         spheres = [(rel, FRUIT_R * 1.45) for rel in (t['markers'] - cut)]
+        # 合成短柄 (2026-10-17 修悬空): 指向**最近果面**而非簇心 —— legacy55 特例族
+        # 的剪切点在"挂结点->簇心"抽象直线上、可偏离真实果簇 3-6cm, 指向簇心会悬空;
+        # 指向最近果面并延伸到接触 (+6mm, 封顶 8cm), 每串必然与果串相接。
+        Vf = vs[face_verts_idx(faces)].reshape(-1, 3)
+        d_all = np.linalg.norm(Vf - cut, axis=1)
+        jn = int(np.argmin(d_all))
+        dmin = float(d_all[jn])
+        pedb_dir = (Vf[jn] - cut) / max(dmin, 1e-9)
+        ped_b_truss = pedb_dir * max(0.012, min(dmin + 0.006, 0.08))
         out['trusses'].append(dict(k=k, pos=cut, mesh=f'{vname}_truss{k}', rip=t['rip'],
                                    spheres=spheres, cut=cut, attach=attach, dirc=dirc,
                                    ctr_rel=ctr - cut, cut_mode=cut_mode,
                                    cut_clear=cut_clear, rachis=n_rachis,
-                                   rachis_rmax=rmax_val))
+                                   rachis_rmax=rmax_val, ped_b=ped_b_truss))
     if vine_sel_all:
         keep = [f for i, f in enumerate(vine_faces) if i not in vine_sel_all]
         emit_obj(f'{PLANT_DIR}/{vname}_vine.obj', vs, vts, keep)
@@ -392,10 +401,7 @@ for p, vname in enumerate(VARIANTS):
         # (attach->cut) 已删: 它是"投影点->剪切点"的直线抽象, 与真实弯曲侧枝/
         # 果簇不重合 (用户截图确认观感错误); 剪后植株留真实侧枝断口。
         ped_a = np.zeros(3)                     # 柄根 = 剪切点 (body 原点)
-        # 方向必须用 ctr_rel (剪切点->簇心) 而非 dirc (attach->簇心): v2 剪切点在
-        # 簇顶外侧, 两方向可近似反平行 (实测 40/40 串偏差>30°, 22 串短柄悬空反向戳出)
-        ped_dir = t['ctr_rel'] / max(float(np.linalg.norm(t['ctr_rel'])), 1e-9)
-        ped_b = ped_dir * max(0.012, min(0.03, float(np.linalg.norm(t['ctr_rel']))))
+        ped_b = t['ped_b']                      # 指向最近果面 (prep_variant 内计算)
         assets.append(f'    <mesh name="m_{t["mesh"]}" file="meshes/env/plants/{t["mesh"]}.obj"/>')
         # 簇内穗轴网格 (方案 B): 随果串剪走, 纯视觉 (mat_vine), 不参与碰撞
         if t.get('rachis'):
