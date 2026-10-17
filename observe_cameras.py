@@ -20,8 +20,8 @@ OUT = '/data/robot_assembly/observations'
 # 三台相机: 名字 -> (竖直分辨率, 水平分辨率)  = 各自 color 流原生分辨率
 CAMS = {
     'cam_wrist_d405':   (720, 1280),   # D405  腕部, 朝下沿工具轴
-    'cam_scene_yp_l515': (540, 960),   # L515  +y 侧 (半分辨率, fovy 不变)
-    'cam_scene_yn_l515': (480, 640),  # L515 −y 侧
+    'cam_scene_yp_l515': (1080, 1920),   # L515 +y 侧 (原生 1920x1080)
+    'cam_scene_yn_l515': (1080, 1920),  # L515 −y 侧
 }
 
 # 默认初始指令 (与 keyframe "home" 的 ctrl 一致)

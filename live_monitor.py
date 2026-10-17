@@ -10,8 +10,8 @@ XML = '/data/robot_assembly/model/tomato_picker.xml'
 
 # 相机名 -> (竖直分辨率, 水平分辨率)  = 各自 color 流原生分辨率
 CAMS = {
-    'cam_scene_yp_l515': (540, 960),
-    'cam_scene_yn_l515': (480, 640),
+    'cam_scene_yp_l515': (1080, 1920),
+    'cam_scene_yn_l515': (1080, 1920),
     'cam_wrist_d405': (720, 1280),
 }
 TITLES = {
